@@ -3,34 +3,29 @@
 
 #include <stdio.h>
 
-typedef struct ParameterList
+typedef struct ParameterList 
 {
-
 } ParameterList;
 
-typedef struct NB_Value
+typedef struct NB_Value 
 {
-    union {
-        int int_value;
-        double double_value;
-        char *string_value;
-    }
+  union 
+  {
+    int int_value;
+    double double_value;
+    char *string_value;
+    struct NB_Value *NB_Array;
+  }
 } NB_Value;
 
-typedef struct NB_Array
+typedef struct Expression 
 {
-    NB_Value value;
-    struct NB_Array *next;
-} NB_Array;
-
-typedef struct Expression
-{
-
+    ExpressionType type; 
 } Expression;
 
 typedef enum 
 {
-    
-}ExpressionType;
+  ASSIGN_EXPRESSION,
+} ExpressionType;
 
 #endif
