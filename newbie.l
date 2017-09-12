@@ -2,7 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "newbie.h"
 #include "y.tab.h"
+
+ExpressionType expression_type;
 
 char *heredoc_tag = (char*)malloc(32 * sizeof(char));
 int yywarp(void)
@@ -65,7 +68,11 @@ int yywarp(void)
     yylval.identifier = yytext;
     return IDENTIFIER;
 }
-<INITIAL>[1-9][0-9]*|"0" {return INT_LITERAL;}
+<INITIAL>[1-9][0-9]*|"0" {
+    expression_type = INT;
+    yylval.expression = create_value_expression(expression_type, yytext);
+    return INT_LITERAL;
+}
 <INITIAL>[0-9]+\.[0-9]+ {return DOUBLE_LITERAL;}
 <INITIAL>\" {BEGIN STRING_LITERAL_STATE;}
 <INITIAL>"/*" {BEGIN BLOCK_COMMENT;}

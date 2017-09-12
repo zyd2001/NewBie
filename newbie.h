@@ -3,52 +3,91 @@
 
 #include <stdio.h>
 
-typedef struct ParameterList 
+
+typedef enum
 {
-} ParameterList;
+    ADD,
+    SUB,
+    MUL,
+    DIV,
+    MOD
+} ComputationType;
 
-typedef struct NB_Value 
+typedef enum
 {
-  union 
-  {
-    int int_value;
-    double double_value;
-    char *string_value;
-    NB_Array array;
-    NB_Array_Assoc array_assoc;
-  } value;
-} NB_Value;
-
-typedef NB_Value *NB_Array;
-
-typedef struct NB_Array_Assoc
-{
-  char **index;
-  NB_Value *value;
-}
-
-typedef struct Expression 
-{
-    ExpressionType type; 
-    int line_number;
-    union {
-
-    } v;
-} Expression;
+    EQ,
+    NE,
+    GT,
+    GE,
+    LT,
+    LE
+} ComparisonType;
 
 typedef enum 
 {
-  ASSIGNMENT_EXPRESSION,
-  COMPARISON_EXPRESSION,
-  
+    INT,
+    DOUBLE,
+    STRING,
+    IDENTIFIER,
+    ASSIGNMENT_EXPRESSION,
+    COMPARISON_EXPRESSION,
+    COMPUTATION_EXPRESSION,
+    FUNCTION_CALL_EXPRESSION  
 } ExpressionType;
 
-typedef struct 
+typedef enum
 {
-  Expression *expression;
-  Identifier *identifier;
+    INT,
+    DOUBLE,
+    STRING,
+    ARRAY,
+    ARRAY_ASSOC
+} NBValueType;
 
-} ARGUMENTS;
+typedef struct NB_Value_tag 
+{
+    NBValueType type;
+    union 
+    {
+        int int_value;
+        double double_value;
+        char *string_value;
+        struct NB_Value *array;
+        struct NB_Array_Assoc 
+        {
+            char **index;
+            struct NB_Value *value;
+        } array_assoc;
+    } value;
+} NB_Value;
+
+typedef struct Expression_tag Expression;
+
+typedef struct AssignmentExpression_tag
+{
+    char *identifier;
+    Expression *exp;
+} AssignmentExpression;
+
+typedef struct Expression_tag 
+{
+    ExpressionType type; 
+    int line_number;
+    union 
+    {
+        NB_Value *raw_value;
+        char *identifier;
+        ComparisonExpression *comparison_expression;
+        AssignmentExpression *assignment_expression;
+        ComputationExpression *computation_expression;
+        FunctionCallExpression *function_call_expression;
+    } u;
+} Expression;
+
+typedef struct Statement_tag
+{
+  
+}
 
 Expression *create_assignment_expression(char *identifier, Expression *exp);
 
