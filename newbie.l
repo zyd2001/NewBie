@@ -6,6 +6,7 @@
 #include "y.tab.h"
 
 ExpressionType expression_type;
+char *string_buffer;
 
 char *heredoc_tag = (char*)malloc(32 * sizeof(char));
 int yywarp(void)
@@ -73,19 +74,30 @@ int yywarp(void)
     yylval.expression = create_value_expression(expression_type, yytext);
     return INT_LITERAL;
 }
-<INITIAL>[0-9]+\.[0-9]+ {return DOUBLE_LITERAL;}
+<INITIAL>[0-9]+\.[0-9]+ {
+    expression_type = DOUBLE;
+    yylval.expression = create_value_expression(expression_type, yytext);
+    return DOUBLE_LITERAL;
+}
 <INITIAL>\" {BEGIN STRING_LITERAL_STATE;}
 <INITIAL>"/*" {BEGIN BLOCK_COMMENT;}
 <INITIAL>\\\\ {BEGIN LINE_COMMENT;}
-<INITIAL>"<<<"[A-Za-z_]+ {
+<INITIAL>"<<<"[A-Za-z_]+[\r\n]+ {
     strcpy(heredoc_tag, yytext + 3);
     BEGIN HEREDOC;
 }
-<HEREDOC>">>>"[A-Za-z_]+ {
+<HEREDOC>">>>"[A-Za-z_]+";" {
     if(!strcmp(heredoc_tag, yytext + 3))
     {
+        expression_type = STRING;
+        yylval.expression = create_value_expression(expression_type, string_buffer);
+        string_buffer = "";
         BEGIN INITIAL;
+        return STRING_LITERAL;
     }
+}
+<HEREDOC>[.]* {
+    string_buffer = yytext;
 }
 <LINE_COMMENT>\n {BEGIN INITIAL;}
 <BLOCK_COMMENT>\n increase_line_number();

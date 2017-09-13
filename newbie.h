@@ -1,9 +1,6 @@
 #ifndef INCLUDED_HEAD
 #define INCLUDED_HEAD
 
-#include <stdio.h>
-
-
 typedef enum
 {
     ADD,
@@ -81,7 +78,7 @@ typedef struct Expression_tag
         AssignmentExpression *assignment_expression;
         ComputationExpression *computation_expression;
         FunctionCallExpression *function_call_expression;
-    } u;
+    } content;
 } Expression;
 
 typedef struct Statement_tag

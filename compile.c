@@ -5,12 +5,31 @@
 
 Expression *create_value_expression(ExpressionType type, char *text)
 {
-    Expression exp;
+    NBValueType value_type;
+    Expression *exp;
+    exp = (Expression*)malloc(sizeof(Expression));
+    exp->type = type;
+    exp->content->raw_value = (NB_Value*)malloc(sizeof(NB_Value));
     switch(type)
     {
         case INT:
+            value_type = INT;
             int i = atoi(text);
-
+            exp->content.raw_value->type = value_type;
+            exp->content.raw_value->value.int_value = i;
+            break;
+        case DOUBLE:
+            value_type = DOUBLE;
+            double d = atof(text);
+            exp->content.raw_value->type = value_type;
+            exp->content.raw_value->value.double_value = d;
+            break;
+        case STRING:
+            value_type = STRING;
+            char *str = text;
+            exp->content.raw_value->type = value_type;
+            exp->content.raw_value->value.string_value = str;
+            break;
     }
 }
 

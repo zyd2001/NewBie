@@ -1,15 +1,8 @@
 #include <stdio.h> 
 #include <string.h> 
 #include <stdlib.h>
+#include "utility.h"
 
-int my_strlen_utf8_c(char *s) {
-    int i = 0, j = 0;
-    while (s[i]) {
-      if ((s[i] & 0xc0) != 0x80) j++;
-      i++;
-    }
-    return j;
-  }
 typedef enum
 {
     INT,
@@ -41,14 +34,18 @@ struct NB_Array_Assoc_tag
 
 int main(int argc, char *argv[])  
 {  
-    NB_Value v, a, b, *c;
-    a.value.int_value = 123;
-    c = &a;
-    v.value.array = malloc(sizeof(NB_Value));
-    printf("%d", a.value.int_value);
+    String *str = string_new();
+    string_append(str, "asdasd");
+    string_append(str, u8"张逸达张逸达asdasd");
+    printf("%d", strlen(str->value));
+    printf("%s", str->value);
+    string_reassign(str, "asdasd");
+    printf("%s", str->value);
+    str = string_delete(str);
 }  
 
 void print_NB_Value(NB_Value *value)
 {
-
+    char *s = value->value.string_value;
+    printf("%s", s);
 }
