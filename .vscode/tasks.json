@@ -8,8 +8,12 @@
             "type": "shell",
             "command": "gcc",
             "args": [
-                "-g", "${file}", "utility.c"
-            ],
+                "-g",
+                "${file}",
+                "utility.c",
+                "-o",
+                "${fileBasenameNoExtension}.out"
+            ]
         }
     ]
 }

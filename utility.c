@@ -30,8 +30,8 @@ String *string_append(String *str, char *new)
     new_length = strlen(new);
     if (old_length + new_length > str->limit)
     {
-        str->value = (char*)realloc(str->value, (old_length + new_length + 16) * sizeof(char));
-        str->limit = old_length + new_length + 16;
+        str->value = (char*)realloc(str->value, (old_length + new_length + 10) * sizeof(char));
+        str->limit = old_length + new_length + 10;
     }
     strcpy(str->value + old_length, new);
     str->size = new_length + old_length;

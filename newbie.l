@@ -3,10 +3,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include "newbie.h"
+#include "utility.h"
 #include "y.tab.h"
 
 ExpressionType expression_type;
-char *string_buffer;
+String *string_buffer;
 
 char *heredoc_tag = (char*)malloc(32 * sizeof(char));
 int yywarp(void)
@@ -83,21 +84,43 @@ int yywarp(void)
 <INITIAL>"/*" {BEGIN BLOCK_COMMENT;}
 <INITIAL>\\\\ {BEGIN LINE_COMMENT;}
 <INITIAL>"<<<"[A-Za-z_]+[\r\n]+ {
+    for (int i = strlen(yytext) - 1; i > 0; i--)
+    {
+        if (yytext[i] == '\n' | yytext[i] == '\r')
+            yytext[i] = '\0';
+        else
+            break;
+    }
     strcpy(heredoc_tag, yytext + 3);
+    string_buffer = string_new();
     BEGIN HEREDOC;
 }
 <HEREDOC>">>>"[A-Za-z_]+";" {
+    expression_type = DOUBLE;
+    yytext[strlen(yytext)-1] = '\0';
     if(!strcmp(heredoc_tag, yytext + 3))
     {
-        expression_type = STRING;
-        yylval.expression = create_value_expression(expression_type, string_buffer);
-        string_buffer = "";
+        for(int i = string_buffer->size - 1; i > 0; i--)
+        {
+            if (string_buffer->value[i] == '\n' || string_buffer->value[i] == '\r')
+            {
+                string_buffer->value[i] = '\0';
+                string_buffer->size--;
+            }
+            else
+                break;
+        }
+        yylval.expression = create_value_expression(expression_type, string_buffer->value);
+        string_buffer = string_delete(string_buffer);
         BEGIN INITIAL;
         return STRING_LITERAL;
     }
 }
-<HEREDOC>[.]* {
-    string_buffer = yytext;
+<HEREDOC>.* {
+    string_append(string_buffer, yytext);
+}
+<HEREDOC>[\n\r] {
+    string_append(string_buffer, yytext);
 }
 <LINE_COMMENT>\n {BEGIN INITIAL;}
 <BLOCK_COMMENT>\n increase_line_number();

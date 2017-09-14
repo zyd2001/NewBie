@@ -14,6 +14,7 @@ int yywrap()
 {
     return 1;
 }
+String *string_buffer;
 char heredoc_tag[32];
 %}
 %start HEREDOC
@@ -33,25 +34,37 @@ char heredoc_tag[32];
     }
     strcpy(heredoc_tag, yytext + 3);
     printf("HEREDOC\n");
-    string_buffer = (char*)malloc(16 * sizeof(char));
+    string_buffer = string_new();
     BEGIN HEREDOC;
 }
 <HEREDOC>">>>"[A-Za-z_]+";" {
     yytext[strlen(yytext)-1] = '\0';
     if(!strcmp(heredoc_tag, yytext + 3))
     {
-        printf("%s\n", string_buffer);
+        for(int i = string_buffer->size - 1; i > 0; i--)
+        {
+            if (string_buffer->value[i] == '\n' || string_buffer->value[i] == '\r')
+            {
+                string_buffer->value[i] = '\0';
+                string_buffer->size--;
+            }
+            else
+                break;
+        }
+        // for(int i = 0; i < string_buffer->size; i++)
+        // {
+        //     printf("%c", string_buffer->value[i]);
+        // }
+        printf("%s", string_buffer->value);
+        string_buffer = string_delete(string_buffer);
         BEGIN INITIAL;
     }
 }
 <HEREDOC>.* {
-    printf("%s\n", yytext);
-    strcpy(string_buffer, yytext);
-    printf("%s\n", string_buffer);
-    printf("%p\n", string_buffer);    
+    string_append(string_buffer, yytext);
 }
 <HEREDOC>[\n\r] {
-    // printf("new line\n");
+    string_append(string_buffer, yytext);
 }
 <INITIAL>\\ {printf("slash\n");}
 <INITIAL>\\\" {printf("quote\n");}

@@ -486,6 +486,7 @@ char *yytext;
 #line 2 "test.l"
 #include <stdio.h>
 #include <string.h>
+#include "utility.h"
 int my_strlen_utf8_c(char *s) {
     int i = 0, j = 0;
     while (s[i]) {
@@ -494,14 +495,14 @@ int my_strlen_utf8_c(char *s) {
     }
     return j;
   }
-char* string_buffer;
 int yywrap()
 {
     return 1;
 }
+String *string_buffer;
 char heredoc_tag[32];
 
-#line 505 "lex.yy.c"
+#line 506 "lex.yy.c"
 
 #define INITIAL 0
 #define HEREDOC 1
@@ -720,9 +721,9 @@ YY_DECL
 		}
 
 	{
-#line 20 "test.l"
+#line 21 "test.l"
 
-#line 726 "lex.yy.c"
+#line 727 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -781,34 +782,34 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 21 "test.l"
+#line 22 "test.l"
 printf("int_T\n");
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 22 "test.l"
+#line 23 "test.l"
 printf("identifier\n");
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 23 "test.l"
+#line 24 "test.l"
 printf("eq");
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 24 "test.l"
+#line 25 "test.l"
 {printf("new line\n");}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 25 "test.l"
+#line 26 "test.l"
 {printf("number %s\n", yytext);}
 	YY_BREAK
 case 6:
 /* rule 6 can match eol */
 YY_RULE_SETUP
-#line 26 "test.l"
+#line 27 "test.l"
 {
     for (int i = strlen(yytext) - 1; i > 0; i--)
     {
@@ -819,72 +820,83 @@ YY_RULE_SETUP
     }
     strcpy(heredoc_tag, yytext + 3);
     printf("HEREDOC\n");
-    string_buffer = (char*)malloc(16 * sizeof(char));
+    string_buffer = string_new();
     BEGIN HEREDOC;
 }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 39 "test.l"
+#line 40 "test.l"
 {
     yytext[strlen(yytext)-1] = '\0';
     if(!strcmp(heredoc_tag, yytext + 3))
     {
-        printf("%d\n", strlen(string_buffer));
-        printf("%s\n", string_buffer);
+        for(int i = string_buffer->size - 1; i > 0; i--)
+        {
+            if (string_buffer->value[i] == '\n' || string_buffer->value[i] == '\r')
+            {
+                string_buffer->value[i] = '\0';
+                string_buffer->size--;
+            }
+            else
+                break;
+        }
+        // for(int i = 0; i < string_buffer->size; i++)
+        // {
+        //     printf("%c", string_buffer->value[i]);
+        // }
+        printf("%s", string_buffer->value);
+        string_buffer = string_delete(string_buffer);
         BEGIN INITIAL;
     }
 }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 48 "test.l"
+#line 63 "test.l"
 {
-    printf("%s\n", yytext);
-    strcpy(string_buffer, yytext);
-    printf("%s\n", string_buffer);
-    printf("%p\n", string_buffer);    
+    string_append(string_buffer, yytext);
 }
 	YY_BREAK
 case 9:
 /* rule 9 can match eol */
 YY_RULE_SETUP
-#line 54 "test.l"
+#line 66 "test.l"
 {
-    // printf("new line\n");
+    string_append(string_buffer, yytext);
 }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 57 "test.l"
+#line 69 "test.l"
 {printf("slash\n");}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 58 "test.l"
+#line 70 "test.l"
 {printf("quote\n");}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 59 "test.l"
+#line 71 "test.l"
 {printf("\\n\n");}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 60 "test.l"
+#line 72 "test.l"
 
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 61 "test.l"
+#line 73 "test.l"
 ;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 62 "test.l"
+#line 74 "test.l"
 ECHO;
 	YY_BREAK
-#line 888 "lex.yy.c"
+#line 900 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(HEREDOC):
 	yyterminate();
@@ -1886,7 +1898,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 62 "test.l"
+#line 74 "test.l"
 
 
 

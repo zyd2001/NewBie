@@ -35,13 +35,10 @@ struct NB_Array_Assoc_tag
 int main(int argc, char *argv[])  
 {  
     String *str = string_new();
-    string_append(str, "asdasd");
-    string_append(str, u8"张逸达张逸达asdasd");
-    printf("%d", strlen(str->value));
-    printf("%s", str->value);
-    string_reassign(str, "asdasd");
-    printf("%s", str->value);
-    str = string_delete(str);
+    string_append(str, "asd");
+    string_append(str, "张逸达");
+    printf("%d", str->size);
+    printf("%d", str->length);
 }  
 
 void print_NB_Value(NB_Value *value)
