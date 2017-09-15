@@ -1,35 +1,18 @@
-Nonterminals useless in grammar
-
-   expression
-
-
 Terminals unused in grammar
 
-   IF
    ELSE
    ELSEIF
    FOR
-   FOREACH
    CLASS
    RETURN
    BREAK
    CONTINUE
-   LP
-   RP
    LC
    RC
    LB
    RB
-   SEMICOLON
-   COMMA
    LOGICAL_AND
    LOGICAL_OR
-   EQ
-   NE
-   GT
-   GE
-   LT
-   LE
    ADD
    SUB
    MUL
@@ -44,240 +27,795 @@ Terminals unused in grammar
    MOD_ASSIGN
    INCREMENT
    DECREMENT
-   comparison_expression
 
 
-Rules useless in grammar
-
-   13 expression: assignment_expression
-   14           | comparison_expression
+State 33 conflicts: 6 shift/reduce
+State 36 conflicts: 6 shift/reduce
+State 37 conflicts: 6 shift/reduce
+State 38 conflicts: 6 shift/reduce
+State 39 conflicts: 6 shift/reduce
+State 40 conflicts: 6 shift/reduce
+State 41 conflicts: 6 shift/reduce
+State 46 conflicts: 10 shift/reduce
 
 
 Grammar
 
-    0 $accept: declaration_statement $end
+    0 $accept: statement $end
 
-    1 declaration_statement: declaration_tag IDENTIFIER
-    2                      | declaration_tag assignment_expression
+    1 statement: expression SEMICOLON
+    2          | IF LP argument_list RP block
 
-    3 assignment_expression: IDENTIFIER ASSIGN_T IDENTIFIER
-    4                      | IDENTIFIER ASSIGN_T primary_expression
+    3 expression: assignment_expression
+    4           | declaration_expression
+    5           | comparison_expression
+    6           | primary_expression
+    7           | IDENTIFIER
 
-    5 primary_expression: INT_LITERAL
-    6                   | DOUBLE_LITERAL
-    7                   | STRING_LITERAL
+    8 comparison_expression: expression EQ expression
+    9                      | expression NE expression
+   10                      | expression GT expression
+   11                      | expression GE expression
+   12                      | expression LT expression
+   13                      | expression LE expression
 
-    8 declaration_tag: INT_T
-    9                | DOUBLE_T
-   10                | STRING_T
-   11                | ARRAY_ASSOC_T
-   12                | ARRAY_T
+   14 declaration_expression: INT_T IDENTIFIER
+   15                       | DOUBLE_T IDENTIFIER
+   16                       | STRING_T IDENTIFIER
+   17                       | ARRAY_T IDENTIFIER
+   18                       | ARRAY_ASSOC_T IDENTIFIER
+   19                       | INT_T assignment_expression
+
+   20 assignment_expression: IDENTIFIER ASSIGN_T expression
+
+   21 primary_expression: INT_LITERAL
+   22                   | DOUBLE_LITERAL
+   23                   | STRING_LITERAL
+
+   24 block: statement_list
+
+   25 statement_list: statement
+   26               | statement_list statement
+
+   27 argument_list: IDENTIFIER
+   28              | argument_list COMMA IDENTIFIER
 
 
 Terminals, with rules where they appear
 
 $end (0) 0
 error (256)
-INT_LITERAL (258) 5
-DOUBLE_LITERAL (259) 6
-STRING_LITERAL (260) 7
-IDENTIFIER (261) 1 3 4
-INT_T (262) 8
-DOUBLE_T (263) 9
-STRING_T (264) 10
-ARRAY_T (265) 12
-ARRAY_ASSOC_T (266) 11
-IF (267)
+INT_LITERAL (258) 21
+STRING_LITERAL (259) 23
+DOUBLE_LITERAL (260) 22
+IDENTIFIER (261) 7 14 15 16 17 18 20 27 28
+INT_T (262) 14 19
+DOUBLE_T (263) 15
+STRING_T (264) 16
+ARRAY_T (265) 17
+ARRAY_ASSOC_T (266) 18
+IF (267) 2
 ELSE (268)
 ELSEIF (269)
 FOR (270)
-FOREACH (271)
-CLASS (272)
-RETURN (273)
-BREAK (274)
-CONTINUE (275)
-LP (276)
-RP (277)
-LC (278)
-RC (279)
-LB (280)
-RB (281)
-SEMICOLON (282)
-COMMA (283)
-ASSIGN_T (284) 3 4
-LOGICAL_AND (285)
-LOGICAL_OR (286)
-EQ (287)
-NE (288)
-GT (289)
-GE (290)
-LT (291)
-LE (292)
-ADD (293)
-SUB (294)
-MUL (295)
-DIV (296)
-MOD (297)
-EXCLAMATION (298)
-DOT (299)
-ADD_ASSIGN (300)
-SUB_ASSIGN (301)
-MUL_ASSIGN (302)
-DIV_ASSIGN (303)
-MOD_ASSIGN (304)
-INCREMENT (305)
-DECREMENT (306)
-comparison_expression (307)
+CLASS (271)
+RETURN (272)
+BREAK (273)
+CONTINUE (274)
+LP (275) 2
+RP (276) 2
+LC (277)
+RC (278)
+LB (279)
+RB (280)
+SEMICOLON (281) 1
+COMMA (282) 28
+ASSIGN_T (283) 20
+LOGICAL_AND (284)
+LOGICAL_OR (285)
+EQ (286) 8
+NE (287) 9
+GT (288) 10
+GE (289) 11
+LT (290) 12
+LE (291) 13
+ADD (292)
+SUB (293)
+MUL (294)
+DIV (295)
+MOD (296)
+EXCLAMATION (297)
+DOT (298)
+ADD_ASSIGN (299)
+SUB_ASSIGN (300)
+MUL_ASSIGN (301)
+DIV_ASSIGN (302)
+MOD_ASSIGN (303)
+INCREMENT (304)
+DECREMENT (305)
 
 
 Nonterminals, with rules where they appear
 
-$accept (53)
+$accept (51)
     on left: 0
-declaration_statement (54)
-    on left: 1 2, on right: 0
-assignment_expression (55)
-    on left: 3 4, on right: 2
-primary_expression (56)
-    on left: 5 6 7, on right: 4
-declaration_tag (57)
-    on left: 8 9 10 11 12, on right: 1 2
+statement (52)
+    on left: 1 2, on right: 0 25 26
+expression (53)
+    on left: 3 4 5 6 7, on right: 1 8 9 10 11 12 13 20
+comparison_expression (54)
+    on left: 8 9 10 11 12 13, on right: 5
+declaration_expression (55)
+    on left: 14 15 16 17 18 19, on right: 4
+assignment_expression (56)
+    on left: 20, on right: 3 19
+primary_expression (57)
+    on left: 21 22 23, on right: 6
+block (58)
+    on left: 24, on right: 2
+statement_list (59)
+    on left: 25 26, on right: 24 26
+argument_list (60)
+    on left: 27 28, on right: 2 28
 
 
 State 0
 
-    0 $accept: . declaration_statement $end
+    0 $accept: . statement $end
 
-    INT_T          shift, and go to state 1
-    DOUBLE_T       shift, and go to state 2
-    STRING_T       shift, and go to state 3
-    ARRAY_T        shift, and go to state 4
-    ARRAY_ASSOC_T  shift, and go to state 5
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 5
+    DOUBLE_T        shift, and go to state 6
+    STRING_T        shift, and go to state 7
+    ARRAY_T         shift, and go to state 8
+    ARRAY_ASSOC_T   shift, and go to state 9
+    IF              shift, and go to state 10
 
-    declaration_statement  go to state 6
-    declaration_tag        go to state 7
+    statement               go to state 11
+    expression              go to state 12
+    comparison_expression   go to state 13
+    declaration_expression  go to state 14
+    assignment_expression   go to state 15
+    primary_expression      go to state 16
 
 
 State 1
 
-    8 declaration_tag: INT_T .
+   21 primary_expression: INT_LITERAL .
 
-    $default  reduce using rule 8 (declaration_tag)
+    $default  reduce using rule 21 (primary_expression)
 
 
 State 2
 
-    9 declaration_tag: DOUBLE_T .
+   23 primary_expression: STRING_LITERAL .
 
-    $default  reduce using rule 9 (declaration_tag)
+    $default  reduce using rule 23 (primary_expression)
 
 
 State 3
 
-   10 declaration_tag: STRING_T .
+   22 primary_expression: DOUBLE_LITERAL .
 
-    $default  reduce using rule 10 (declaration_tag)
+    $default  reduce using rule 22 (primary_expression)
 
 
 State 4
 
-   12 declaration_tag: ARRAY_T .
+    7 expression: IDENTIFIER .
+   20 assignment_expression: IDENTIFIER . ASSIGN_T expression
 
-    $default  reduce using rule 12 (declaration_tag)
+    ASSIGN_T  shift, and go to state 17
+
+    $default  reduce using rule 7 (expression)
 
 
 State 5
 
-   11 declaration_tag: ARRAY_ASSOC_T .
+   14 declaration_expression: INT_T . IDENTIFIER
+   19                       | INT_T . assignment_expression
 
-    $default  reduce using rule 11 (declaration_tag)
+    IDENTIFIER  shift, and go to state 18
+
+    assignment_expression  go to state 19
 
 
 State 6
 
-    0 $accept: declaration_statement . $end
+   15 declaration_expression: DOUBLE_T . IDENTIFIER
 
-    $end  shift, and go to state 8
+    IDENTIFIER  shift, and go to state 20
 
 
 State 7
 
-    1 declaration_statement: declaration_tag . IDENTIFIER
-    2                      | declaration_tag . assignment_expression
+   16 declaration_expression: STRING_T . IDENTIFIER
 
-    IDENTIFIER  shift, and go to state 9
-
-    assignment_expression  go to state 10
+    IDENTIFIER  shift, and go to state 21
 
 
 State 8
 
-    0 $accept: declaration_statement $end .
+   17 declaration_expression: ARRAY_T . IDENTIFIER
 
-    $default  accept
+    IDENTIFIER  shift, and go to state 22
 
 
 State 9
 
-    1 declaration_statement: declaration_tag IDENTIFIER .
-    3 assignment_expression: IDENTIFIER . ASSIGN_T IDENTIFIER
-    4                      | IDENTIFIER . ASSIGN_T primary_expression
+   18 declaration_expression: ARRAY_ASSOC_T . IDENTIFIER
 
-    ASSIGN_T  shift, and go to state 11
-
-    $default  reduce using rule 1 (declaration_statement)
+    IDENTIFIER  shift, and go to state 23
 
 
 State 10
 
-    2 declaration_statement: declaration_tag assignment_expression .
+    2 statement: IF . LP argument_list RP block
 
-    $default  reduce using rule 2 (declaration_statement)
+    LP  shift, and go to state 24
 
 
 State 11
 
-    3 assignment_expression: IDENTIFIER ASSIGN_T . IDENTIFIER
-    4                      | IDENTIFIER ASSIGN_T . primary_expression
+    0 $accept: statement . $end
 
-    INT_LITERAL     shift, and go to state 12
-    DOUBLE_LITERAL  shift, and go to state 13
-    STRING_LITERAL  shift, and go to state 14
-    IDENTIFIER      shift, and go to state 15
-
-    primary_expression  go to state 16
+    $end  shift, and go to state 25
 
 
 State 12
 
-    5 primary_expression: INT_LITERAL .
+    1 statement: expression . SEMICOLON
+    8 comparison_expression: expression . EQ expression
+    9                      | expression . NE expression
+   10                      | expression . GT expression
+   11                      | expression . GE expression
+   12                      | expression . LT expression
+   13                      | expression . LE expression
 
-    $default  reduce using rule 5 (primary_expression)
+    SEMICOLON  shift, and go to state 26
+    EQ         shift, and go to state 27
+    NE         shift, and go to state 28
+    GT         shift, and go to state 29
+    GE         shift, and go to state 30
+    LT         shift, and go to state 31
+    LE         shift, and go to state 32
 
 
 State 13
 
-    6 primary_expression: DOUBLE_LITERAL .
+    5 expression: comparison_expression .
 
-    $default  reduce using rule 6 (primary_expression)
+    $default  reduce using rule 5 (expression)
 
 
 State 14
 
-    7 primary_expression: STRING_LITERAL .
+    4 expression: declaration_expression .
 
-    $default  reduce using rule 7 (primary_expression)
+    $default  reduce using rule 4 (expression)
 
 
 State 15
 
-    3 assignment_expression: IDENTIFIER ASSIGN_T IDENTIFIER .
+    3 expression: assignment_expression .
 
-    $default  reduce using rule 3 (assignment_expression)
+    $default  reduce using rule 3 (expression)
 
 
 State 16
 
-    4 assignment_expression: IDENTIFIER ASSIGN_T primary_expression .
+    6 expression: primary_expression .
 
-    $default  reduce using rule 4 (assignment_expression)
+    $default  reduce using rule 6 (expression)
+
+
+State 17
+
+   20 assignment_expression: IDENTIFIER ASSIGN_T . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 5
+    DOUBLE_T        shift, and go to state 6
+    STRING_T        shift, and go to state 7
+    ARRAY_T         shift, and go to state 8
+    ARRAY_ASSOC_T   shift, and go to state 9
+
+    expression              go to state 33
+    comparison_expression   go to state 13
+    declaration_expression  go to state 14
+    assignment_expression   go to state 15
+    primary_expression      go to state 16
+
+
+State 18
+
+   14 declaration_expression: INT_T IDENTIFIER .
+   20 assignment_expression: IDENTIFIER . ASSIGN_T expression
+
+    ASSIGN_T  shift, and go to state 17
+
+    $default  reduce using rule 14 (declaration_expression)
+
+
+State 19
+
+   19 declaration_expression: INT_T assignment_expression .
+
+    $default  reduce using rule 19 (declaration_expression)
+
+
+State 20
+
+   15 declaration_expression: DOUBLE_T IDENTIFIER .
+
+    $default  reduce using rule 15 (declaration_expression)
+
+
+State 21
+
+   16 declaration_expression: STRING_T IDENTIFIER .
+
+    $default  reduce using rule 16 (declaration_expression)
+
+
+State 22
+
+   17 declaration_expression: ARRAY_T IDENTIFIER .
+
+    $default  reduce using rule 17 (declaration_expression)
+
+
+State 23
+
+   18 declaration_expression: ARRAY_ASSOC_T IDENTIFIER .
+
+    $default  reduce using rule 18 (declaration_expression)
+
+
+State 24
+
+    2 statement: IF LP . argument_list RP block
+
+    IDENTIFIER  shift, and go to state 34
+
+    argument_list  go to state 35
+
+
+State 25
+
+    0 $accept: statement $end .
+
+    $default  accept
+
+
+State 26
+
+    1 statement: expression SEMICOLON .
+
+    $default  reduce using rule 1 (statement)
+
+
+State 27
+
+    8 comparison_expression: expression EQ . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 5
+    DOUBLE_T        shift, and go to state 6
+    STRING_T        shift, and go to state 7
+    ARRAY_T         shift, and go to state 8
+    ARRAY_ASSOC_T   shift, and go to state 9
+
+    expression              go to state 36
+    comparison_expression   go to state 13
+    declaration_expression  go to state 14
+    assignment_expression   go to state 15
+    primary_expression      go to state 16
+
+
+State 28
+
+    9 comparison_expression: expression NE . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 5
+    DOUBLE_T        shift, and go to state 6
+    STRING_T        shift, and go to state 7
+    ARRAY_T         shift, and go to state 8
+    ARRAY_ASSOC_T   shift, and go to state 9
+
+    expression              go to state 37
+    comparison_expression   go to state 13
+    declaration_expression  go to state 14
+    assignment_expression   go to state 15
+    primary_expression      go to state 16
+
+
+State 29
+
+   10 comparison_expression: expression GT . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 5
+    DOUBLE_T        shift, and go to state 6
+    STRING_T        shift, and go to state 7
+    ARRAY_T         shift, and go to state 8
+    ARRAY_ASSOC_T   shift, and go to state 9
+
+    expression              go to state 38
+    comparison_expression   go to state 13
+    declaration_expression  go to state 14
+    assignment_expression   go to state 15
+    primary_expression      go to state 16
+
+
+State 30
+
+   11 comparison_expression: expression GE . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 5
+    DOUBLE_T        shift, and go to state 6
+    STRING_T        shift, and go to state 7
+    ARRAY_T         shift, and go to state 8
+    ARRAY_ASSOC_T   shift, and go to state 9
+
+    expression              go to state 39
+    comparison_expression   go to state 13
+    declaration_expression  go to state 14
+    assignment_expression   go to state 15
+    primary_expression      go to state 16
+
+
+State 31
+
+   12 comparison_expression: expression LT . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 5
+    DOUBLE_T        shift, and go to state 6
+    STRING_T        shift, and go to state 7
+    ARRAY_T         shift, and go to state 8
+    ARRAY_ASSOC_T   shift, and go to state 9
+
+    expression              go to state 40
+    comparison_expression   go to state 13
+    declaration_expression  go to state 14
+    assignment_expression   go to state 15
+    primary_expression      go to state 16
+
+
+State 32
+
+   13 comparison_expression: expression LE . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 5
+    DOUBLE_T        shift, and go to state 6
+    STRING_T        shift, and go to state 7
+    ARRAY_T         shift, and go to state 8
+    ARRAY_ASSOC_T   shift, and go to state 9
+
+    expression              go to state 41
+    comparison_expression   go to state 13
+    declaration_expression  go to state 14
+    assignment_expression   go to state 15
+    primary_expression      go to state 16
+
+
+State 33
+
+    8 comparison_expression: expression . EQ expression
+    9                      | expression . NE expression
+   10                      | expression . GT expression
+   11                      | expression . GE expression
+   12                      | expression . LT expression
+   13                      | expression . LE expression
+   20 assignment_expression: IDENTIFIER ASSIGN_T expression .
+
+    EQ  shift, and go to state 27
+    NE  shift, and go to state 28
+    GT  shift, and go to state 29
+    GE  shift, and go to state 30
+    LT  shift, and go to state 31
+    LE  shift, and go to state 32
+
+    EQ        [reduce using rule 20 (assignment_expression)]
+    NE        [reduce using rule 20 (assignment_expression)]
+    GT        [reduce using rule 20 (assignment_expression)]
+    GE        [reduce using rule 20 (assignment_expression)]
+    LT        [reduce using rule 20 (assignment_expression)]
+    LE        [reduce using rule 20 (assignment_expression)]
+    $default  reduce using rule 20 (assignment_expression)
+
+
+State 34
+
+   27 argument_list: IDENTIFIER .
+
+    $default  reduce using rule 27 (argument_list)
+
+
+State 35
+
+    2 statement: IF LP argument_list . RP block
+   28 argument_list: argument_list . COMMA IDENTIFIER
+
+    RP     shift, and go to state 42
+    COMMA  shift, and go to state 43
+
+
+State 36
+
+    8 comparison_expression: expression . EQ expression
+    8                      | expression EQ expression .
+    9                      | expression . NE expression
+   10                      | expression . GT expression
+   11                      | expression . GE expression
+   12                      | expression . LT expression
+   13                      | expression . LE expression
+
+    EQ  shift, and go to state 27
+    NE  shift, and go to state 28
+    GT  shift, and go to state 29
+    GE  shift, and go to state 30
+    LT  shift, and go to state 31
+    LE  shift, and go to state 32
+
+    EQ        [reduce using rule 8 (comparison_expression)]
+    NE        [reduce using rule 8 (comparison_expression)]
+    GT        [reduce using rule 8 (comparison_expression)]
+    GE        [reduce using rule 8 (comparison_expression)]
+    LT        [reduce using rule 8 (comparison_expression)]
+    LE        [reduce using rule 8 (comparison_expression)]
+    $default  reduce using rule 8 (comparison_expression)
+
+
+State 37
+
+    8 comparison_expression: expression . EQ expression
+    9                      | expression . NE expression
+    9                      | expression NE expression .
+   10                      | expression . GT expression
+   11                      | expression . GE expression
+   12                      | expression . LT expression
+   13                      | expression . LE expression
+
+    EQ  shift, and go to state 27
+    NE  shift, and go to state 28
+    GT  shift, and go to state 29
+    GE  shift, and go to state 30
+    LT  shift, and go to state 31
+    LE  shift, and go to state 32
+
+    EQ        [reduce using rule 9 (comparison_expression)]
+    NE        [reduce using rule 9 (comparison_expression)]
+    GT        [reduce using rule 9 (comparison_expression)]
+    GE        [reduce using rule 9 (comparison_expression)]
+    LT        [reduce using rule 9 (comparison_expression)]
+    LE        [reduce using rule 9 (comparison_expression)]
+    $default  reduce using rule 9 (comparison_expression)
+
+
+State 38
+
+    8 comparison_expression: expression . EQ expression
+    9                      | expression . NE expression
+   10                      | expression . GT expression
+   10                      | expression GT expression .
+   11                      | expression . GE expression
+   12                      | expression . LT expression
+   13                      | expression . LE expression
+
+    EQ  shift, and go to state 27
+    NE  shift, and go to state 28
+    GT  shift, and go to state 29
+    GE  shift, and go to state 30
+    LT  shift, and go to state 31
+    LE  shift, and go to state 32
+
+    EQ        [reduce using rule 10 (comparison_expression)]
+    NE        [reduce using rule 10 (comparison_expression)]
+    GT        [reduce using rule 10 (comparison_expression)]
+    GE        [reduce using rule 10 (comparison_expression)]
+    LT        [reduce using rule 10 (comparison_expression)]
+    LE        [reduce using rule 10 (comparison_expression)]
+    $default  reduce using rule 10 (comparison_expression)
+
+
+State 39
+
+    8 comparison_expression: expression . EQ expression
+    9                      | expression . NE expression
+   10                      | expression . GT expression
+   11                      | expression . GE expression
+   11                      | expression GE expression .
+   12                      | expression . LT expression
+   13                      | expression . LE expression
+
+    EQ  shift, and go to state 27
+    NE  shift, and go to state 28
+    GT  shift, and go to state 29
+    GE  shift, and go to state 30
+    LT  shift, and go to state 31
+    LE  shift, and go to state 32
+
+    EQ        [reduce using rule 11 (comparison_expression)]
+    NE        [reduce using rule 11 (comparison_expression)]
+    GT        [reduce using rule 11 (comparison_expression)]
+    GE        [reduce using rule 11 (comparison_expression)]
+    LT        [reduce using rule 11 (comparison_expression)]
+    LE        [reduce using rule 11 (comparison_expression)]
+    $default  reduce using rule 11 (comparison_expression)
+
+
+State 40
+
+    8 comparison_expression: expression . EQ expression
+    9                      | expression . NE expression
+   10                      | expression . GT expression
+   11                      | expression . GE expression
+   12                      | expression . LT expression
+   12                      | expression LT expression .
+   13                      | expression . LE expression
+
+    EQ  shift, and go to state 27
+    NE  shift, and go to state 28
+    GT  shift, and go to state 29
+    GE  shift, and go to state 30
+    LT  shift, and go to state 31
+    LE  shift, and go to state 32
+
+    EQ        [reduce using rule 12 (comparison_expression)]
+    NE        [reduce using rule 12 (comparison_expression)]
+    GT        [reduce using rule 12 (comparison_expression)]
+    GE        [reduce using rule 12 (comparison_expression)]
+    LT        [reduce using rule 12 (comparison_expression)]
+    LE        [reduce using rule 12 (comparison_expression)]
+    $default  reduce using rule 12 (comparison_expression)
+
+
+State 41
+
+    8 comparison_expression: expression . EQ expression
+    9                      | expression . NE expression
+   10                      | expression . GT expression
+   11                      | expression . GE expression
+   12                      | expression . LT expression
+   13                      | expression . LE expression
+   13                      | expression LE expression .
+
+    EQ  shift, and go to state 27
+    NE  shift, and go to state 28
+    GT  shift, and go to state 29
+    GE  shift, and go to state 30
+    LT  shift, and go to state 31
+    LE  shift, and go to state 32
+
+    EQ        [reduce using rule 13 (comparison_expression)]
+    NE        [reduce using rule 13 (comparison_expression)]
+    GT        [reduce using rule 13 (comparison_expression)]
+    GE        [reduce using rule 13 (comparison_expression)]
+    LT        [reduce using rule 13 (comparison_expression)]
+    LE        [reduce using rule 13 (comparison_expression)]
+    $default  reduce using rule 13 (comparison_expression)
+
+
+State 42
+
+    2 statement: IF LP argument_list RP . block
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 5
+    DOUBLE_T        shift, and go to state 6
+    STRING_T        shift, and go to state 7
+    ARRAY_T         shift, and go to state 8
+    ARRAY_ASSOC_T   shift, and go to state 9
+    IF              shift, and go to state 10
+
+    statement               go to state 44
+    expression              go to state 12
+    comparison_expression   go to state 13
+    declaration_expression  go to state 14
+    assignment_expression   go to state 15
+    primary_expression      go to state 16
+    block                   go to state 45
+    statement_list          go to state 46
+
+
+State 43
+
+   28 argument_list: argument_list COMMA . IDENTIFIER
+
+    IDENTIFIER  shift, and go to state 47
+
+
+State 44
+
+   25 statement_list: statement .
+
+    $default  reduce using rule 25 (statement_list)
+
+
+State 45
+
+    2 statement: IF LP argument_list RP block .
+
+    $default  reduce using rule 2 (statement)
+
+
+State 46
+
+   24 block: statement_list .
+   26 statement_list: statement_list . statement
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 5
+    DOUBLE_T        shift, and go to state 6
+    STRING_T        shift, and go to state 7
+    ARRAY_T         shift, and go to state 8
+    ARRAY_ASSOC_T   shift, and go to state 9
+    IF              shift, and go to state 10
+
+    INT_LITERAL     [reduce using rule 24 (block)]
+    STRING_LITERAL  [reduce using rule 24 (block)]
+    DOUBLE_LITERAL  [reduce using rule 24 (block)]
+    IDENTIFIER      [reduce using rule 24 (block)]
+    INT_T           [reduce using rule 24 (block)]
+    DOUBLE_T        [reduce using rule 24 (block)]
+    STRING_T        [reduce using rule 24 (block)]
+    ARRAY_T         [reduce using rule 24 (block)]
+    ARRAY_ASSOC_T   [reduce using rule 24 (block)]
+    IF              [reduce using rule 24 (block)]
+    $default        reduce using rule 24 (block)
+
+    statement               go to state 48
+    expression              go to state 12
+    comparison_expression   go to state 13
+    declaration_expression  go to state 14
+    assignment_expression   go to state 15
+    primary_expression      go to state 16
+
+
+State 47
+
+   28 argument_list: argument_list COMMA IDENTIFIER .
+
+    $default  reduce using rule 28 (argument_list)
+
+
+State 48
+
+   26 statement_list: statement_list statement .
+
+    $default  reduce using rule 26 (statement_list)

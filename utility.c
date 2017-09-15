@@ -17,9 +17,9 @@ String *string_new()
     String *str;
     str = (String*)malloc(sizeof(String));
     str->size = 0;
-    str->limit = 16;
+    str->limit = 10;
     str->length = 0;
-    str->value = (char*)malloc(16 * sizeof(char));
+    str->value = (char*)malloc(10 * sizeof(char));
     return str;
 }
 
@@ -49,6 +49,21 @@ String *string_reassign(String *str, char *new)
 int string_compare(String *first, String *second)
 {
     return strcmp(first->value, second->value);
+}
+
+String *string_copy(String *destination, String *source)
+{
+    String *new;
+    if(destination == NULL)
+        new = string_new();
+    else
+        new = destination;
+    new->size = source->size;
+    new->length = source->length;
+    new->limit = source->limit;
+    new->value = (char*)realloc(new->value, source->limit * sizeof(char));
+    strcpy(new->value, source->value);
+    return new;
 }
 
 void *string_delete(String *str)

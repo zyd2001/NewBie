@@ -1,9 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "newbie.h"
 
-Expression *create_value_expression(ExpressionType type, char *text)
+Expression *create_value_expression(ExpressionType type, void *value)
 {
     NBValueType value_type;
     Expression *exp;
@@ -14,19 +11,19 @@ Expression *create_value_expression(ExpressionType type, char *text)
     {
         case INT:
             value_type = INT;
-            int i = atoi(text);
+            int i = atoi((char*)value);
             exp->content.raw_value->type = value_type;
             exp->content.raw_value->value.int_value = i;
             break;
         case DOUBLE:
             value_type = DOUBLE;
-            double d = atof(text);
+            double d = atof((char*)value);
             exp->content.raw_value->type = value_type;
             exp->content.raw_value->value.double_value = d;
             break;
         case STRING:
             value_type = STRING;
-            char *str = text;
+            String *str = string_copy(NULL, (String*)value);
             exp->content.raw_value->type = value_type;
             exp->content.raw_value->value.string_value = str;
             break;

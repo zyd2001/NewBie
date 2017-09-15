@@ -14,5 +14,6 @@ String *string_append(String *str, char *new);
 void *string_delete(String *str);
 int string_compare(String *first, String *second);
 String *string_reassign(String *str, char *new);
+String *string_copy(String *destination, String *source);
 
 #endif

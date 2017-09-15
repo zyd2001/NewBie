@@ -1,9 +1,5 @@
 %{
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include "newbie.h"
-#include "utility.h"
 #include "y.tab.h"
 
 ExpressionType expression_type;
@@ -80,7 +76,10 @@ int yywarp(void)
     yylval.expression = create_value_expression(expression_type, yytext);
     return DOUBLE_LITERAL;
 }
-<INITIAL>\" {BEGIN STRING_LITERAL_STATE;}
+<INITIAL>\" {
+    string_buffer = string_new();
+    BEGIN STRING_LITERAL_STATE;
+}
 <INITIAL>"/*" {BEGIN BLOCK_COMMENT;}
 <INITIAL>\\\\ {BEGIN LINE_COMMENT;}
 <INITIAL>"<<<"[A-Za-z_]+[\r\n]+ {
@@ -95,9 +94,8 @@ int yywarp(void)
     string_buffer = string_new();
     BEGIN HEREDOC;
 }
-<HEREDOC>">>>"[A-Za-z_]+";" {
-    expression_type = DOUBLE;
-    yytext[strlen(yytext)-1] = '\0';
+<HEREDOC>^">>>"[A-Za-z_]+/";" {
+    expression_type = STRING;
     if(!strcmp(heredoc_tag, yytext + 3))
     {
         for(int i = string_buffer->size - 1; i > 0; i--)
@@ -110,24 +108,41 @@ int yywarp(void)
             else
                 break;
         }
-        yylval.expression = create_value_expression(expression_type, string_buffer->value);
+        yylval.expression = create_value_expression(expression_type, string_buffer);
         string_buffer = string_delete(string_buffer);
         BEGIN INITIAL;
         return STRING_LITERAL;
     }
+    else
+        string_append(string_buffer, yytext);
 }
-<HEREDOC>.* {
+<HEREDOC>. {
     string_append(string_buffer, yytext);
 }
-<HEREDOC>[\n\r] {
+<HEREDOC>\n {
     string_append(string_buffer, yytext);
 }
 <LINE_COMMENT>\n {BEGIN INITIAL;}
 <BLOCK_COMMENT>\n increase_line_number();
 <BLOCK_COMMENT>"*/" {BEGIN INITIAL;}
 <STRING_LITERAL_STATE>\n increase_line_number();
-<STRING_LITERAL_STATE>\\n ;
-<STRING_LITERAL_STATE>\\ ;
-<STRING_LITERAL_STATE>\\\" ;
-<STRING_LITERAL_STATE>\" BEGIN INITIAL;
+<STRING_LITERAL_STATE>\\n {
+    string_append(string_buffer, "\\n");
+}
+<STRING_LITERAL_STATE>\\ {
+    string_append(string_buffer, "\\");
+}
+<STRING_LITERAL_STATE>\\\" {
+    string_append(string_buffer, "\"");
+}
+<STRING_LITERAL_STATE>\" {
+    expression_type = STRING;
+    yylval.expression = create_value_expression(expression_type, string_buffer);
+    string_buffer = string_delete(string_buffer);
+    BEGIN INITIAL;
+    return STRING_LITERAL;
+}
+<STRING_LITERAL_STATE>. {
+    string_append(string_buffer, yytext);
+}
 %%

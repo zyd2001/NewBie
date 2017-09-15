@@ -16,15 +16,15 @@ NBValueType NB_value_type;
     Elseif              *elseif;
     IdentifierList      *identifier_list;
 }
-%token <expression>     INT_LITERAL
-%token <expression>     DOUBLE_LITERAL
-%token <expression>     STRING_LITERAL
+%token <expression>     INT_LITERAL STRING_LITERAL DOUBLE_LITERAL
 %token <identifier>     IDENTIFIER
 %token INT_T DOUBLE_T STRING_T ARRAY_T ARRAY_ASSOC_T IF ELSE ELSEIF FOR CLASS RETURN BREAK CONTINUE
         LP RP LC RC LB RB SEMICOLON COMMA ASSIGN_T LOGICAL_AND LOGICAL_OR
         EQ NE GT GE LT LE ADD SUB MUL DIV MOD EXCLAMATION DOT
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
         INCREMENT DECREMENT
+%type<expression> expression comparison_expression declaration_expression primary_expression
+                assignment_expression
 %%
     statement: expression SEMICOLON
         | IF LP argument_list RP block
@@ -34,6 +34,9 @@ NBValueType NB_value_type;
         | comparison_expression
         | primary_expression
         | IDENTIFIER
+        {
+            $$ = create_identifier_expression($1);
+        }
         ;
     comparison_expression: expression EQ expression
         {
@@ -106,9 +109,11 @@ NBValueType NB_value_type;
         | DOUBLE_LITERAL
         | STRING_LITERAL
         ;
-    declaration_tag: INT_T | DOUBLE_T | STRING_T | ARRAY_ASSOC_T | ARRAY_T ;
     block: statement_list;
     statement_list: statement
         | statement_list statement
+        ;
+    argument_list: IDENTIFIER
+        | argument_list COMMA IDENTIFIER
         ;
 %%
