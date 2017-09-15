@@ -52,7 +52,7 @@ typedef struct NB_Value_tag
     {
         int int_value;
         double double_value;
-        char *string_value;
+        String *string_value;
         struct NB_Value *array;
         struct NB_Array_Assoc 
         {
@@ -76,7 +76,10 @@ typedef struct Expression_tag
     int line_number;
     union 
     {
-        NB_Value *raw_value;
+        int int_literal;
+        double double_literal;
+        char* string_literal;
+        NB_Value *value;
         char *identifier;
         ComparisonExpression *comparison_expression;
         AssignmentExpression *assignment_expression;

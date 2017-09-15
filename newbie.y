@@ -16,6 +16,7 @@ NBValueType NB_value_type;
     Elseif              *elseif;
     IdentifierList      *identifier_list;
 }
+%expect 42
 %token <expression>     INT_LITERAL STRING_LITERAL DOUBLE_LITERAL
 %token <identifier>     IDENTIFIER
 %token INT_T DOUBLE_T STRING_T ARRAY_T ARRAY_ASSOC_T IF ELSE ELSEIF FOR CLASS RETURN BREAK CONTINUE
@@ -109,7 +110,9 @@ NBValueType NB_value_type;
         | DOUBLE_LITERAL
         | STRING_LITERAL
         ;
-    block: statement_list;
+    block: LC statement_list RC
+        | LC RC
+        ;
     statement_list: statement
         | statement_list statement
         ;

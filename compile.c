@@ -1,33 +1,26 @@
 #include "newbie.h"
 
-Expression *create_value_expression(ExpressionType type, void *value)
+Expression *create_literal_expression(ExpressionType type, char *text)
 {
-    NBValueType value_type;
-    Expression *exp;
-    exp = (Expression*)malloc(sizeof(Expression));
-    exp->type = type;
-    exp->content->raw_value = (NB_Value*)malloc(sizeof(NB_Value));
+    Expression *expression;
+    expression = (Expression*)malloc(sizeof(Expression));
+    expression->type = type;
     switch(type)
     {
         case INT:
-            value_type = INT;
-            int i = atoi((char*)value);
-            exp->content.raw_value->type = value_type;
-            exp->content.raw_value->value.int_value = i;
+            int i = atoi(text);
+            expression->int_literal = i;
             break;
         case DOUBLE:
-            value_type = DOUBLE;
-            double d = atof((char*)value);
-            exp->content.raw_value->type = value_type;
-            exp->content.raw_value->value.double_value = d;
+            double d = atof(text);
+            expression->double_literal = d;
             break;
         case STRING:
-            value_type = STRING;
-            String *str = string_copy(NULL, (String*)value);
-            exp->content.raw_value->type = value_type;
-            exp->content.raw_value->value.string_value = str;
+            expression->string_literal = (char*)malloc(strlen(text) * sizeof(char));
+            strcpy(expression->string_literal, text);
             break;
     }
+    return expression;
 }
 
 Expression *create_assignment_expression(char *identifier, Expression *exp)
