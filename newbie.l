@@ -16,12 +16,12 @@ int yywarp(void)
 <INITIAL>"int"          return INT_T;
 <INITIAL>"double"       return DOUBLE_T;
 <INITIAL>"array"        return ARRAY_T;
-<INITIAL>"array_assoc"  return ARRAY_ASSOC_T;
 <INITIAL>"string"       return STRING_T;
 <INITIAL>"if"           return IF;
 <INITIAL>"else"         return ELSE;
 <INITIAL>"elseif"       return ELSEIF;
 <INITIAL>"for"          return FOR;
+<INITIAL>"in"           return IN;
 <INITIAL>"break"        return BREAK;
 <INITIAL>"continue"     return CONTINUE;
 <INITIAL>"return"       return RETURN;
@@ -68,12 +68,12 @@ int yywarp(void)
 }
 <INITIAL>[1-9][0-9]*|"0" {
     expression_type = INT;
-    yylval.expression = create_literal_expression(expression_type, yytext);
+    yylval.expression = nb_create_literal_expression(expression_type, yytext);
     return INT_LITERAL;
 }
 <INITIAL>[0-9]+\.[0-9]+ {
     expression_type = DOUBLE;
-    yylval.expression = create_literal_expression(expression_type, yytext);
+    yylval.expression = nb_create_literal_expression(expression_type, yytext);
     return DOUBLE_LITERAL;
 }
 <INITIAL>\" {
@@ -108,7 +108,7 @@ int yywarp(void)
             else
                 break;
         }
-        yylval.expression = create_literal_expression(expression_type, string_buffer->value);
+        yylval.expression = nb_create_literal_expression(expression_type, string_buffer->value);
         string_buffer = string_delete(string_buffer);
         BEGIN INITIAL;
         return STRING_LITERAL;
@@ -129,15 +129,12 @@ int yywarp(void)
 <STRING_LITERAL_STATE>\\n {
     string_append(string_buffer, "\\n");
 }
-<STRING_LITERAL_STATE>\\ {
-    string_append(string_buffer, "\\");
-}
 <STRING_LITERAL_STATE>\\\" {
     string_append(string_buffer, "\"");
 }
 <STRING_LITERAL_STATE>\" {
     expression_type = STRING;
-    yylval.expression = create_literal_expression(expression_type, string_buffer->value);
+    yylval.expression = nb_create_literal_expression(expression_type, string_buffer->value);
     string_buffer = string_delete(string_buffer);
     BEGIN INITIAL;
     return STRING_LITERAL;

@@ -36,31 +36,9 @@ typedef enum
     FUNCTION_CALL_EXPRESSION  
 } ExpressionType;
 
-typedef enum
-{
-    INT,
-    DOUBLE,
-    STRING,
-    ARRAY,
-    ARRAY_ASSOC
-} NBValueType;
+typedef ValueType NB_ValueType;
 
-typedef struct NB_Value_tag 
-{
-    NBValueType type;
-    union 
-    {
-        int int_value;
-        double double_value;
-        String *string_value;
-        struct NB_Value *array;
-        struct NB_Array_Assoc 
-        {
-            char **index;
-            struct NB_Value *value;
-        } array_assoc;
-    } value;
-} NB_Value;
+typedef Value NB_Value;
 
 typedef struct Expression_tag Expression;
 
@@ -93,6 +71,6 @@ typedef struct Statement_tag
   
 }
 
-Expression *create_assignment_expression(char *identifier, Expression *exp);
+Expression *nb_create_assignment_expression(char *identifier, Expression *exp);
 
 #endif

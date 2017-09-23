@@ -375,8 +375,8 @@ static void yy_fatal_error (yyconst char msg[]  );
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
 
-#define YY_NUM_RULES 22
-#define YY_END_OF_BUFFER 23
+#define YY_NUM_RULES 21
+#define YY_END_OF_BUFFER 22
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -386,11 +386,11 @@ struct yy_trans_info
 	};
 static yyconst flex_int16_t yy_accept[44] =
     {   0,
-        0,    0,    0,    0,    0,    0,   23,   21,   21,    5,
-        7,    6,    1,   21,   21,    3,   17,    3,   15,   16,
-       15,   12,   22,   11,    9,   20,    0,    4,    3,   18,
-       19,    3,    0,   10,    8,    0,    2,    0,    0,    0,
-       13,   14,    0
+        0,    0,    0,    0,    0,    0,   22,   20,   20,    5,
+        7,    6,    1,   20,   20,    3,   16,    3,   14,   15,
+       14,   11,   21,   10,   11,   19,    0,    4,    3,   17,
+       18,    3,    0,    9,    8,    0,    2,    0,    0,    0,
+       12,   13,    0
     } ;
 
 static yyconst YY_CHAR yy_ec[256] =
@@ -825,50 +825,45 @@ case 7:
 YY_RULE_SETUP
 #line 30 "test.l"
 {
+    printf("string\n");
     string_buffer = string_new();
     BEGIN STRING_LITERAL_STATE;
 }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 34 "test.l"
+#line 35 "test.l"
 {
-    string_append(string_buffer, "\\n");
+    string_append(string_buffer, "\n");
 }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 37 "test.l"
-{
-    string_append(string_buffer, "\\");
-}
-	YY_BREAK
-case 10:
-YY_RULE_SETUP
-#line 40 "test.l"
+#line 38 "test.l"
 {
     string_append(string_buffer, "\"");
 }
 	YY_BREAK
-case 11:
+case 10:
 YY_RULE_SETUP
-#line 43 "test.l"
+#line 41 "test.l"
 {
-
+    printf("%s", string_buffer->value);
+    string_buffer = string_delete(string_buffer);
     BEGIN INITIAL;
 }
 	YY_BREAK
-case 12:
+case 11:
 YY_RULE_SETUP
-#line 47 "test.l"
+#line 46 "test.l"
 {
     string_append(string_buffer, yytext);
 }
 	YY_BREAK
-case 13:
-/* rule 13 can match eol */
+case 12:
+/* rule 12 can match eol */
 YY_RULE_SETUP
-#line 50 "test.l"
+#line 49 "test.l"
 {
     for (int i = strlen(yytext) - 1; i > 0; i--)
     {
@@ -882,12 +877,12 @@ YY_RULE_SETUP
     BEGIN HEREDOC;
 }
 	YY_BREAK
-case 14:
+case 13:
 *yy_cp = (yy_hold_char); /* undo effects of setting up yytext */
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 62 "test.l"
+#line 61 "test.l"
 {
     // expression_type = STRING;
     // for(int i = 0; i < strlen(yytext); i++)
@@ -921,9 +916,9 @@ YY_RULE_SETUP
     }
 }
 	YY_BREAK
-case 15:
+case 14:
 YY_RULE_SETUP
-#line 94 "test.l"
+#line 93 "test.l"
 {
     // for(int i = 0; i < strlen(yytext); i++)
     // {
@@ -933,10 +928,10 @@ YY_RULE_SETUP
     string_append(string_buffer, yytext);
 }
 	YY_BREAK
-case 16:
-/* rule 16 can match eol */
+case 15:
+/* rule 15 can match eol */
 YY_RULE_SETUP
-#line 102 "test.l"
+#line 101 "test.l"
 {
     // for(int i = 0; i < strlen(yytext); i++)
     // {
@@ -946,37 +941,37 @@ YY_RULE_SETUP
     string_append(string_buffer, yytext);
 }
 	YY_BREAK
+case 16:
+YY_RULE_SETUP
+#line 109 "test.l"
+{printf("slash\n");}
+	YY_BREAK
 case 17:
 YY_RULE_SETUP
 #line 110 "test.l"
-{printf("slash\n");}
+{printf("quote\n");}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
 #line 111 "test.l"
-{printf("quote\n");}
+{printf("\\n\n");}
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
 #line 112 "test.l"
-{printf("\\n\n");}
+
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
 #line 113 "test.l"
-
+;
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
 #line 114 "test.l"
-;
-	YY_BREAK
-case 22:
-YY_RULE_SETUP
-#line 115 "test.l"
 ECHO;
 	YY_BREAK
-#line 980 "lex.yy.c"
+#line 975 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(HEREDOC):
 case YY_STATE_EOF(STRING_LITERAL_STATE):
@@ -1982,7 +1977,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 115 "test.l"
+#line 114 "test.l"
 
 
 

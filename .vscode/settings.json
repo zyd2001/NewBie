@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "newbie.h": "c",
-        "utility.h": "c"
-    }
+        "utility.h": "c",
+        "locale.h": "c"
+    },
 }

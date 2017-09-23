@@ -1,48 +1,27 @@
 #include <stdio.h> 
 #include <string.h> 
 #include <stdlib.h>
+#include <locale.h>
+#include <wchar.h>
 #include "utility.h"
 
-typedef enum
-{
-    INT,
-    DOUBLE,
-    STRING,
-    ARRAY,
-    ARRAY_ASSOC
-} NBValueType;
-
-typedef struct NB_Array_Assoc_tag NB_Array_Assoc;
-
-typedef struct NB_Value 
-{
-    NBValueType type;
-    union 
-    {
-        int int_value;
-        double double_value;
-        char *string_value;
-        struct NB_Value *array;
-    } value;
-} NB_Value;
-
-struct NB_Array_Assoc_tag
-{
-    char **index;
-    struct NB_Value *value;
-};
+typedef Value NB_Value;
+typedef ValueType NB_ValueType;
 
 int main(int argc, char *argv[])  
-{  
-    String *str = string_new();
-    string_append(str, "asd");
-    string_append(str, "张逸达");
-    printf("%d", str->size);
-    printf("%d", str->length);
-}  
-
-void print_NB_Value(NB_Value *value)
 {
-    char *s = value->value.string_value;
-    printf("%s", s);
+    NB_ValueType type = INT;
+    Value *val = value_new(type);
+    Array *arr = array_new();
+    val->value.int_value = 0;
+    for (int i = 0; i < 6; i++)
+    {
+        array_push(arr, val);
+        val->value.int_value++;
+    }
+    Value *rem = array_remove(arr, 4);
+    array_insert(arr, rem, 2);
+    value_delete(rem);
+    value_delete(val);
+    array_delete(arr);
 }

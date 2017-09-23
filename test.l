@@ -28,20 +28,19 @@ char heredoc_tag[32];
 }
 <INITIAL>[0-9] {printf("number %s\n", yytext);}
 <INITIAL>\" {
+    printf("string\n");
     string_buffer = string_new();
     BEGIN STRING_LITERAL_STATE;
 }
 <STRING_LITERAL_STATE>\\n {
-    string_append(string_buffer, "\\n");
-}
-<STRING_LITERAL_STATE>\\ {
-    string_append(string_buffer, "\\");
+    string_append(string_buffer, "\n");
 }
 <STRING_LITERAL_STATE>\\\" {
     string_append(string_buffer, "\"");
 }
 <STRING_LITERAL_STATE>\" {
-
+    printf("%s", string_buffer->value);
+    string_buffer = string_delete(string_buffer);
     BEGIN INITIAL;
 }
 <STRING_LITERAL_STATE>. {
