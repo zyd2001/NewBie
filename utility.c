@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
 #include "utility.h"
 
 int utf8_strlen(char *str) 
@@ -115,6 +116,7 @@ UTF8_String *utf8_string_copy(UTF8_String *destination, UTF8_String *source)
 void *utf8_string_delete(UTF8_String *str)
 {
     free(str->value);
+    str->value = NULL;
     free(str);
     return NULL;
 }
@@ -207,6 +209,70 @@ int utf8_string_get_length(UTF8_String *str)
     return str->length;
 }
 
+wchar_t *utf8_to_wcs(char *str)
+{
+    int length = utf8_strlen(str);
+    wchar_t *new = (wchar_t*)calloc(length + 1, sizeof(wchar_t));
+    mbstowcs(new, str, length);
+    return new;
+}
+
+Wide_String *wide_string_new()
+{
+    Wide_String *new = (Wide_String*)malloc(sizeof(Wide_String));
+    new->length = 0;
+    new->limit = 10;
+    new->value = (wchar_t*)malloc(10 * sizeof(wchar_t));
+    return new;
+}
+
+Wide_String *wide_string_new_wrap(wchar_t *str)
+{
+    Wide_String *new = wide_string_new();
+    wide_string_append(new, str);
+    return new;
+}
+
+Wide_String *wide_string_new_wrap_mbs(char *str)
+{
+    wchar_t *wstr = utf8_to_wcs(str);
+    Wide_String *new = wide_string_new_wrap(wstr);
+    free(wstr);
+    wstr = NULL;
+    return new;
+}
+
+Wide_String *wide_string_new_char(wchar_t ch)
+{
+
+}
+
+Wide_String *wide_string_append(Wide_String *str, wchar_t *new)
+{
+    int length = wcslen(new);
+    if (str->length + length + 1 > str->limit)
+    {
+        str->limit = str->length + length + 10;
+        str->value = (wchar_t*)realloc(str->value, str->limit * sizeof(wchar_t));
+    }
+    wcscpy(str->value + str->length, new);
+    str->length += length;
+    return str;
+}
+
+Wide_String *wode_string_append_char(Wide_String *str, wchar_t ch)
+{
+
+}
+
+void *wide_string_delete(Wide_String *str)
+{
+    free(str->value);
+    str->value = NULL;
+    free(str);
+    return NULL;
+}
+
 Value *value_new(ValueType type)
 {
     Value *new = (Value*)malloc(sizeof(Value));
@@ -220,7 +286,7 @@ Value *value_new(ValueType type)
             new->value.double_value = 0.0;
             break;
         case STRING:
-            new->value.utf8_string_value = utf8_string_new();
+            new->value.string_value = L"";
             break;
         case ARRAY:
             new->value.array_value = array_new();
@@ -234,7 +300,8 @@ void *value_delete(Value *val)
     switch(val->type)
     {
         case STRING:
-            val->value.utf8_string_value = utf8_string_delete(val->value.utf8_string_value);
+            free(val->value.string_value);
+            val->value.string_value = NULL;
             break;
         case ARRAY:
             val->value.array_value = array_delete(val->value.array_value);
@@ -263,7 +330,7 @@ Value *value_copy(Value *destination, Value *source)
             new->value.double_value = source->value.double_value;
             break;
         case STRING:
-            new->value.utf8_string_value = utf8_string_copy(NULL, source->value.utf8_string_value);
+            wcscpy(new->value.string_value, source->value.string_value);
             break;
         case ARRAY:
             new->value.array_value = array_copy(NULL, source->value.array_value);

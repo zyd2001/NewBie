@@ -12,11 +12,17 @@ typedef struct Array_tag
 } Array;
 
 typedef struct UTF8_String_tag {
-    char* value;
+    char *value;
     int size;
     int limit;
     int length;
 } UTF8_String;
+
+typedef struct Wide_String_tag {
+    wchar_t *value;
+    int length;
+    int limit;
+} Wide_String;
 
 typedef enum ValueType_tag
 {
@@ -33,11 +39,12 @@ struct Value_tag
     {
         int int_value;
         double double_value;
-        UTF8_String *utf8_string_value;
+        wchar_t *string_value;
         Array *array_value;
     } value;
 };
 
+int utf8_strlen(char *str);
 UTF8_String *utf8_string_new();
 UTF8_String *utf8_string_new_wrap(char *str);
 UTF8_String *utf8_string_new_char(char ch);
@@ -56,6 +63,9 @@ int utf8_string_indexof(UTF8_String *str, char *target);
 int utf8_string_test_indexof(UTF8_String *str, UTF8_String *target); //这个贼J8傻逼，就测试用的
 char *utf8_string_get_value(UTF8_String *str);
 int utf8_string_get_length(UTF8_String *str);
+
+wchar_t *utf8_to_wcs(char *str); //need to be freed after use
+Wide_String *wide_string_append(Wide_String *str, wchar_t *new);
 
 Value *value_new(ValueType type);
 void *value_delete(Value *val);
