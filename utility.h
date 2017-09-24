@@ -39,12 +39,23 @@ struct Value_tag
 };
 
 String *string_new();
+String *string_new_wrap(char *str);
+String *string_new_char(char ch);
 String *string_append(String *str, char *new);
 // return NULL
 void *string_delete(String *str);
 int string_compare(String *first, String *second);
 String *string_reassign(String *str, char *new);
 String *string_copy(String *destination, String *source);
+String *string_substring(String *str, int start, int end);
+String *string_substr();
+char string_get_char_ascii(String *str, int index);
+String *string_get_char(String *str, int index);
+String *string_append_char(String *str, char ch);
+int string_indexof(String *str, char *target);
+int string_test_indexof(String *str, String *target); //这个贼J8傻逼，就测试用的
+char *string_get_value(String *str);
+int string_get_length(String *str);
 
 Value *value_new(ValueType type);
 void *value_delete(Value *val);

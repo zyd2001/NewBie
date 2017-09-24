@@ -3,13 +3,26 @@
 #include <string.h>
 #include "utility.h"
 
-int utf8_strlen(char *s) {
-    int i = 0, j = 0;
-    while (s[i]) {
-        if ((s[i] & 0xc0) != 0x80) j++;
-        i++;
+int utf8_strlen(char *str) 
+{
+    int result = 0;
+    for (int i = 0; str[i]; i++) 
+    {
+        if ((str[i] & 0xc0) != 0x80) 
+            result++;
     }
-    return j;
+    return result;
+}
+
+int char_index_to_utf8_index(char *str, int index)
+{
+    int result = 0;
+    for (int i = 0; i < index; i++)
+    {
+        if ((str[i] & 0xc0) != 0x80)
+            result++;
+    }
+    return result;
 }
 
 String *string_new()
@@ -23,18 +36,51 @@ String *string_new()
     return str;
 }
 
+String *string_new_wrap(char *str)
+{
+    String *new = string_new();
+    return string_append(new, str);
+}
+
+String *string_new_char(char ch)
+{
+    String *str;
+    str = (String*)malloc(sizeof(String));
+    str->size = 0;
+    str->limit = 0;
+    str->length = 0;
+    str->value = NULL;
+    return string_append_char(str, ch);
+}
+
 String *string_append(String *str, char *new)
 {
-    int new_length, old_length, limit;
+    int new_length, old_length;
     old_length = str->size;
     new_length = strlen(new);
-    if (old_length + new_length > str->limit)
+    if (old_length + new_length + 1 > str->limit)
     {
         str->limit = old_length + new_length + 10;
         str->value = (char*)realloc(str->value, str->limit * sizeof(char));
     }
     strcpy(str->value + old_length, new);
     str->size = new_length + old_length;
+    str->length = utf8_strlen(str->value);
+    return str;
+}
+
+String *string_append_char(String *str, char ch)
+{
+    if (str->size + 2 > str->limit)
+    {
+        str->limit = str->size + 2;
+        str->value = (char*)realloc(str->value, str->limit * sizeof(char));
+    }
+    char *temp;
+    temp = str->value + str->size;
+    temp[0] = ch;
+    temp[1] = '\0';
+    str->size++;
     str->length = utf8_strlen(str->value);
     return str;
 }
@@ -71,6 +117,94 @@ void *string_delete(String *str)
     free(str->value);
     free(str);
     return NULL;
+}
+
+String *string_substring(String *str, int start, int end)
+{
+    int j = -1;
+    int starti = -1;
+    int endi = -1;
+    int len;
+    for (int i = 0; i < str->size; i++)
+    {
+        if ((str->value[i] & 0xc0) != 0x80)
+            j++;
+        if (j == start && starti == -1)
+            starti = i;
+        if (j == end)
+        {
+            endi = i;
+            break;
+        }
+    }
+    if (endi == -1)
+        endi = str->size;
+    String *new = string_new();
+    len = endi - starti;
+    char *temp = (char*)malloc((len + 1) * sizeof(char));
+    memcpy(temp, str->value + starti, len);
+    temp[len] = '\0';
+    string_append(new, temp);
+    free(temp);
+    return new;
+}
+
+String *string_substr(String *str, int start, int length)
+{
+    return string_substring(str, start, start + length);
+}
+
+char string_get_char_ascii(String *str, int index)
+{
+    return (str->value + index)[0];
+}
+
+String *string_get_char(String *str, int index)
+{
+    return string_substring(str, index, index + 1);
+}
+
+int string_indexof(String *str, char *target)
+{
+    int size = strlen(target);
+    if (str->size < size)
+        return -1;
+    for (int i = 0; i < (str->size - size + 1); i++)
+    {
+        if (strncmp(str->value + i, target, size) == 0)
+            return char_index_to_utf8_index(str->value, i);
+    }
+    return -1;
+}
+
+int string_test_indexof(String *str, String *target)
+{
+    int length = target->length;
+    String *temp;
+    if (str->length < length)
+        return -1;
+    for (int i = 0; i < (str->length - length + 1); i++)
+    {
+        temp = string_substr(str, i, length);
+        if (string_compare(temp, target) == 0)
+        {
+            temp = string_delete(temp);
+            return i;
+        }
+        temp = string_delete(temp);
+    }
+    temp = string_delete(temp);
+    return -1;
+}
+
+char *string_get_value(String *str)
+{
+    return str->value;
+}
+
+int string_get_length(String *str)
+{
+    return str->length;
 }
 
 Value *value_new(ValueType type)
@@ -181,7 +315,8 @@ Array *array_insert(Array *arr, Value *val, int index)
 {
     Array *new = array_new();
     new->size = index;
-    new->value = (Value*)realloc(new->value, (arr->size + 1) * sizeof(Value));
+    new->limit = arr->limit + 1;
+    new->value = (Value*)realloc(new->value, new->limit * sizeof(Value));
     memcpy(new->value, arr->value, index * sizeof(Value));
     array_push(new, val);
     memcpy(new->value + index + 1, arr->value + index, (arr->size - index) * sizeof(Value));
@@ -195,8 +330,9 @@ Value *array_remove(Array *arr, int index)
 {
     Value *val = value_copy(NULL, arr->value + index);
     Array *new = array_new();
+    new->limit = arr->limit - 1;
     new->size = arr->size - 1;
-    new->value = (Value*)realloc(new->value, new->size * sizeof(Value));
+    new->value = (Value*)realloc(new->value, new->limit * sizeof(Value));
     memcpy(new->value, arr->value, index * sizeof(Value));
     memcpy(new->value + index, arr->value + index + 1, (arr->size - index - 1) * sizeof(Value));
     array_copy(arr, new);
