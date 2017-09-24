@@ -25,10 +25,10 @@ int char_index_to_utf8_index(char *str, int index)
     return result;
 }
 
-String *string_new()
+UTF8_String *utf8_string_new()
 {
-    String *str;
-    str = (String*)malloc(sizeof(String));
+    UTF8_String *str;
+    str = (UTF8_String*)malloc(sizeof(UTF8_String));
     str->size = 0;
     str->limit = 10;
     str->length = 0;
@@ -36,24 +36,24 @@ String *string_new()
     return str;
 }
 
-String *string_new_wrap(char *str)
+UTF8_String *utf8_string_new_wrap(char *str)
 {
-    String *new = string_new();
-    return string_append(new, str);
+    UTF8_String *new = utf8_string_new();
+    return utf8_string_append(new, str);
 }
 
-String *string_new_char(char ch)
+UTF8_String *utf8_string_new_char(char ch)
 {
-    String *str;
-    str = (String*)malloc(sizeof(String));
+    UTF8_String *str;
+    str = (UTF8_String*)malloc(sizeof(UTF8_String));
     str->size = 0;
     str->limit = 0;
     str->length = 0;
     str->value = NULL;
-    return string_append_char(str, ch);
+    return utf8_string_append_char(str, ch);
 }
 
-String *string_append(String *str, char *new)
+UTF8_String *utf8_string_append(UTF8_String *str, char *new)
 {
     int new_length, old_length;
     old_length = str->size;
@@ -69,7 +69,7 @@ String *string_append(String *str, char *new)
     return str;
 }
 
-String *string_append_char(String *str, char ch)
+UTF8_String *utf8_string_append_char(UTF8_String *str, char ch)
 {
     if (str->size + 2 > str->limit)
     {
@@ -85,23 +85,23 @@ String *string_append_char(String *str, char ch)
     return str;
 }
 
-String *string_reassign(String *str, char *new)
+UTF8_String *utf8_string_reassign(UTF8_String *str, char *new)
 {
     str->size = 0;
     str->length = 0;
-    return string_append(str, new);
+    return utf8_string_append(str, new);
 }
 
-int string_compare(String *first, String *second)
+int utf8_string_compare(UTF8_String *first, UTF8_String *second)
 {
     return strcmp(first->value, second->value);
 }
 
-String *string_copy(String *destination, String *source)
+UTF8_String *utf8_string_copy(UTF8_String *destination, UTF8_String *source)
 {
-    String *new;
+    UTF8_String *new;
     if(destination == NULL)
-        new = string_new();
+        new = utf8_string_new();
     else
         new = destination;
     new->size = source->size;
@@ -112,14 +112,14 @@ String *string_copy(String *destination, String *source)
     return new;
 }
 
-void *string_delete(String *str)
+void *utf8_string_delete(UTF8_String *str)
 {
     free(str->value);
     free(str);
     return NULL;
 }
 
-String *string_substring(String *str, int start, int end)
+UTF8_String *utf8_string_substring(UTF8_String *str, int start, int end)
 {
     int j = -1;
     int starti = -1;
@@ -139,32 +139,32 @@ String *string_substring(String *str, int start, int end)
     }
     if (endi == -1)
         endi = str->size;
-    String *new = string_new();
+    UTF8_String *new = utf8_string_new();
     len = endi - starti;
     char *temp = (char*)malloc((len + 1) * sizeof(char));
     memcpy(temp, str->value + starti, len);
     temp[len] = '\0';
-    string_append(new, temp);
+    utf8_string_append(new, temp);
     free(temp);
     return new;
 }
 
-String *string_substr(String *str, int start, int length)
+UTF8_String *utf8_string_substr(UTF8_String *str, int start, int length)
 {
-    return string_substring(str, start, start + length);
+    return utf8_string_substring(str, start, start + length);
 }
 
-char string_get_char_ascii(String *str, int index)
+char utf8_string_get_char_ascii(UTF8_String *str, int index)
 {
     return (str->value + index)[0];
 }
 
-String *string_get_char(String *str, int index)
+UTF8_String *utf8_string_get_char(UTF8_String *str, int index)
 {
-    return string_substring(str, index, index + 1);
+    return utf8_string_substring(str, index, index + 1);
 }
 
-int string_indexof(String *str, char *target)
+int utf8_string_indexof(UTF8_String *str, char *target)
 {
     int size = strlen(target);
     if (str->size < size)
@@ -177,32 +177,32 @@ int string_indexof(String *str, char *target)
     return -1;
 }
 
-int string_test_indexof(String *str, String *target)
+int utf8_string_test_indexof(UTF8_String *str, UTF8_String *target)
 {
     int length = target->length;
-    String *temp;
+    UTF8_String *temp;
     if (str->length < length)
         return -1;
     for (int i = 0; i < (str->length - length + 1); i++)
     {
-        temp = string_substr(str, i, length);
-        if (string_compare(temp, target) == 0)
+        temp = utf8_string_substr(str, i, length);
+        if (utf8_string_compare(temp, target) == 0)
         {
-            temp = string_delete(temp);
+            temp = utf8_string_delete(temp);
             return i;
         }
-        temp = string_delete(temp);
+        temp = utf8_string_delete(temp);
     }
-    temp = string_delete(temp);
+    temp = utf8_string_delete(temp);
     return -1;
 }
 
-char *string_get_value(String *str)
+char *utf8_string_get_value(UTF8_String *str)
 {
     return str->value;
 }
 
-int string_get_length(String *str)
+int utf8_string_get_length(UTF8_String *str)
 {
     return str->length;
 }
@@ -220,7 +220,7 @@ Value *value_new(ValueType type)
             new->value.double_value = 0.0;
             break;
         case STRING:
-            new->value.string_value = string_new();
+            new->value.utf8_string_value = utf8_string_new();
             break;
         case ARRAY:
             new->value.array_value = array_new();
@@ -234,7 +234,7 @@ void *value_delete(Value *val)
     switch(val->type)
     {
         case STRING:
-            val->value.string_value = string_delete(val->value.string_value);
+            val->value.utf8_string_value = utf8_string_delete(val->value.utf8_string_value);
             break;
         case ARRAY:
             val->value.array_value = array_delete(val->value.array_value);
@@ -263,7 +263,7 @@ Value *value_copy(Value *destination, Value *source)
             new->value.double_value = source->value.double_value;
             break;
         case STRING:
-            new->value.string_value = string_copy(NULL, source->value.string_value);
+            new->value.utf8_string_value = utf8_string_copy(NULL, source->value.utf8_string_value);
             break;
         case ARRAY:
             new->value.array_value = array_copy(NULL, source->value.array_value);

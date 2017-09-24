@@ -11,12 +11,12 @@ typedef struct Array_tag
     struct Value_tag *value;
 } Array;
 
-typedef struct String_tag {
+typedef struct UTF8_String_tag {
     char* value;
     int size;
     int limit;
     int length;
-} String;
+} UTF8_String;
 
 typedef enum ValueType_tag
 {
@@ -33,29 +33,29 @@ struct Value_tag
     {
         int int_value;
         double double_value;
-        String *string_value;
+        UTF8_String *utf8_string_value;
         Array *array_value;
     } value;
 };
 
-String *string_new();
-String *string_new_wrap(char *str);
-String *string_new_char(char ch);
-String *string_append(String *str, char *new);
+UTF8_String *utf8_string_new();
+UTF8_String *utf8_string_new_wrap(char *str);
+UTF8_String *utf8_string_new_char(char ch);
+UTF8_String *utf8_string_append(UTF8_String *str, char *new);
 // return NULL
-void *string_delete(String *str);
-int string_compare(String *first, String *second);
-String *string_reassign(String *str, char *new);
-String *string_copy(String *destination, String *source);
-String *string_substring(String *str, int start, int end);
-String *string_substr();
-char string_get_char_ascii(String *str, int index);
-String *string_get_char(String *str, int index);
-String *string_append_char(String *str, char ch);
-int string_indexof(String *str, char *target);
-int string_test_indexof(String *str, String *target); //这个贼J8傻逼，就测试用的
-char *string_get_value(String *str);
-int string_get_length(String *str);
+void *utf8_string_delete(UTF8_String *str);
+int utf8_string_compare(UTF8_String *first, UTF8_String *second);
+UTF8_String *utf8_string_reassign(UTF8_String *str, char *new);
+UTF8_String *utf8_string_copy(UTF8_String *destination, UTF8_String *source);
+UTF8_String *utf8_string_substring(UTF8_String *str, int start, int end);
+UTF8_String *utf8_string_substr();
+char utf8_string_get_char_ascii(UTF8_String *str, int index);
+UTF8_String *utf8_string_get_char(UTF8_String *str, int index);
+UTF8_String *utf8_string_append_char(UTF8_String *str, char ch);
+int utf8_string_indexof(UTF8_String *str, char *target);
+int utf8_string_test_indexof(UTF8_String *str, UTF8_String *target); //这个贼J8傻逼，就测试用的
+char *utf8_string_get_value(UTF8_String *str);
+int utf8_string_get_length(UTF8_String *str);
 
 Value *value_new(ValueType type);
 void *value_delete(Value *val);
