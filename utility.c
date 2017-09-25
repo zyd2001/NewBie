@@ -2,7 +2,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
+#include <iconv.h>
 #include "utility.h"
+
+void encoding_convert(char *instr, int inlen, char *outstr, int outlen, const char *to, const char *from)
+{
+    iconv_t cd = iconv_open(to, from);
+    char **inbuf = &instr;
+    char **outbuf = &outstr;
+    size_t in = inlen;
+    size_t out = outlen;
+    memset(outstr, 0, outlen);
+    iconv(cd, inbuf, &in, outbuf, &out);
+    iconv_close(cd);
+}
 
 int utf8_strlen(char *str) 
 {

@@ -44,6 +44,7 @@ struct Value_tag
     } value;
 };
 
+void encoding_convert(char *instr, int inlen, char *outstr, int outlen, const char *to, const char *from);
 int utf8_strlen(char *str);
 UTF8_String *utf8_string_new();
 UTF8_String *utf8_string_new_wrap(char *str);
