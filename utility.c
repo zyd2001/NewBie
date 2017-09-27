@@ -4,7 +4,7 @@
 #include <wchar.h>
 #include <iconv.h>
 #include "utility.h"
-#define OUT_PUT_ENCODING "gbk"
+#define OUT_PUT_ENCODING "utf-8"
 
 size_t encoding_convert(char *instr, int inlen, char *outstr, int outlen, const char *to, const char *from)
 {
@@ -288,20 +288,18 @@ void *wide_string_delete(Wide_String *str)
     return NULL;
 }
 
-char *utf32_to_native(UTF32_String *str)
-{
-    int size = str->size;
-    char *new = (char*)malloc(str->)
-}
-
 UTF32_String *utf8_to_utf32(char *str)
 {
     size_t utf8_len = utf8_strlen(str);
     size_t utf8_size = strlen(str);
     size_t utf32_size = utf8_len * 4;
     char *utf32 = (char*)malloc(utf32_size * sizeof(char));
-    int left = encoding_convert(str, utf8_size, utf32, utf32_size, "utf-32le", "utf-8");
-    if (left == 0)
+    int size = encoding_convert(str, utf8_size, utf32, utf32_size, "utf-32le", "utf-8");
+    if (size == 0)
+    {
+        fprintf(stderr, "incomplete convertion");        
+    }
+    else
     {
         UTF32_String *new = utf32_string_new();
         new->length = utf8_len;
@@ -309,11 +307,9 @@ UTF32_String *utf8_to_utf32(char *str)
         new->limit = utf32_size;
         new->value = (char*)realloc(new->value, utf32_size);
         memcpy(new->value, utf32, utf32_size);
+        free(utf32);
+        utf32 = NULL;
         return new;
-    }
-    else
-    {
-        fprintf(stderr, "incomplete convertion");
     }
 }
 
@@ -365,15 +361,27 @@ UTF32_String *utf32_string_append_free(UTF32_String *str, UTF32_String *new)
         str->value = (char*)realloc(str->value, str->limit);
     }
     memcpy(str->value + old_size, new->value, new_size);
+    str->size += new_size;
     str->length = str->size / 4;
-    free(new);
-    new = NULL;
+    new = utf32_string_delete(new);
     return str;
 }
 
 size_t utf32_string_print(UTF32_String *str)
 {
-    printf("%s", )
+    char *out = (char*)malloc(str->size);
+    encoding_convert(str->value, str->size, out, str->size, OUT_PUT_ENCODING, "utf-32le");
+    size_t size = printf("%s", out);
+    free(out);
+    return size;
+}
+
+void *utf32_string_delete(UTF32_String *str)
+{
+    free(str->value);
+    str->value = NULL;
+    free(str);
+    return NULL;
 }
 
 Value *value_new(ValueType type)

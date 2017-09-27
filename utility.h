@@ -90,6 +90,7 @@ UTF32_String *utf32_string_new_wrap_mbs(char *str);
 UTF32_String *utf32_string_append(UTF32_String *str, UTF32_String *new);
 UTF32_String *utf32_string_append_free(UTF32_String *str, UTF32_String *new);
 size_t utf32_string_print(UTF32_String *str);
+void *utf32_string_delete(UTF32_String *str);
 
 Value *value_new(ValueType type);
 void *value_delete(Value *val);
