@@ -4,6 +4,7 @@
 #include <wchar.h>
 #include <iconv.h>
 #include "utility.h"
+#define OUT_PUT_ENCODING "gbk"
 
 size_t encoding_convert(char *instr, int inlen, char *outstr, int outlen, const char *to, const char *from)
 {
@@ -12,7 +13,7 @@ size_t encoding_convert(char *instr, int inlen, char *outstr, int outlen, const 
     char **outbuf = &outstr;
     size_t in = inlen;
     size_t out = outlen;
-    memset(outstr, 1, outlen);
+    memset(outstr, 0, outlen);
     iconv(cd, inbuf, &in, outbuf, &out);
     iconv_close(cd);
     return outlen - out;
@@ -287,6 +288,12 @@ void *wide_string_delete(Wide_String *str)
     return NULL;
 }
 
+char *utf32_to_native(UTF32_String *str)
+{
+    int size = str->size;
+    char *new = (char*)malloc(str->)
+}
+
 UTF32_String *utf8_to_utf32(char *str)
 {
     size_t utf8_len = utf8_strlen(str);
@@ -320,9 +327,53 @@ UTF32_String *utf32_string_new()
     return new;
 }
 
+UTF32_String *utf32_string_new_wrap(UTF32_String *str)
+{
+    UTF32_String *new = utf32_string_new();
+    utf32_string_append(new, str);
+    return new;
+}
+
+UTF32_String *utf32_string_new_wrap_mbs(char *str)
+{
+    UTF32_String *new = utf32_string_new();
+    utf32_string_append_free(new, utf8_to_utf32(str));
+    return new;
+}
+
 UTF32_String *utf32_string_append(UTF32_String *str, UTF32_String *new)
 {
-    int old_length = str->length;
+    int old_size = str->size;
+    int new_size = new->size;
+    if (old_size + new_size > str->limit)
+    {
+        str->limit = old_size + new_size + 40;
+        str->value = (char*)realloc(str->value, str->limit);
+    }
+    memcpy(str->value + old_size, new->value, new_size);
+    str->length = str->size / 4;
+    return str;
+}
+
+UTF32_String *utf32_string_append_free(UTF32_String *str, UTF32_String *new)
+{
+    int old_size = str->size;
+    int new_size = new->size;
+    if (old_size + new_size > str->limit)
+    {
+        str->limit = old_size + new_size + 40;
+        str->value = (char*)realloc(str->value, str->limit);
+    }
+    memcpy(str->value + old_size, new->value, new_size);
+    str->length = str->size / 4;
+    free(new);
+    new = NULL;
+    return str;
+}
+
+size_t utf32_string_print(UTF32_String *str)
+{
+    printf("%s", )
 }
 
 Value *value_new(ValueType type)

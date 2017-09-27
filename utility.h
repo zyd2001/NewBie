@@ -83,6 +83,14 @@ Wide_String *wode_string_append_char(Wide_String *str, wchar_t ch);
 void *wide_string_delete(Wide_String *str);
 /* Deprecated */
 
+UTF32_String *utf8_to_utf32(char *str);
+UTF32_String *utf32_string_new();
+UTF32_String *utf32_string_new_wrap(UTF32_String *str);
+UTF32_String *utf32_string_new_wrap_mbs(char *str);
+UTF32_String *utf32_string_append(UTF32_String *str, UTF32_String *new);
+UTF32_String *utf32_string_append_free(UTF32_String *str, UTF32_String *new);
+size_t utf32_string_print(UTF32_String *str);
+
 Value *value_new(ValueType type);
 void *value_delete(Value *val);
 Value *value_copy(Value *destination, Value *source);
