@@ -5,16 +5,17 @@
 #include <iconv.h>
 #include "utility.h"
 
-void encoding_convert(char *instr, int inlen, char *outstr, int outlen, const char *to, const char *from)
+size_t encoding_convert(char *instr, int inlen, char *outstr, int outlen, const char *to, const char *from)
 {
     iconv_t cd = iconv_open(to, from);
     char **inbuf = &instr;
     char **outbuf = &outstr;
     size_t in = inlen;
     size_t out = outlen;
-    memset(outstr, 0, outlen);
+    memset(outstr, 1, outlen);
     iconv(cd, inbuf, &in, outbuf, &out);
     iconv_close(cd);
+    return outlen - out;
 }
 
 int utf8_strlen(char *str) 
@@ -284,6 +285,44 @@ void *wide_string_delete(Wide_String *str)
     str->value = NULL;
     free(str);
     return NULL;
+}
+
+UTF32_String *utf8_to_utf32(char *str)
+{
+    size_t utf8_len = utf8_strlen(str);
+    size_t utf8_size = strlen(str);
+    size_t utf32_size = utf8_len * 4;
+    char *utf32 = (char*)malloc(utf32_size * sizeof(char));
+    int left = encoding_convert(str, utf8_size, utf32, utf32_size, "utf-32le", "utf-8");
+    if (left == 0)
+    {
+        UTF32_String *new = utf32_string_new();
+        new->length = utf8_len;
+        new->size = utf32_size;
+        new->limit = utf32_size;
+        new->value = (char*)realloc(new->value, utf32_size);
+        memcpy(new->value, utf32, utf32_size);
+        return new;
+    }
+    else
+    {
+        fprintf(stderr, "incomplete convertion");
+    }
+}
+
+UTF32_String *utf32_string_new()
+{
+    UTF32_String *new = (UTF32_String*)malloc(sizeof(UTF32_String));
+    new->length = 0;
+    new->limit = 40;
+    new->size = 0;
+    new->value = (char*)malloc(40 * sizeof(char));
+    return new;
+}
+
+UTF32_String *utf32_string_append(UTF32_String *str, UTF32_String *new)
+{
+    int old_length = str->length;
 }
 
 Value *value_new(ValueType type)

@@ -24,6 +24,13 @@ typedef struct Wide_String_tag {
     int limit;
 } Wide_String;
 
+typedef struct UTF32_String_tag {
+    char *value;
+    int length;
+    int limit;
+    int size;
+} UTF32_String;
+
 typedef enum ValueType_tag
 {
     INT,
@@ -44,7 +51,7 @@ struct Value_tag
     } value;
 };
 
-void encoding_convert(char *instr, int inlen, char *outstr, int outlen, const char *to, const char *from);
+size_t encoding_convert(char *instr, int inlen, char *outstr, int outlen, const char *to, const char *from);
 int utf8_strlen(char *str);
 UTF8_String *utf8_string_new();
 UTF8_String *utf8_string_new_wrap(char *str);
@@ -65,8 +72,16 @@ int utf8_string_test_indexof(UTF8_String *str, UTF8_String *target); //这个贼
 char *utf8_string_get_value(UTF8_String *str);
 int utf8_string_get_length(UTF8_String *str);
 
+/* Deprecated since low compatibility in Windows and Linux(Different byte size)*/
 wchar_t *utf8_to_wcs(char *str); //need to be freed after use
-Wide_String *wide_string_append(Wide_String *str, wchar_t *new);
+Wide_String *wide_string_append(Wide_String *str, wchar_t *new); 
+Wide_String *wide_string_new();
+Wide_String *wide_string_new_wrap(wchar_t *str);
+Wide_String *wide_string_new_wrap_mbs(char *str);
+Wide_String *wide_string_new_char(wchar_t ch);
+Wide_String *wode_string_append_char(Wide_String *str, wchar_t ch);
+void *wide_string_delete(Wide_String *str);
+/* Deprecated */
 
 Value *value_new(ValueType type);
 void *value_delete(Value *val);
