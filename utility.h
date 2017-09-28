@@ -86,9 +86,12 @@ void *wide_string_delete(Wide_String *str);
 UTF32_String *utf8_to_utf32(char *str);
 UTF32_String *utf32_string_new();
 UTF32_String *utf32_string_new_wrap(UTF32_String *str);
-UTF32_String *utf32_string_new_wrap_mbs(char *str);
+UTF32_String *utf32_string_new_wrap_char_str(char *str);
 UTF32_String *utf32_string_append(UTF32_String *str, UTF32_String *new);
 UTF32_String *utf32_string_append_free(UTF32_String *str, UTF32_String *new);
+UTF32_String *utf32_string_append_char_str(UTF32_String *str, char *new);
+UTF32_String *utf32_string_reassign_char_str(UTF32_String *str, char *new);
+int utf32_string_compare(UTF32_String *first, UTF32_String *second);
 size_t utf32_string_print(UTF32_String *str);
 void *utf32_string_delete(UTF32_String *str);
 
@@ -102,7 +105,7 @@ Array *array_push(Array *arr, Value *value);
 Value *array_get(Array *arr, int index);
 Array *array_insert(Array *arr, Value *val, int index);
 Value *array_remove(Array *arr, int index);
-Value *array_pull(Array *arr);
+Value *array_pop(Array *arr);
 Array *array_copy(Array *destination, Array *source);
 
 #endif

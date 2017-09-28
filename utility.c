@@ -297,7 +297,8 @@ UTF32_String *utf8_to_utf32(char *str)
     int size = encoding_convert(str, utf8_size, utf32, utf32_size, "utf-32le", "utf-8");
     if (size == 0)
     {
-        fprintf(stderr, "incomplete convertion");        
+        fprintf(stderr, "incomplete convertion");  
+        exit(1);
     }
     else
     {
@@ -330,7 +331,7 @@ UTF32_String *utf32_string_new_wrap(UTF32_String *str)
     return new;
 }
 
-UTF32_String *utf32_string_new_wrap_mbs(char *str)
+UTF32_String *utf32_string_new_wrap_char_str(char *str)
 {
     UTF32_String *new = utf32_string_new();
     utf32_string_append_free(new, utf8_to_utf32(str));
@@ -347,24 +348,47 @@ UTF32_String *utf32_string_append(UTF32_String *str, UTF32_String *new)
         str->value = (char*)realloc(str->value, str->limit);
     }
     memcpy(str->value + old_size, new->value, new_size);
+    str->size += new_size;
     str->length = str->size / 4;
     return str;
 }
 
 UTF32_String *utf32_string_append_free(UTF32_String *str, UTF32_String *new)
 {
-    int old_size = str->size;
-    int new_size = new->size;
-    if (old_size + new_size > str->limit)
-    {
-        str->limit = old_size + new_size + 40;
-        str->value = (char*)realloc(str->value, str->limit);
-    }
-    memcpy(str->value + old_size, new->value, new_size);
-    str->size += new_size;
-    str->length = str->size / 4;
+    utf32_string_append(str, new);
     new = utf32_string_delete(new);
     return str;
+}
+
+UTF32_String *utf32_string_append_char_str(UTF32_String *str, char *new)
+{
+    return utf32_string_append_free(str, utf32_string_new_wrap_char_str(new));
+}
+
+UTF32_String *utf32_string_reassign_char_str(UTF32_String *str, char *new)
+{
+    str->length = 0;
+    str->size = 0;
+    return utf32_string_append_char_str(str, new);
+}
+
+int utf32_string_compare(UTF32_String *first, UTF32_String *second)
+{
+    if (first->size > second->size)
+        return 1;
+    else if(first->size < second->size)
+        return -1;
+    else
+    {
+        for (int i = 0; i < first->size; i++)
+        {
+            if (first->value[i] == second->value[i])
+                continue;
+            else
+                return first->value[i] - second->value[i];
+        }
+        return 0;
+    }
 }
 
 size_t utf32_string_print(UTF32_String *str)
@@ -518,7 +542,7 @@ Value *array_remove(Array *arr, int index)
     return val;
 }
 
-Value *array_pull(Array *arr)
+Value *array_pop(Array *arr)
 {
     return array_remove(arr, arr->size - 1);
 }
