@@ -16,9 +16,8 @@ Expression *nb_create_literal_expression(ExpressionType type, char *text)
             expression->double_literal = d;
             break;
         case STRING:
-            expression->string_literal = (wchar_t*)calloc(utf8_strlen(text) + 1, sizeof(char));
-            // strcpy(expression->string_literal, text);
-            mbstowcs(expression->string_literal, text);
+            expression->string_literal = (char*)malloc((strlen(text) + 1) * sizeof(char));
+            strcpy(expression->string_literal, text);
             break;
     }
     return expression;

@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include "newbie.h"
 
-ComparisonType comparison_type;
-NBValueType value_type;
 %}
 %union {
     char                *identifier;
@@ -47,74 +45,60 @@ NBValueType value_type;
         ;
     comparison_expression: expression EQ expression
         {
-            comparison_type = EQ;
-            $$ = nb_create_comparison_expression(comparison_type, $1, $3);
+            $$ = nb_create_comparison_expression(EQ, $1, $3);
         }
         | expression NE expression
         {
-            comparison_type = NE;
-            $$ = nb_create_comparison_expression(comparison_type, $1, $3);
+            $$ = nb_create_comparison_expression(NE, $1, $3);
         }
         | expression GT expression
         {
-            comparison_type = GT;
-            $$ = nb_create_comparison_expression(comparison_type, $1, $3);
+            $$ = nb_create_comparison_expression(GT, $1, $3);
         }
         | expression GE expression
         {
-            comparison_type = GE;
-            $$ = nb_create_comparison_expression(comparison_type, $1, $3);
+            $$ = nb_create_comparison_expression(GE, $1, $3);
         }
         | expression LT expression
         {
-            comparison_type = LT;
-            $$ = nb_create_comparison_expression(comparison_type, $1, $3);
+            $$ = nb_create_comparison_expression(LT, $1, $3);
         }
         | expression LE expression
         {
-            comparison_type = LE;
-            $$ = nb_create_comparison_expression(comparison_type, $1, $3);
+            $$ = nb_create_comparison_expression(LE, $1, $3);
         }
         ;
     declaration_expression: INT_T IDENTIFIER 
         {
-            value_type = INT;
-            $$ = nb_create_declaration_expression(value_type, $2, NULL);
+            $$ = nb_create_declaration_expression(INT, $2, NULL);
         }
         | DOUBLE_T IDENTIFIER
         {
-            value_type = DOUBLE;
-            $$ = nb_create_declaration_expression(value_type, $2, NULL);
+            $$ = nb_create_declaration_expression(DOUBLE, $2, NULL);
         }
         | STRING_T IDENTIFIER
         {
-            value_type = STRING;
-            $$ = nb_create_declaration_expression(value_type, $2, NULL);
+            $$ = nb_create_declaration_expression(STRING, $2, NULL);
         }
         | ARRAY_T IDENTIFIER
         {
-            value_type = ARRAY;
-            $$ = nb_create_declaration_expression(value_type, $2, NULL);
+            $$ = nb_create_declaration_expression(ARRAY, $2, NULL);
         }
         | INT_T assignment_expression 
         {
-            value_type = INT;
-            $$ = nb_create_declaration_expression(value_type, NULL, $2);
+            $$ = nb_create_declaration_expression(INT, NULL, $2);
         }
         | DOUBLE_T assignment_expression 
         {
-            value_type = DOUBLE;
-            $$ = nb_create_declaration_expression(value_type, NULL, $2);
+            $$ = nb_create_declaration_expression(DOUBLE, NULL, $2);
         }
         | STRING_T assignment_expression 
         {
-            value_type = STRING;
-            $$ = nb_create_declaration_expression(value_type, NULL, $2);
+            $$ = nb_create_declaration_expression(STRING, NULL, $2);
         }
         | ARRAY_T assignment_expression 
         {
-            value_type = ARRAY;
-            $$ = nb_create_declaration_expression(value_type, NULL, $2);
+            $$ = nb_create_declaration_expression(ARRAY, NULL, $2);
         }
         ;
     assignment_expression: IDENTIFIER ASSIGN_T expression
