@@ -391,6 +391,31 @@ int utf32_string_compare(UTF32_String *first, UTF32_String *second)
     }
 }
 
+UTF32_String *utf32_string_copy(UTF32_String *str)
+{
+    UTF32_String *new = utf32_string_new();
+    new->size = str->size;
+    new->limit = str->limit;
+    new->length = str->length;
+    new->value = (char*)realloc(new->value, str->size);
+    memcpy(new->value, str->value, str->size);
+    return new;
+}
+
+UTF32_String *utf32_string_substring(UTF32_String *str, int start, int length)
+{
+    char *temp = (char*)malloc(length * 4 * sizeof(char));
+    memcpy(temp, str->value + start * 4, length * 4);
+    UTF32_String *new = utf32_string_new_wrap_char_str(temp);
+    free(temp);
+    return new;
+}
+
+UTF32_String *utf32_string_substr(UTF32_String *str, int start, int end)
+{
+    return utf32_string_substring(str, start, end - start);
+}
+
 size_t utf32_string_print(UTF32_String *str)
 {
     char *out = (char*)malloc(str->size);
