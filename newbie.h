@@ -56,7 +56,7 @@ typedef struct Expression_tag
     {
         int int_literal;
         double double_literal;
-        wchar_t* string_literal;
+        char* string_literal;
         NB_Value *value;
         char *identifier;
         ComparisonExpression *comparison_expression;

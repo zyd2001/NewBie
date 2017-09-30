@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <wchar.h>
+// #include <wchar.h>
 #include <iconv.h>
+#include <stdarg.h>
 #include "utility.h"
 #define OUT_PUT_ENCODING "utf-8"
 
@@ -224,69 +225,69 @@ int utf8_string_get_length(UTF8_String *str)
     return str->length;
 }
 
-wchar_t *utf8_to_wcs(char *str)
-{
-    int length = utf8_strlen(str);
-    wchar_t *new = (wchar_t*)calloc(length + 1, sizeof(wchar_t));
-    mbstowcs(new, str, length);
-    return new;
-}
+// wchar_t *utf8_to_wcs(char *str)
+// {
+//     int length = utf8_strlen(str);
+//     wchar_t *new = (wchar_t*)calloc(length + 1, sizeof(wchar_t));
+//     mbstowcs(new, str, length);
+//     return new;
+// }
 
-Wide_String *wide_string_new()
-{
-    Wide_String *new = (Wide_String*)malloc(sizeof(Wide_String));
-    new->length = 0;
-    new->limit = 10;
-    new->value = (wchar_t*)malloc(10 * sizeof(wchar_t));
-    return new;
-}
+// Wide_String *wide_string_new()
+// {
+//     Wide_String *new = (Wide_String*)malloc(sizeof(Wide_String));
+//     new->length = 0;
+//     new->limit = 10;
+//     new->value = (wchar_t*)malloc(10 * sizeof(wchar_t));
+//     return new;
+// }
 
-Wide_String *wide_string_new_wrap(wchar_t *str)
-{
-    Wide_String *new = wide_string_new();
-    wide_string_append(new, str);
-    return new;
-}
+// Wide_String *wide_string_new_wrap(wchar_t *str)
+// {
+//     Wide_String *new = wide_string_new();
+//     wide_string_append(new, str);
+//     return new;
+// }
 
-Wide_String *wide_string_new_wrap_mbs(char *str)
-{
-    wchar_t *wstr = utf8_to_wcs(str);
-    Wide_String *new = wide_string_new_wrap(wstr);
-    free(wstr);
-    wstr = NULL;
-    return new;
-}
+// Wide_String *wide_string_new_wrap_mbs(char *str)
+// {
+//     wchar_t *wstr = utf8_to_wcs(str);
+//     Wide_String *new = wide_string_new_wrap(wstr);
+//     free(wstr);
+//     wstr = NULL;
+//     return new;
+// }
 
-Wide_String *wide_string_new_char(wchar_t ch)
-{
+// Wide_String *wide_string_new_char(wchar_t ch)
+// {
 
-}
+// }
 
-Wide_String *wide_string_append(Wide_String *str, wchar_t *new)
-{
-    int length = wcslen(new);
-    if (str->length + length + 1 > str->limit)
-    {
-        str->limit = str->length + length + 10;
-        str->value = (wchar_t*)realloc(str->value, str->limit * sizeof(wchar_t));
-    }
-    wcscpy(str->value + str->length, new);
-    str->length += length;
-    return str;
-}
+// Wide_String *wide_string_append(Wide_String *str, wchar_t *new)
+// {
+//     int length = wcslen(new);
+//     if (str->length + length + 1 > str->limit)
+//     {
+//         str->limit = str->length + length + 10;
+//         str->value = (wchar_t*)realloc(str->value, str->limit * sizeof(wchar_t));
+//     }
+//     wcscpy(str->value + str->length, new);
+//     str->length += length;
+//     return str;
+// }
 
-Wide_String *wode_string_append_char(Wide_String *str, wchar_t ch)
-{
+// Wide_String *wode_string_append_char(Wide_String *str, wchar_t ch)
+// {
 
-}
+// }
 
-void *wide_string_delete(Wide_String *str)
-{
-    free(str->value);
-    str->value = NULL;
-    free(str);
-    return NULL;
-}
+// void *wide_string_delete(Wide_String *str)
+// {
+//     free(str->value);
+//     str->value = NULL;
+//     free(str);
+//     return NULL;
+// }
 
 UTF32_String *utf8_to_utf32(char *str)
 {
@@ -324,24 +325,44 @@ UTF32_String *utf32_string_new()
     return new;
 }
 
-UTF32_String *utf32_string_new_wrap(UTF32_String *str)
+UTF32_String *utf32_string_new_wrap(char *str, size_t new_size)
 {
     UTF32_String *new = utf32_string_new();
-    utf32_string_append(new, str);
+    utf32_string_append(new, str, new_size);
+}
+
+UTF32_String *utf32_string_new_wrap_utf32(UTF32_String *str)
+{
+    UTF32_String *new = utf32_string_new();
+    utf32_string_append_utf32(new, str);
     return new;
 }
 
-UTF32_String *utf32_string_new_wrap_char_str(char *str)
+UTF32_String *utf32_string_new_wrap_utf8(char *str)
 {
     UTF32_String *new = utf32_string_new();
     utf32_string_append_free(new, utf8_to_utf32(str));
     return new;
 }
 
-UTF32_String *utf32_string_append(UTF32_String *str, UTF32_String *new)
+UTF32_String *utf32_string_append(UTF32_String *str, char *new, size_t new_size)
 {
-    int old_size = str->size;
-    int new_size = new->size;
+    size_t old_size = str->size;
+    if (old_size + new_size > str->limit)
+    {
+        str->limit = old_size + new_size + 40;
+        str->value = (char*)realloc(str->value, str->limit);
+    }
+    memcpy(str->value + old_size, new, new_size);
+    str->size += new_size;
+    str->length = str->size / 4;
+    return str;
+}
+
+UTF32_String *utf32_string_append_utf32(UTF32_String *str, UTF32_String *new)
+{
+    size_t old_size = str->size;
+    size_t new_size = new->size;
     if (old_size + new_size > str->limit)
     {
         str->limit = old_size + new_size + 40;
@@ -355,24 +376,24 @@ UTF32_String *utf32_string_append(UTF32_String *str, UTF32_String *new)
 
 UTF32_String *utf32_string_append_free(UTF32_String *str, UTF32_String *new)
 {
-    utf32_string_append(str, new);
+    utf32_string_append_utf32(str, new);
     new = utf32_string_delete(new);
     return str;
 }
 
-UTF32_String *utf32_string_append_char_str(UTF32_String *str, char *new)
+UTF32_String *utf32_string_append_utf8(UTF32_String *str, char *new)
 {
-    return utf32_string_append_free(str, utf32_string_new_wrap_char_str(new));
+    return utf32_string_append_free(str, utf32_string_new_wrap_utf8(new));
 }
 
-UTF32_String *utf32_string_reassign_char_str(UTF32_String *str, char *new)
+UTF32_String *utf32_string_reassign_utf8(UTF32_String *str, char *new)
 {
     str->length = 0;
     str->size = 0;
-    return utf32_string_append_char_str(str, new);
+    return utf32_string_append_utf8(str, new);
 }
 
-int utf32_string_compare(UTF32_String *first, UTF32_String *second)
+int utf32_string_compare_utf32(UTF32_String *first, UTF32_String *second)
 {
     if (first->size > second->size)
         return 1;
@@ -391,29 +412,79 @@ int utf32_string_compare(UTF32_String *first, UTF32_String *second)
     }
 }
 
-UTF32_String *utf32_string_copy(UTF32_String *str)
+int utf32_string_compare(char *first, size_t size1, char *second, size_t size2)
 {
-    UTF32_String *new = utf32_string_new();
-    new->size = str->size;
-    new->limit = str->limit;
-    new->length = str->length;
-    new->value = (char*)realloc(new->value, str->size);
-    memcpy(new->value, str->value, str->size);
+    if (size1 > size2)
+        return 1;
+    else if(size1 < size2)
+        return -1;
+    else
+    {
+        for (int i = 0; i < size1; i++)
+        {
+            if (first[i] == second[i])
+                continue;
+            else
+                return first[i] - second[i];
+        }
+        return 0;
+    }
+}
+
+UTF32_String *utf32_string_copy(UTF32_String *destination, UTF32_String *source)
+{
+    UTF32_String *new;
+    if (destination == NULL)
+        new = utf32_string_new();
+    else
+        new = destination;
+    new->size = source->size;
+    new->limit = source->limit;
+    new->length = source->length;
+    new->value = (char*)realloc(new->value, source->size);
+    memcpy(new->value, source->value, source->size);
     return new;
 }
 
-UTF32_String *utf32_string_substring(UTF32_String *str, int start, int length)
+UTF32_String *utf32_string_substring(UTF32_String *str, int start, int end)
 {
-    char *temp = (char*)malloc(length * 4 * sizeof(char));
-    memcpy(temp, str->value + start * 4, length * 4);
-    UTF32_String *new = utf32_string_new_wrap_char_str(temp);
-    free(temp);
-    return new;
+    return utf32_string_substr(str, start, end - start);    
 }
 
-UTF32_String *utf32_string_substr(UTF32_String *str, int start, int end)
+UTF32_String *utf32_string_substr(UTF32_String *str, int start, int length)
 {
-    return utf32_string_substring(str, start, end - start);
+    size_t len = length * 4;
+    char temp[len];
+    memcpy(temp, str->value + start * 4, len);
+    return utf32_string_new_wrap(temp, len);
+}
+
+int utf32_string_indexof(UTF32_String *str, char *target, size_t size)
+{
+    for (int i = 0; i < str->size && str->size - i >= size; i += 4)
+    {
+        if (!utf32_string_compare(str->value + i, size, target, size))
+            return i / 4;
+    }
+    return -1;
+}
+
+int utf32_string_indexof_utf8(UTF32_String *str, char *target)
+{
+    UTF32_String *new = utf32_string_new_wrap_utf8(target);
+    int i = utf32_string_indexof_utf32(str, new);
+    new = utf32_string_delete(new);
+    return i;
+}
+
+int utf32_string_indexof_utf32(UTF32_String *str, UTF32_String *target)
+{
+    for (int i = 0; i < str->size && str->size - i >= target->size; i += 4)
+    {
+        if (!utf32_string_compare(str->value + i, target->size, target->value, target->size))
+            return i / 4;
+    }
+    return -1;
 }
 
 size_t utf32_string_print(UTF32_String *str)
@@ -446,7 +517,7 @@ Value *value_new(ValueType type)
             new->value.double_value = 0.0;
             break;
         case STRING:
-            new->value.string_value = L"";
+            new->value.string_value = utf32_string_new();
             break;
         case ARRAY:
             new->value.array_value = array_new();
@@ -460,8 +531,7 @@ void *value_delete(Value *val)
     switch(val->type)
     {
         case STRING:
-            free(val->value.string_value);
-            val->value.string_value = NULL;
+            val->value.string_value = utf32_string_delete(val->value.string_value);
             break;
         case ARRAY:
             val->value.array_value = array_delete(val->value.array_value);
@@ -490,7 +560,7 @@ Value *value_copy(Value *destination, Value *source)
             new->value.double_value = source->value.double_value;
             break;
         case STRING:
-            wcscpy(new->value.string_value, source->value.string_value);
+            new->value.string_value = utf32_string_copy(NULL, source->value.string_value);
             break;
         case ARRAY:
             new->value.array_value = array_copy(NULL, source->value.array_value);

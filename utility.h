@@ -27,8 +27,8 @@ typedef struct Wide_String_tag {
 typedef struct UTF32_String_tag {
     char *value;
     int length;
-    int limit;
-    int size;
+    size_t limit;
+    size_t size;
 } UTF32_String;
 
 typedef enum ValueType_tag
@@ -46,7 +46,7 @@ struct Value_tag
     {
         int int_value;
         double double_value;
-        wchar_t *string_value;
+        UTF32_String *string_value;
         Array *array_value;
     } value;
 };
@@ -85,13 +85,22 @@ void *wide_string_delete(Wide_String *str);
 
 UTF32_String *utf8_to_utf32(char *str);
 UTF32_String *utf32_string_new();
-UTF32_String *utf32_string_new_wrap(UTF32_String *str);
-UTF32_String *utf32_string_new_wrap_char_str(char *str);
-UTF32_String *utf32_string_append(UTF32_String *str, UTF32_String *new);
+UTF32_String *utf32_string_new_wrap(char *str, size_t new_size);
+UTF32_String *utf32_string_new_wrap_utf32(UTF32_String *str);
+UTF32_String *utf32_string_new_wrap_utf8(char *str);
+UTF32_String *utf32_string_append(UTF32_String *str, char *new, size_t new_size);
+UTF32_String *utf32_string_append_utf32(UTF32_String *str, UTF32_String *new);
 UTF32_String *utf32_string_append_free(UTF32_String *str, UTF32_String *new);
-UTF32_String *utf32_string_append_char_str(UTF32_String *str, char *new);
-UTF32_String *utf32_string_reassign_char_str(UTF32_String *str, char *new);
-int utf32_string_compare(UTF32_String *first, UTF32_String *second);
+UTF32_String *utf32_string_append_utf8(UTF32_String *str, char *new);
+UTF32_String *utf32_string_reassign_utf8(UTF32_String *str, char *new);
+int utf32_string_compare(char *first, size_t size1, char *second, size_t size2);
+int utf32_string_compare_utf32(UTF32_String *first, UTF32_String *second);
+UTF32_String *utf32_string_copy(UTF32_String *destination, UTF32_String *source);
+UTF32_String *utf32_string_substring(UTF32_String *str, int start, int end);
+UTF32_String *utf32_string_substr(UTF32_String *str, int start, int length);
+int utf32_string_indexof(UTF32_String *str, char *target, size_t size);
+int utf32_string_indexof_utf32(UTF32_String *str, UTF32_String *target);
+int utf32_string_indexof_utf8(UTF32_String *str, char *target);
 size_t utf32_string_print(UTF32_String *str);
 void *utf32_string_delete(UTF32_String *str);
 
