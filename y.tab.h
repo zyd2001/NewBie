@@ -53,47 +53,46 @@ extern int yydebug;
     DOUBLE_T = 263,
     STRING_T = 264,
     ARRAY_T = 265,
-    ARRAY_ASSOC_T = 266,
-    IF = 267,
-    ELSE = 268,
-    ELSEIF = 269,
-    FOR = 270,
-    IN = 271,
-    CLASS = 272,
-    RETURN = 273,
-    BREAK = 274,
-    CONTINUE = 275,
-    LP = 276,
-    RP = 277,
-    LC = 278,
-    RC = 279,
-    LB = 280,
-    RB = 281,
-    SEMICOLON = 282,
-    COMMA = 283,
-    ASSIGN_T = 284,
-    LOGICAL_AND = 285,
-    LOGICAL_OR = 286,
-    EQ = 287,
-    NE = 288,
-    GT = 289,
-    GE = 290,
-    LT = 291,
-    LE = 292,
-    ADD = 293,
-    SUB = 294,
-    MUL = 295,
-    DIV = 296,
-    MOD = 297,
-    EXCLAMATION = 298,
-    DOT = 299,
-    ADD_ASSIGN = 300,
-    SUB_ASSIGN = 301,
-    MUL_ASSIGN = 302,
-    DIV_ASSIGN = 303,
-    MOD_ASSIGN = 304,
-    INCREMENT = 305,
-    DECREMENT = 306
+    IF = 266,
+    ELSE = 267,
+    ELSEIF = 268,
+    FOR = 269,
+    IN = 270,
+    CLASS = 271,
+    RETURN = 272,
+    BREAK = 273,
+    CONTINUE = 274,
+    LP = 275,
+    RP = 276,
+    LC = 277,
+    RC = 278,
+    LB = 279,
+    RB = 280,
+    SEMICOLON = 281,
+    COMMA = 282,
+    ASSIGN_T = 283,
+    LOGICAL_AND = 284,
+    LOGICAL_OR = 285,
+    EQ = 286,
+    NE = 287,
+    GT = 288,
+    GE = 289,
+    LT = 290,
+    LE = 291,
+    ADD = 292,
+    SUB = 293,
+    MUL = 294,
+    DIV = 295,
+    MOD = 296,
+    EXCLAMATION = 297,
+    DOT = 298,
+    ADD_ASSIGN = 299,
+    SUB_ASSIGN = 300,
+    MUL_ASSIGN = 301,
+    DIV_ASSIGN = 302,
+    MOD_ASSIGN = 303,
+    INCREMENT = 304,
+    DECREMENT = 305
   };
 #endif
 /* Tokens.  */
@@ -105,54 +104,53 @@ extern int yydebug;
 #define DOUBLE_T 263
 #define STRING_T 264
 #define ARRAY_T 265
-#define ARRAY_ASSOC_T 266
-#define IF 267
-#define ELSE 268
-#define ELSEIF 269
-#define FOR 270
-#define IN 271
-#define CLASS 272
-#define RETURN 273
-#define BREAK 274
-#define CONTINUE 275
-#define LP 276
-#define RP 277
-#define LC 278
-#define RC 279
-#define LB 280
-#define RB 281
-#define SEMICOLON 282
-#define COMMA 283
-#define ASSIGN_T 284
-#define LOGICAL_AND 285
-#define LOGICAL_OR 286
-#define EQ 287
-#define NE 288
-#define GT 289
-#define GE 290
-#define LT 291
-#define LE 292
-#define ADD 293
-#define SUB 294
-#define MUL 295
-#define DIV 296
-#define MOD 297
-#define EXCLAMATION 298
-#define DOT 299
-#define ADD_ASSIGN 300
-#define SUB_ASSIGN 301
-#define MUL_ASSIGN 302
-#define DIV_ASSIGN 303
-#define MOD_ASSIGN 304
-#define INCREMENT 305
-#define DECREMENT 306
+#define IF 266
+#define ELSE 267
+#define ELSEIF 268
+#define FOR 269
+#define IN 270
+#define CLASS 271
+#define RETURN 272
+#define BREAK 273
+#define CONTINUE 274
+#define LP 275
+#define RP 276
+#define LC 277
+#define RC 278
+#define LB 279
+#define RB 280
+#define SEMICOLON 281
+#define COMMA 282
+#define ASSIGN_T 283
+#define LOGICAL_AND 284
+#define LOGICAL_OR 285
+#define EQ 286
+#define NE 287
+#define GT 288
+#define GE 289
+#define LT 290
+#define LE 291
+#define ADD 292
+#define SUB 293
+#define MUL 294
+#define DIV 295
+#define MOD 296
+#define EXCLAMATION 297
+#define DOT 298
+#define ADD_ASSIGN 299
+#define SUB_ASSIGN 300
+#define MUL_ASSIGN 301
+#define DIV_ASSIGN 302
+#define MOD_ASSIGN 303
+#define INCREMENT 304
+#define DECREMENT 305
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 8 "newbie.y" /* yacc.c:1909  */
+#line 6 "newbie.y" /* yacc.c:1909  */
 
     char                *identifier;
     ParameterList       *parameter_list;
@@ -164,7 +162,7 @@ union YYSTYPE
     Elseif              *elseif;
     IdentifierList      *identifier_list;
 
-#line 168 "y.tab.h" /* yacc.c:1909  */
+#line 166 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

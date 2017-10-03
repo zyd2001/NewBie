@@ -36,7 +36,19 @@ Expression *nb_create_declaration_expression(NBValueType type, char *identifier,
 
 Expression *nb_create_computation_expression(ComputationType type, Expression *left, Expression *right)
 {
-
+    switch(type)
+    {
+        case ADD:
+            break;
+        case SUB:
+            break;
+        case MUL:
+            break;
+        case DIV:
+            break;
+        case MOD:
+            break;
+    }
 }
 
 Expression *nb_create_comparison_expression(ComparisonType type, Expression *left, Expression *right)

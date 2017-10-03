@@ -7,6 +7,54 @@
 #include "utility.h"
 #define OUT_PUT_ENCODING "utf-8"
 
+struct Array_tag
+{
+    int limit;
+    int size;
+    char **index;
+    struct Value_tag *value;
+};
+
+struct UTF8_String_tag {
+    char *value;
+    int size;
+    int limit;
+    int length;
+};
+
+// struct Wide_String_tag {
+//     wchar_t *value;
+//     int length;
+//     int limit;
+// };
+
+struct UTF32_String_tag {
+    char *value;
+    int length;
+    size_t limit;
+    size_t size;
+};
+
+enum ValueType_tag
+{
+    INT,
+    DOUBLE,
+    STRING,
+    ARRAY
+};
+
+struct Value_tag 
+{
+    ValueType type;
+    union 
+    {
+        int int_value;
+        double double_value;
+        UTF32_String *string_value;
+        Array *array_value;
+    } value;
+};
+
 size_t encoding_convert(char *instr, int inlen, char *outstr, int outlen, const char *to, const char *from)
 {
     iconv_t cd = iconv_open(to, from);
@@ -53,11 +101,11 @@ UTF8_String *utf8_string_new()
     return str;
 }
 
-UTF8_String *utf8_string_new_wrap(char *str)
-{
-    UTF8_String *new = utf8_string_new();
-    return utf8_string_append(new, str);
-}
+// UTF8_String *utf8_string_new_wrap(char *str)
+// {
+//     UTF8_String *new = utf8_string_new();
+//     return utf8_string_append(new, str);
+// }
 
 UTF8_String *utf8_string_new_char(char ch)
 {
@@ -129,11 +177,18 @@ UTF8_String *utf8_string_copy(UTF8_String *destination, UTF8_String *source)
     return new;
 }
 
-void *utf8_string_delete(UTF8_String *str)
+void *utf8_string_delete_func(UTF8_String **str, ...)
 {
-    free(str->value);
-    str->value = NULL;
-    free(str);
+    va_list argv;
+    va_start(argv, str);
+    for (UTF8_String **i = str; i != NULL; i = va_arg(argv, UTF8_String**))
+    {
+        free((*i)->value);
+        (*i)->value = NULL;
+        free(*i);
+        *i = NULL;
+    }
+    va_end(argv);
     return NULL;
 }
 
@@ -167,20 +222,20 @@ UTF8_String *utf8_string_substring(UTF8_String *str, int start, int end)
     return new;
 }
 
-UTF8_String *utf8_string_substr(UTF8_String *str, int start, int length)
-{
-    return utf8_string_substring(str, start, start + length);
-}
+// UTF8_String *utf8_string_substr(UTF8_String *str, int start, int length)
+// {
+//     return utf8_string_substring(str, start, start + length);
+// }
 
 char utf8_string_get_char_ascii(UTF8_String *str, int index)
 {
     return (str->value + index)[0];
 }
 
-UTF8_String *utf8_string_get_char(UTF8_String *str, int index)
-{
-    return utf8_string_substring(str, index, index + 1);
-}
+// UTF8_String *utf8_string_get_char(UTF8_String *str, int index)
+// {
+//     return utf8_string_substring(str, index, index + 1);
+// }
 
 int utf8_string_indexof(UTF8_String *str, char *target)
 {
@@ -206,12 +261,12 @@ int utf8_string_test_indexof(UTF8_String *str, UTF8_String *target)
         temp = utf8_string_substr(str, i, length);
         if (utf8_string_compare(temp, target) == 0)
         {
-            temp = utf8_string_delete(temp);
+            utf8_string_delete(&temp);
             return i;
         }
-        temp = utf8_string_delete(temp);
+        utf8_string_delete(&temp);
     }
-    temp = utf8_string_delete(temp);
+    utf8_string_delete(&temp);
     return -1;
 }
 
@@ -325,25 +380,25 @@ UTF32_String *utf32_string_new()
     return new;
 }
 
-UTF32_String *utf32_string_new_wrap(char *str, size_t new_size)
-{
-    UTF32_String *new = utf32_string_new();
-    utf32_string_append(new, str, new_size);
-}
+// UTF32_String *utf32_string_new_wrap(char *str, size_t new_size)
+// {
+//     UTF32_String *new = utf32_string_new();
+//     return utf32_string_append(new, str, new_size);
+// }
 
-UTF32_String *utf32_string_new_wrap_utf32(UTF32_String *str)
-{
-    UTF32_String *new = utf32_string_new();
-    utf32_string_append_utf32(new, str);
-    return new;
-}
+// UTF32_String *utf32_string_new_wrap_utf32(UTF32_String *str)
+// {
+//     UTF32_String *new = utf32_string_new();
+//     utf32_string_append_utf32(new, str);
+//     return new;
+// }
 
-UTF32_String *utf32_string_new_wrap_utf8(char *str)
-{
-    UTF32_String *new = utf32_string_new();
-    utf32_string_append_free(new, utf8_to_utf32(str));
-    return new;
-}
+// UTF32_String *utf32_string_new_wrap_utf8(char *str)
+// {
+//     UTF32_String *new = utf32_string_new();
+//     utf32_string_append_free(new, utf8_to_utf32(str));
+//     return new;
+// }
 
 UTF32_String *utf32_string_append(UTF32_String *str, char *new, size_t new_size)
 {
@@ -377,14 +432,14 @@ UTF32_String *utf32_string_append_utf32(UTF32_String *str, UTF32_String *new)
 UTF32_String *utf32_string_append_free(UTF32_String *str, UTF32_String *new)
 {
     utf32_string_append_utf32(str, new);
-    new = utf32_string_delete(new);
+    utf32_string_delete(&new);
     return str;
 }
 
-UTF32_String *utf32_string_append_utf8(UTF32_String *str, char *new)
-{
-    return utf32_string_append_free(str, utf32_string_new_wrap_utf8(new));
-}
+// UTF32_String *utf32_string_append_utf8(UTF32_String *str, char *new)
+// {
+//     return utf32_string_append_free(str, utf32_string_new_wrap_utf8(new));
+// }
 
 UTF32_String *utf32_string_reassign_utf8(UTF32_String *str, char *new)
 {
@@ -446,10 +501,10 @@ UTF32_String *utf32_string_copy(UTF32_String *destination, UTF32_String *source)
     return new;
 }
 
-UTF32_String *utf32_string_substring(UTF32_String *str, int start, int end)
-{
-    return utf32_string_substr(str, start, end - start);    
-}
+// UTF32_String *utf32_string_substring(UTF32_String *str, int start, int end)
+// {
+//     return utf32_string_substr(str, start, end - start);    
+// }
 
 UTF32_String *utf32_string_substr(UTF32_String *str, int start, int length)
 {
@@ -473,7 +528,7 @@ int utf32_string_indexof_utf8(UTF32_String *str, char *target)
 {
     UTF32_String *new = utf32_string_new_wrap_utf8(target);
     int i = utf32_string_indexof_utf32(str, new);
-    new = utf32_string_delete(new);
+    utf32_string_delete(&new);
     return i;
 }
 
@@ -496,11 +551,18 @@ size_t utf32_string_print(UTF32_String *str)
     return size;
 }
 
-void *utf32_string_delete(UTF32_String *str)
+void *utf32_string_delete_func(UTF32_String **str, ...)
 {
-    free(str->value);
-    str->value = NULL;
-    free(str);
+    va_list argv;
+    va_start(argv, str);
+    for (UTF32_String **i = str; i != NULL; i = va_arg(argv, UTF32_String**))
+    {
+        free((*i)->value);
+        (*i)->value = NULL;
+        free(*i);
+        *i = NULL;
+    }
+    va_end(argv);
     return NULL;
 }
 
@@ -526,18 +588,24 @@ Value *value_new(ValueType type)
     return new;
 }
 
-void *value_delete(Value *val)
+void *value_delete_func(Value **val, ...)
 {
-    switch(val->type)
+    va_list argv;
+    va_start(argv, val);
+    for (Value **i = val; i != NULL; i = va_arg(argv, Value**))
     {
-        case STRING:
-            val->value.string_value = utf32_string_delete(val->value.string_value);
-            break;
-        case ARRAY:
-            val->value.array_value = array_delete(val->value.array_value);
-            break;
+        switch((*i)->type)
+        {
+            case STRING:
+                utf32_string_delete(&(*i)->value.string_value);
+                break;
+            case ARRAY:
+                array_delete(&(*i)->value.array_value);
+                break;
+        }
+        free(*i);
+        *i = NULL;
     }
-    free(val);
     return NULL;
 }
 
@@ -578,11 +646,18 @@ Array *array_new()
     arr->value = (Value*)malloc(5 * sizeof(Value));
 }
 
-void *array_delete(Array *arr)
+void *array_delete_func(Array **arr, ...)
 {
-    free(arr->index);
-    free(arr->value);
-    free(arr);
+    va_list argv;
+    va_start(argv, arr);
+    for (Array **i = arr; i != NULL; i = va_arg(argv, Array**))
+    {
+        free((*i)->index);
+        free((*i)->value);
+        free(*i);
+        *i = NULL;
+    }
+    va_end(argv);
     return NULL;
 }
 
@@ -619,7 +694,7 @@ Array *array_insert(Array *arr, Value *val, int index)
     memcpy(new->value + index + 1, arr->value + index, (arr->size - index) * sizeof(Value));
     new->size = arr->size + 1;
     array_copy(arr, new);
-    new = array_delete(new);
+    array_delete(&new);
     return arr;
 }
 
@@ -633,7 +708,7 @@ Value *array_remove(Array *arr, int index)
     memcpy(new->value, arr->value, index * sizeof(Value));
     memcpy(new->value + index, arr->value + index + 1, (arr->size - index - 1) * sizeof(Value));
     array_copy(arr, new);
-    new = array_delete(new);
+    array_delete(&new);
     return val;
 }
 

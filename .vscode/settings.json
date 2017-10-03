@@ -3,6 +3,10 @@
         "newbie.h": "c",
         "utility.h": "c",
         "locale.h": "c",
-        "iconv.h": "c"
+        "iconv.h": "c",
+        "uchar.h": "c",
+        "stdarg.h": "c",
+        "cstdarg": "c",
+        "string.h": "c"
     },
 }

@@ -14,7 +14,7 @@
     Elseif              *elseif;
     IdentifierList      *identifier_list;
 }
-%expect 42
+%expect 110
 %token <expression>     INT_LITERAL STRING_LITERAL DOUBLE_LITERAL
 %token <identifier>     IDENTIFIER
 %token INT_T DOUBLE_T STRING_T ARRAY_T IF ELSE ELSEIF FOR IN CLASS RETURN BREAK CONTINUE
@@ -22,9 +22,12 @@
         EQ NE GT GE LT LE ADD SUB MUL DIV MOD EXCLAMATION DOT
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
         INCREMENT DECREMENT
-%type<expression> expression comparison_expression declaration_expression primary_expression assignment_expression
+%type<expression> expression comparison_expression declaration_expression primary_expression assignment_expression computation_expression
 %%
     statement: expression SEMICOLON
+        {
+            $$ = nb_create_expression_statement();
+        }
         | function_definition_statement
         | IF LP expression RP block
         | FOR LP IDENTIFIER IN expression RP block
@@ -36,8 +39,12 @@
     expression: assignment_expression
         | declaration_expression
         | comparison_expression
+        | computation_expression
         | primary_expression
         | IDENTIFIER LP actual_argument_list RP
+        {
+            $$ = Expression new;
+        }
         | IDENTIFIER
         {
             $$ = nb_create_identifier_expression($1);
@@ -100,6 +107,12 @@
         {
             $$ = nb_create_declaration_expression(ARRAY, NULL, $2);
         }
+        ;
+    computation_expression: expression ADD expression
+        | expression SUB expression
+        | expression MUL expression
+        | expression DIV expression
+        | expression MOD expression
         ;
     assignment_expression: IDENTIFIER ASSIGN_T expression
         {

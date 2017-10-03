@@ -72,5 +72,6 @@ typedef struct Statement_tag
 }
 
 Expression *nb_create_assignment_expression(char *identifier, Expression *exp);
+Expression *nb_create_comparison_expression(ComparisonType type, Expression *exp1, Expression *exp2);
 
 #endif
