@@ -15,8 +15,12 @@ typedef struct UTF32_String_tag UTF32_String;
 
 typedef enum ValueType_tag ValueType;
 
+typedef struct Linked_List_tag Linked_List;
+
+unsigned int BKDRHash(char *str);
 size_t encoding_convert(char *instr, int inlen, char *outstr, int outlen, const char *to, const char *from);
 int utf8_strlen(char *str);
+
 UTF8_String *utf8_string_new();
 // UTF8_String *utf8_string_new_wrap(char *str);
 #define utf8_string_new_wrap(str) utf8_string_append(utf8_string_new(), str) // char *str
@@ -91,5 +95,21 @@ Array *array_insert(Array *arr, Value *val, int index);
 Value *array_remove(Array *arr, int index);
 Value *array_pop(Array *arr);
 Array *array_copy(Array *destination, Array *source);
+
+Linked_List *linked_list_new();
+Linked_List *linked_list_insert_func(Linked_List *list, void *item, size_t size, void (*copy_func)(void*, const void*), char *type_name, ...);
+void *linked_list_get_func(Linked_List *list, int index);
+#define linked_list_insert(list, item, copy_func, type, ...) linked_list_insert_func(list, &item, sizeof(item), copy_func, #type, ##__VA_ARGS__, -1)
+#define __build_copy_func(type, func, new_func, name) \
+void name(void *dest, const void *src) \
+{ \
+    type *temp_dest = (type*)dest; \
+    type *temp_src = (type*)src; \
+    if (new_func != NULL) \
+        *temp_dest = (type)new_func(); \
+    func(*temp_dest, *temp_src); \
+} // use only globally
+#define linked_list_get(list, index, type) *((type*)linked_list_get_func(list, index))
+#define linked_list_empty(list) list->prev == NULL && list->next == NULL
 
 #endif

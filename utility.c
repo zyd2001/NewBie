@@ -12,10 +12,11 @@ struct Array_tag
     int limit;
     int size;
     char **index;
-    struct Value_tag *value;
+    Value *value;
 };
 
-struct UTF8_String_tag {
+struct UTF8_String_tag 
+{
     char *value;
     int size;
     int limit;
@@ -28,7 +29,8 @@ struct UTF8_String_tag {
 //     int limit;
 // };
 
-struct UTF32_String_tag {
+struct UTF32_String_tag 
+{
     char *value;
     int length;
     size_t limit;
@@ -54,6 +56,26 @@ struct Value_tag
         Array *array_value;
     } value;
 };
+
+struct Linked_List_tag
+{
+    Linked_List *prev;
+    Linked_List *next;
+    void *data;
+    int index;
+    unsigned int type_name;
+};
+
+unsigned int BKDRHash(char *str)
+{
+    unsigned int seed = 131;
+    unsigned int hash = 0;
+    while(*str)
+    {
+        hash = hash*seed + (*str++);
+    }
+    return hash%0x7FFFFFFF;
+}
 
 size_t encoding_convert(char *instr, int inlen, char *outstr, int outlen, const char *to, const char *from)
 {
@@ -164,31 +186,28 @@ int utf8_string_compare(UTF8_String *first, UTF8_String *second)
 
 UTF8_String *utf8_string_copy(UTF8_String *destination, UTF8_String *source)
 {
-    UTF8_String *new;
     if(destination == NULL)
-        new = utf8_string_new();
-    else
-        new = destination;
-    new->size = source->size;
-    new->length = source->length;
-    new->limit = source->limit;
-    new->value = (char*)realloc(new->value, source->limit * sizeof(char));
-    strcpy(new->value, source->value);
-    return new;
+        destination = utf8_string_new();
+    destination->size = source->size;
+    destination->length = source->length;
+    destination->limit = source->limit;
+    destination->value = (char*)realloc(destination->value, source->limit * sizeof(char));
+    strcpy(destination->value, source->value);
+    return destination;
 }
 
 void *utf8_string_delete_func(UTF8_String **str, ...)
 {
-    va_list argv;
-    va_start(argv, str);
-    for (UTF8_String **i = str; i != NULL; i = va_arg(argv, UTF8_String**))
+    va_list args;
+    va_start(args, str);
+    for (UTF8_String **i = str; i != NULL; i = va_arg(args, UTF8_String**))
     {
         free((*i)->value);
         (*i)->value = NULL;
         free(*i);
         *i = NULL;
     }
-    va_end(argv);
+    va_end(args);
     return NULL;
 }
 
@@ -488,17 +507,14 @@ int utf32_string_compare(char *first, size_t size1, char *second, size_t size2)
 
 UTF32_String *utf32_string_copy(UTF32_String *destination, UTF32_String *source)
 {
-    UTF32_String *new;
     if (destination == NULL)
-        new = utf32_string_new();
-    else
-        new = destination;
-    new->size = source->size;
-    new->limit = source->limit;
-    new->length = source->length;
-    new->value = (char*)realloc(new->value, source->size);
-    memcpy(new->value, source->value, source->size);
-    return new;
+        destination = utf32_string_new();
+    destination->size = source->size;
+    destination->limit = source->limit;
+    destination->length = source->length;
+    destination->value = (char*)realloc(destination->value, source->size);
+    memcpy(destination->value, source->value, source->size);
+    return destination;
 }
 
 // UTF32_String *utf32_string_substring(UTF32_String *str, int start, int end)
@@ -553,16 +569,16 @@ size_t utf32_string_print(UTF32_String *str)
 
 void *utf32_string_delete_func(UTF32_String **str, ...)
 {
-    va_list argv;
-    va_start(argv, str);
-    for (UTF32_String **i = str; i != NULL; i = va_arg(argv, UTF32_String**))
+    va_list args;
+    va_start(args, str);
+    for (UTF32_String **i = str; i != NULL; i = va_arg(args, UTF32_String**))
     {
         free((*i)->value);
         (*i)->value = NULL;
         free(*i);
         *i = NULL;
     }
-    va_end(argv);
+    va_end(args);
     return NULL;
 }
 
@@ -590,9 +606,9 @@ Value *value_new(ValueType type)
 
 void *value_delete_func(Value **val, ...)
 {
-    va_list argv;
-    va_start(argv, val);
-    for (Value **i = val; i != NULL; i = va_arg(argv, Value**))
+    va_list args;
+    va_start(args, val);
+    for (Value **i = val; i != NULL; i = va_arg(args, Value**))
     {
         switch((*i)->type)
         {
@@ -606,35 +622,30 @@ void *value_delete_func(Value **val, ...)
         free(*i);
         *i = NULL;
     }
+    va_end(args);
     return NULL;
 }
 
 Value *value_copy(Value *destination, Value *source)
 {
-    Value *new;
     if (destination == NULL)
-        new = value_new(source->type);
-    else
-    {
-        new = destination;
-        new->type = source->type;
-    }
-    switch(new->type)
+        destination = value_new(source->type);
+    switch(destination->type)
     {
         case INT:
-            new->value.int_value = source->value.int_value;
+            destination->value.int_value = source->value.int_value;
             break;
         case DOUBLE:
-            new->value.double_value = source->value.double_value;
+            destination->value.double_value = source->value.double_value;
             break;
         case STRING:
-            new->value.string_value = utf32_string_copy(NULL, source->value.string_value);
+            destination->value.string_value = utf32_string_copy(NULL, source->value.string_value);
             break;
         case ARRAY:
-            new->value.array_value = array_copy(NULL, source->value.array_value);
+            destination->value.array_value = array_copy(NULL, source->value.array_value);
             break;
     }
-    return new;
+    return destination;
 }
 
 Array *array_new()
@@ -648,16 +659,16 @@ Array *array_new()
 
 void *array_delete_func(Array **arr, ...)
 {
-    va_list argv;
-    va_start(argv, arr);
-    for (Array **i = arr; i != NULL; i = va_arg(argv, Array**))
+    va_list args;
+    va_start(args, arr);
+    for (Array **i = arr; i != NULL; i = va_arg(args, Array**))
     {
         free((*i)->index);
         free((*i)->value);
         free(*i);
         *i = NULL;
     }
-    va_end(argv);
+    va_end(args);
     return NULL;
 }
 
@@ -719,16 +730,64 @@ Value *array_pop(Array *arr)
 
 Array *array_copy(Array *destination, Array *source)
 {
-    Array *new;
     if (destination == NULL)
-        new = array_new();
-    else
-        new = destination;
-    new->limit = source->limit;
-    new->size = source->size;
-    new->value = (Value*)realloc(new->value, new->size * sizeof(Value));
-    new->index = (char**)realloc(new->index, new->size * sizeof(char*));
-    memcpy(new->value, source->value, new->size * sizeof(Value));
-    memcpy(new->index, source->index, sizeof(char*));
+        destination = array_new();
+    destination->limit = source->limit;
+    destination->size = source->size;
+    destination->value = (Value*)realloc(destination->value, destination->size * sizeof(Value));
+    destination->index = (char**)realloc(destination->index, destination->size * sizeof(char*));
+    memcpy(destination->value, source->value, destination->size * sizeof(Value));
+    memcpy(destination->index, source->index, sizeof(char*));
+    return destination;
+}
+
+Linked_List *linked_list_new()
+{
+    Linked_List *new = (Linked_List*)malloc(sizeof(Linked_List));
+    new->prev = NULL;
+    new->next = NULL;
+    new->data = NULL;
+    new->type_name = 0;
+    new->index = -1;
     return new;
+}
+
+Linked_List *linked_list_insert_func(Linked_List *list, void *item, size_t size, void (*copy_func)(void*, const void*), char *type_name, ...)
+{
+    va_list args;
+    va_start(args, type_name);
+    int index = va_arg(args, int);
+    va_end(args);
+    Linked_List *new = linked_list_new();
+    if (index = -1)
+    {
+        list->type_name = BKDRHash(type_name);
+        list->data = (void*)malloc(size);
+        if (copy_func == NULL)
+            memcpy(list->data, item, size);
+        else
+            copy_func(list->data, item);
+        list->index = list->prev == NULL ? 0 : list->prev->index + 1;
+        new->prev = list;
+        list->next = new;
+        return new;
+    }
+    if (list->index > index);
+}
+
+void *linked_list_get_func(Linked_List *list, int index)
+{
+    Linked_List *temp = list;
+    if (linked_list_empty(list))
+        return NULL;
+    if (temp->next == NULL)
+        temp = temp->prev;
+    for (;temp->index > index; temp = temp->prev);
+    for (;temp->index < index; temp = temp->next);
+    return temp->data;
+}
+
+void linked_list_delete(Linked_List *list)
+{
+    
 }

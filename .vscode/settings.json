@@ -7,6 +7,8 @@
         "uchar.h": "c",
         "stdarg.h": "c",
         "cstdarg": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "stdlib.h": "c",
+        "cstdlib": "c"
     },
 }
