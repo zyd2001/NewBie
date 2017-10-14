@@ -63,6 +63,7 @@ struct Linked_List_tag
     Linked_List *next;
     void *data;
     int index;
+    char primitive;
     unsigned int type_name;
 };
 
@@ -741,7 +742,13 @@ Array *array_copy(Array *destination, Array *source)
     return destination;
 }
 
-Linked_List *linked_list_new()
+#define move_to(list, index) \
+do { \
+    for (;list->index > index; list = list->prev); \
+    for (;list->index < index; list = list->next); \
+} while(0)
+
+Linked_List *linked_list_node_new()
 {
     Linked_List *new = (Linked_List*)malloc(sizeof(Linked_List));
     new->prev = NULL;
@@ -752,42 +759,193 @@ Linked_List *linked_list_new()
     return new;
 }
 
-Linked_List *linked_list_insert_func(Linked_List *list, void *item, size_t size, void (*copy_func)(void*, const void*), char *type_name, ...)
+int linked_list_insert_func(Linked_List **list, void *item, size_t size, char primitive, void (*copy_func)(void*, const void*), char *type_name, int index)
 {
-    va_list args;
-    va_start(args, type_name);
-    int index = va_arg(args, int);
-    va_end(args);
-    Linked_List *new = linked_list_new();
-    if (index = -1)
+    Linked_List *temp = *list;
+    Linked_List *new = linked_list_node_new();
+    new->primitive = primitive;
+    if (linked_list_empty(temp))
     {
-        list->type_name = BKDRHash(type_name);
-        list->data = (void*)malloc(size);
+        temp = new;
+        temp->type_name = BKDRHash(type_name);
+        temp->data = (void*)malloc(size);
         if (copy_func == NULL)
-            memcpy(list->data, item, size);
+            memcpy(temp->data, item, size);
         else
-            copy_func(list->data, item);
-        list->index = list->prev == NULL ? 0 : list->prev->index + 1;
-        new->prev = list;
-        list->next = new;
-        return new;
+            copy_func(temp->data, item);
+        temp->index = temp->prev == NULL ? 0 : temp->prev->index + 1;
+        (*list) = temp;
+        return 1;
     }
-    if (list->index > index);
+    if (index == -1)
+    {
+        for (;temp->next != NULL; temp = temp->next);
+        temp->next = new;
+        new->prev = temp;
+        temp = new;
+        temp->type_name = BKDRHash(type_name);
+        temp->data = (void*)malloc(size);
+        if (copy_func == NULL)
+            memcpy(temp->data, item, size);
+        else
+            copy_func(temp->data, item);
+        temp->index = temp->prev == NULL ? 0 : temp->prev->index + 1;
+        (*list) = temp;
+        return 1;
+    }
+    else
+    {
+        move_to(temp, index);
+        if (temp->prev)
+            temp->prev->next = new;
+        new->prev = temp->prev;
+        new->next = temp;
+        temp->prev = new;
+        new->type_name = BKDRHash(type_name);
+        new->data = (void*)malloc(size);
+        if (copy_func == NULL)
+            memcpy(new->data, item, size);
+        else
+            copy_func(new->data, item);
+        new->index = new->prev == NULL ? 0 : new->prev->index + 1;
+        for (;temp != NULL; temp = temp->next)
+            temp->index++;
+        (*list) = new;
+        return 1;
+    }
 }
 
-void *linked_list_get_func(Linked_List *list, int index)
+void *linked_list_get_func(Linked_List **list, int index)
 {
-    Linked_List *temp = list;
-    if (linked_list_empty(list))
-        return NULL;
-    if (temp->next == NULL)
-        temp = temp->prev;
-    for (;temp->index > index; temp = temp->prev);
-    for (;temp->index < index; temp = temp->next);
+    Linked_List *temp = *list;
+    if (linked_list_empty(temp))
+        return NULL;      
+    move_to(temp, index);        
+    (*list) = temp;
     return temp->data;
 }
 
-void linked_list_delete(Linked_List *list)
+int linked_list_get_length(Linked_List *list)
 {
-    
+    for (;list->next != NULL; list = list->next);
+    return list->index + 1;
+}
+
+int linked_list_remove_item(Linked_List **list, struct delete_func_struct_tag *delete_func_struct, int index)
+{
+    Linked_List *temp = *list, *stored;
+    if (index = -1)
+        for (;temp->next != NULL; temp = temp->next);
+    else
+        move_to(temp, index);
+    if (delete_func_struct)
+    {
+        if (delete_func_struct->type_name = temp->type_name)
+        {
+            delete_func_struct->real_func(temp->data);
+            __free(temp->data);
+            stored = temp;
+            if (temp->prev)
+                temp->prev->next = temp->next;
+            if (temp->next)
+            {
+                temp->next->prev = temp->prev;
+                for (;temp != NULL; temp = temp->next)
+                    temp->index--;
+            }
+        }
+        else
+            return -1;
+    }
+    else
+    {
+        __free(temp->data);
+        stored = temp;
+        if (temp->prev)
+            temp->prev->next = temp->next;
+        if (temp->next)
+        {
+            temp->next->prev = temp->prev;
+            for (;temp != NULL; temp = temp->next)
+                temp->index--;
+        }
+    }
+    if (stored->next == stored->prev == NULL)
+        __free(*list);
+    else
+        __free(stored);
+    return 1;
+}
+
+int linked_list_delete_func(Linked_List **list, struct delete_func_struct_tag *delete_func_struct[], size_t size)
+{
+    if (linked_list_empty(*list))
+        return 0;
+    else
+    {
+        Linked_List *temp = *list, *stored, *next = (*list)->next;
+        while (temp != NULL)
+        {
+            if (delete_func_struct != NULL && !temp->primitive)
+            {
+                int flag = 1;
+                for (int i = 0; i < size; i++)
+                {
+                    if (delete_func_struct[i]->type_name == temp->type_name)
+                    {
+                        flag = 0;
+                        delete_func_struct[i]->real_func(temp->data);
+                        __free(temp->data);
+                        stored = temp->prev;
+                        __free(temp);
+                        temp = stored;
+                    }
+                    else
+                        continue;
+                }
+                if (flag)
+                    return -1;
+            }
+            else
+            {
+                __free(temp->data);
+                stored = temp->prev;
+                __free(temp);
+                temp = stored;
+            }
+        }
+        temp = next; // the next part
+        while (temp != NULL)
+        {
+            if (delete_func_struct != NULL && !temp->primitive)
+            {
+                int flag = 1;
+                for (int i = 0; i < size; i++)
+                {
+                    if (delete_func_struct[i]->type_name == temp->type_name)
+                    {
+                        flag = 0;
+                        delete_func_struct[i]->real_func(temp->data);
+                        __free(temp->data);
+                        stored = temp->next;
+                        __free(temp);
+                        temp = stored;
+                    }
+                    else
+                        continue;
+                }
+                if (flag)   // no delete_func match
+                    return -1;
+            }
+            else
+            {
+                __free(temp->data);
+                stored = temp->next;
+                __free(temp);
+                temp = stored;
+            }
+        }
+    }
+    *list = NULL;
+    return 1;
 }

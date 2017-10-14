@@ -9,6 +9,13 @@
         "cstdarg": "c",
         "string.h": "c",
         "stdlib.h": "c",
-        "cstdlib": "c"
+        "cstdlib": "c",
+        "setjmp.h": "c",
+        "time.h": "c",
+        "stdbool.h": "c",
+        "cstdbool": "c",
+        "c++config.h": "c",
+        "tgmath.h": "c",
+        "pcre2.h": "c"
     },
 }

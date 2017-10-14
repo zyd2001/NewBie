@@ -96,10 +96,17 @@ Value *array_remove(Array *arr, int index);
 Value *array_pop(Array *arr);
 Array *array_copy(Array *destination, Array *source);
 
-Linked_List *linked_list_new();
-Linked_List *linked_list_insert_func(Linked_List *list, void *item, size_t size, void (*copy_func)(void*, const void*), char *type_name, ...);
-void *linked_list_get_func(Linked_List *list, int index);
-#define linked_list_insert(list, item, copy_func, type, ...) linked_list_insert_func(list, &item, sizeof(item), copy_func, #type, ##__VA_ARGS__, -1)
+struct delete_func_struct_tag 
+{
+    unsigned int type_name;
+    void (*real_func)(void *);
+};
+int linked_list_insert_func(Linked_List **list, void *item, size_t size, char primitive, void (*copy_func)(void*, const void*), char *type_name, int index);
+void *linked_list_get_func(Linked_List **list, int index);
+int linked_list_get_length(Linked_List *list);
+int linked_list_remove_item(Linked_List **list, struct delete_func_struct_tag *delete_func_struct, int index);
+int linked_list_delete_func(Linked_List **list, struct delete_func_struct_tag *delete_func_struct[], size_t size);
+#define linked_list_insert(list, item, primitive, copy_func, type, index) linked_list_insert_func(&list, &item, sizeof(item), primitive, copy_func, #type, index)
 #define __build_copy_func(type, func, new_func, name) \
 void name(void *dest, const void *src) \
 { \
@@ -109,7 +116,14 @@ void name(void *dest, const void *src) \
         *temp_dest = (type)new_func(); \
     func(*temp_dest, *temp_src); \
 } // use only globally
-#define linked_list_get(list, index, type) *((type*)linked_list_get_func(list, index))
-#define linked_list_empty(list) list->prev == NULL && list->next == NULL
+#define linked_list_get(list, index, type) *((type*)linked_list_get_func(&list, index))
+#define linked_list_empty(list) list == NULL
+#define __build_delete_func_struct(type, func, name) struct delete_func_struct_tag name = {BKDRHash(#type), func}
+#define __build_delete_func(type, func, name) \
+void name(void *ptr) \
+{ \
+    type *p = (type*)ptr; \
+    func(p, NULL); \
+}
 
 #endif
