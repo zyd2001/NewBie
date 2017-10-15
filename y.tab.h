@@ -153,16 +153,11 @@ union YYSTYPE
 #line 14 "newbie.y" /* yacc.c:1909  */
 
     UTF8_String         *identifier;
-    // ParameterList       *parameter_list;
-    // ArgumentList        *argument_list;
     Expression          *expression;
     Statement           *statement;
     StatementList       *statement_list;
-    // Block               *block;
-    // Elseif              *elseif;
-    // IdentifierList      *identifier_list;
 
-#line 166 "y.tab.h" /* yacc.c:1909  */
+#line 161 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

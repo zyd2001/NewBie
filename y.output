@@ -18,21 +18,21 @@ Terminals unused in grammar
    DECREMENT
 
 
-状态 63 conflicts: 11 shift/reduce
-状态 77 conflicts: 11 shift/reduce
-状态 78 conflicts: 11 shift/reduce
-状态 79 conflicts: 11 shift/reduce
-状态 80 conflicts: 11 shift/reduce
-状态 81 conflicts: 11 shift/reduce
-状态 82 conflicts: 11 shift/reduce
-状态 83 conflicts: 11 shift/reduce
-状态 84 conflicts: 11 shift/reduce
-状态 85 conflicts: 11 shift/reduce
-状态 86 conflicts: 11 shift/reduce
-状态 87 conflicts: 11 shift/reduce
+State 63 conflicts: 11 shift/reduce
+State 77 conflicts: 11 shift/reduce
+State 78 conflicts: 11 shift/reduce
+State 79 conflicts: 11 shift/reduce
+State 80 conflicts: 11 shift/reduce
+State 81 conflicts: 11 shift/reduce
+State 82 conflicts: 11 shift/reduce
+State 83 conflicts: 11 shift/reduce
+State 84 conflicts: 11 shift/reduce
+State 85 conflicts: 11 shift/reduce
+State 86 conflicts: 11 shift/reduce
+State 87 conflicts: 11 shift/reduce
 
 
-语法
+Grammar
 
     0 $accept: statement_list $end
 
@@ -52,7 +52,7 @@ Terminals unused in grammar
    12           | declaration_expression
    13           | binary_expression
    14           | primary_expression
-   15           | IDENTIFIER LP actual_argument_list RP
+   15           | IDENTIFIER LP argument_list RP
    16           | IDENTIFIER
 
    17 expression_optional: %empty
@@ -89,26 +89,26 @@ Terminals unused in grammar
    42                   | DOUBLE_LITERAL
    43                   | STRING_LITERAL
 
-   44 function_definition_statement: INT_T LP formal_argument_list RP block
-   45                              | DOUBLE_T LP formal_argument_list RP block
-   46                              | STRING_T LP formal_argument_list RP block
-   47                              | ARRAY_T LP formal_argument_list RP block
+   44 function_definition_statement: INT_T LP parameter_list RP block
+   45                              | DOUBLE_T LP parameter_list RP block
+   46                              | STRING_T LP parameter_list RP block
+   47                              | ARRAY_T LP parameter_list RP block
 
    48 block: LC statement_list RC
    49      | LC RC
 
-   50 actual_argument_list: expression
-   51                     | actual_argument_list COMMA expression
+   50 argument_list: expression
+   51              | argument_list COMMA expression
 
-   52 formal_argument_list: %empty
-   53                     | INT_T IDENTIFIER
-   54                     | DOUBLE_T IDENTIFIER
-   55                     | STRING_T IDENTIFIER
-   56                     | ARRAY_T IDENTIFIER
-   57                     | formal_argument_list COMMA INT_T IDENTIFIER
-   58                     | formal_argument_list COMMA DOUBLE_T IDENTIFIER
-   59                     | formal_argument_list COMMA STRING_T IDENTIFIER
-   60                     | formal_argument_list COMMA ARRAY_T IDENTIFIER
+   52 parameter_list: %empty
+   53               | INT_T IDENTIFIER
+   54               | DOUBLE_T IDENTIFIER
+   55               | STRING_T IDENTIFIER
+   56               | ARRAY_T IDENTIFIER
+   57               | parameter_list COMMA INT_T IDENTIFIER
+   58               | parameter_list COMMA DOUBLE_T IDENTIFIER
+   59               | parameter_list COMMA STRING_T IDENTIFIER
+   60               | parameter_list COMMA ARRAY_T IDENTIFIER
 
 
 Terminals, with rules where they appear
@@ -168,37 +168,37 @@ DECREMENT (305)
 Nonterminals, with rules where they appear
 
 $accept (51)
-    左： 0
+    on left: 0
 statement_list (52)
-    左： 1 2, 右： 0 2 48
+    on left: 1 2, on right: 0 2 48
 statement (53)
-    左： 3 4 5 6 7 8 9 10, 右： 1 2
+    on left: 3 4 5 6 7 8 9 10, on right: 1 2
 expression (54)
-    左： 11 12 13 14 15 16, 右： 3 5 6 8 18 21 22 23 24 25 26 35
-    36 37 38 39 40 50 51
+    on left: 11 12 13 14 15 16, on right: 3 5 6 8 18 21 22 23 24 25
+    26 35 36 37 38 39 40 50 51
 expression_optional (55)
-    左： 17 18, 右： 7
+    on left: 17 18, on right: 7
 binary_expression (56)
-    左： 19 20, 右： 13
+    on left: 19 20, on right: 13
 comparison_expression (57)
-    左： 21 22 23 24 25 26, 右： 19
+    on left: 21 22 23 24 25 26, on right: 19
 declaration_expression (58)
-    左： 27 28 29 30 31 32 33 34, 右： 12
+    on left: 27 28 29 30 31 32 33 34, on right: 12
 computation_expression (59)
-    左： 35 36 37 38 39, 右： 20
+    on left: 35 36 37 38 39, on right: 20
 assignment_expression (60)
-    左： 40, 右： 11 31 32 33 34
+    on left: 40, on right: 11 31 32 33 34
 primary_expression (61)
-    左： 41 42 43, 右： 14
+    on left: 41 42 43, on right: 14
 function_definition_statement (62)
-    左： 44 45 46 47, 右： 4
+    on left: 44 45 46 47, on right: 4
 block (63)
-    左： 48 49, 右： 5 6 7 44 45 46 47
-actual_argument_list (64)
-    左： 50 51, 右： 15 51
-formal_argument_list (65)
-    左： 52 53 54 55 56 57 58 59 60, 右： 44 45 46 47 57 58 59
-    60
+    on left: 48 49, on right: 5 6 7 44 45 46 47
+argument_list (64)
+    on left: 50 51, on right: 15 51
+parameter_list (65)
+    on left: 52 53 54 55 56 57 58 59 60, on right: 44 45 46 47 57 58
+    59 60
 
 
 State 0
@@ -219,16 +219,16 @@ State 0
     BREAK           shift, and go to state 12
     CONTINUE        shift, and go to state 13
 
-    statement_list                 转到状态 14
-    statement                      转到状态 15
-    expression                     转到状态 16
-    binary_expression              转到状态 17
-    comparison_expression          转到状态 18
-    declaration_expression         转到状态 19
-    computation_expression         转到状态 20
-    assignment_expression          转到状态 21
-    primary_expression             转到状态 22
-    function_definition_statement  转到状态 23
+    statement_list                 go to state 14
+    statement                      go to state 15
+    expression                     go to state 16
+    binary_expression              go to state 17
+    comparison_expression          go to state 18
+    declaration_expression         go to state 19
+    computation_expression         go to state 20
+    assignment_expression          go to state 21
+    primary_expression             go to state 22
+    function_definition_statement  go to state 23
 
 
 State 1
@@ -254,7 +254,7 @@ State 3
 
 State 4
 
-   15 expression: IDENTIFIER . LP actual_argument_list RP
+   15 expression: IDENTIFIER . LP argument_list RP
    16           | IDENTIFIER .
    40 assignment_expression: IDENTIFIER . ASSIGN_T expression
 
@@ -268,48 +268,48 @@ State 5
 
    27 declaration_expression: INT_T . IDENTIFIER
    31                       | INT_T . assignment_expression
-   44 function_definition_statement: INT_T . LP formal_argument_list RP block
+   44 function_definition_statement: INT_T . LP parameter_list RP block
 
     IDENTIFIER  shift, and go to state 26
     LP          shift, and go to state 27
 
-    assignment_expression  转到状态 28
+    assignment_expression  go to state 28
 
 
 State 6
 
    28 declaration_expression: DOUBLE_T . IDENTIFIER
    32                       | DOUBLE_T . assignment_expression
-   45 function_definition_statement: DOUBLE_T . LP formal_argument_list RP block
+   45 function_definition_statement: DOUBLE_T . LP parameter_list RP block
 
     IDENTIFIER  shift, and go to state 29
     LP          shift, and go to state 30
 
-    assignment_expression  转到状态 31
+    assignment_expression  go to state 31
 
 
 State 7
 
    29 declaration_expression: STRING_T . IDENTIFIER
    33                       | STRING_T . assignment_expression
-   46 function_definition_statement: STRING_T . LP formal_argument_list RP block
+   46 function_definition_statement: STRING_T . LP parameter_list RP block
 
     IDENTIFIER  shift, and go to state 32
     LP          shift, and go to state 33
 
-    assignment_expression  转到状态 34
+    assignment_expression  go to state 34
 
 
 State 8
 
    30 declaration_expression: ARRAY_T . IDENTIFIER
    34                       | ARRAY_T . assignment_expression
-   47 function_definition_statement: ARRAY_T . LP formal_argument_list RP block
+   47 function_definition_statement: ARRAY_T . LP parameter_list RP block
 
     IDENTIFIER  shift, and go to state 35
     LP          shift, and go to state 36
 
-    assignment_expression  转到状态 37
+    assignment_expression  go to state 37
 
 
 State 9
@@ -340,13 +340,13 @@ State 11
     STRING_T        shift, and go to state 42
     ARRAY_T         shift, and go to state 43
 
-    expression              转到状态 44
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
+    expression              go to state 44
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
 
 
 State 12
@@ -383,15 +383,15 @@ State 14
     BREAK           shift, and go to state 12
     CONTINUE        shift, and go to state 13
 
-    statement                      转到状态 48
-    expression                     转到状态 16
-    binary_expression              转到状态 17
-    comparison_expression          转到状态 18
-    declaration_expression         转到状态 19
-    computation_expression         转到状态 20
-    assignment_expression          转到状态 21
-    primary_expression             转到状态 22
-    function_definition_statement  转到状态 23
+    statement                      go to state 48
+    expression                     go to state 16
+    binary_expression              go to state 17
+    comparison_expression          go to state 18
+    declaration_expression         go to state 19
+    computation_expression         go to state 20
+    assignment_expression          go to state 21
+    primary_expression             go to state 22
+    function_definition_statement  go to state 23
 
 
 State 15
@@ -481,7 +481,7 @@ State 23
 
 State 24
 
-   15 expression: IDENTIFIER LP . actual_argument_list RP
+   15 expression: IDENTIFIER LP . argument_list RP
 
     INT_LITERAL     shift, and go to state 1
     STRING_LITERAL  shift, and go to state 2
@@ -492,14 +492,14 @@ State 24
     STRING_T        shift, and go to state 42
     ARRAY_T         shift, and go to state 43
 
-    expression              转到状态 61
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
-    actual_argument_list    转到状态 62
+    expression              go to state 61
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
+    argument_list           go to state 62
 
 
 State 25
@@ -515,13 +515,13 @@ State 25
     STRING_T        shift, and go to state 42
     ARRAY_T         shift, and go to state 43
 
-    expression              转到状态 63
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
+    expression              go to state 63
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
 
 
 State 26
@@ -536,16 +536,16 @@ State 26
 
 State 27
 
-   44 function_definition_statement: INT_T LP . formal_argument_list RP block
+   44 function_definition_statement: INT_T LP . parameter_list RP block
 
     INT_T     shift, and go to state 64
     DOUBLE_T  shift, and go to state 65
     STRING_T  shift, and go to state 66
     ARRAY_T   shift, and go to state 67
 
-    $default  reduce using rule 52 (formal_argument_list)
+    $default  reduce using rule 52 (parameter_list)
 
-    formal_argument_list  转到状态 68
+    parameter_list  go to state 68
 
 
 State 28
@@ -567,16 +567,16 @@ State 29
 
 State 30
 
-   45 function_definition_statement: DOUBLE_T LP . formal_argument_list RP block
+   45 function_definition_statement: DOUBLE_T LP . parameter_list RP block
 
     INT_T     shift, and go to state 64
     DOUBLE_T  shift, and go to state 65
     STRING_T  shift, and go to state 66
     ARRAY_T   shift, and go to state 67
 
-    $default  reduce using rule 52 (formal_argument_list)
+    $default  reduce using rule 52 (parameter_list)
 
-    formal_argument_list  转到状态 69
+    parameter_list  go to state 69
 
 
 State 31
@@ -598,16 +598,16 @@ State 32
 
 State 33
 
-   46 function_definition_statement: STRING_T LP . formal_argument_list RP block
+   46 function_definition_statement: STRING_T LP . parameter_list RP block
 
     INT_T     shift, and go to state 64
     DOUBLE_T  shift, and go to state 65
     STRING_T  shift, and go to state 66
     ARRAY_T   shift, and go to state 67
 
-    $default  reduce using rule 52 (formal_argument_list)
+    $default  reduce using rule 52 (parameter_list)
 
-    formal_argument_list  转到状态 70
+    parameter_list  go to state 70
 
 
 State 34
@@ -629,16 +629,16 @@ State 35
 
 State 36
 
-   47 function_definition_statement: ARRAY_T LP . formal_argument_list RP block
+   47 function_definition_statement: ARRAY_T LP . parameter_list RP block
 
     INT_T     shift, and go to state 64
     DOUBLE_T  shift, and go to state 65
     STRING_T  shift, and go to state 66
     ARRAY_T   shift, and go to state 67
 
-    $default  reduce using rule 52 (formal_argument_list)
+    $default  reduce using rule 52 (parameter_list)
 
-    formal_argument_list  转到状态 71
+    parameter_list  go to state 71
 
 
 State 37
@@ -661,13 +661,13 @@ State 38
     STRING_T        shift, and go to state 42
     ARRAY_T         shift, and go to state 43
 
-    expression              转到状态 72
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
+    expression              go to state 72
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
 
 
 State 39
@@ -686,14 +686,14 @@ State 39
 
     $default  reduce using rule 17 (expression_optional)
 
-    expression              转到状态 74
-    expression_optional     转到状态 75
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
+    expression              go to state 74
+    expression_optional     go to state 75
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
 
 
 State 40
@@ -703,7 +703,7 @@ State 40
 
     IDENTIFIER  shift, and go to state 26
 
-    assignment_expression  转到状态 28
+    assignment_expression  go to state 28
 
 
 State 41
@@ -713,7 +713,7 @@ State 41
 
     IDENTIFIER  shift, and go to state 29
 
-    assignment_expression  转到状态 31
+    assignment_expression  go to state 31
 
 
 State 42
@@ -723,7 +723,7 @@ State 42
 
     IDENTIFIER  shift, and go to state 32
 
-    assignment_expression  转到状态 34
+    assignment_expression  go to state 34
 
 
 State 43
@@ -733,7 +733,7 @@ State 43
 
     IDENTIFIER  shift, and go to state 35
 
-    assignment_expression  转到状态 37
+    assignment_expression  go to state 37
 
 
 State 44
@@ -783,7 +783,7 @@ State 47
 
     0 $accept: statement_list $end .
 
-    $default  接受
+    $default  accept
 
 
 State 48
@@ -813,13 +813,13 @@ State 50
     STRING_T        shift, and go to state 42
     ARRAY_T         shift, and go to state 43
 
-    expression              转到状态 77
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
+    expression              go to state 77
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
 
 
 State 51
@@ -835,13 +835,13 @@ State 51
     STRING_T        shift, and go to state 42
     ARRAY_T         shift, and go to state 43
 
-    expression              转到状态 78
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
+    expression              go to state 78
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
 
 
 State 52
@@ -857,13 +857,13 @@ State 52
     STRING_T        shift, and go to state 42
     ARRAY_T         shift, and go to state 43
 
-    expression              转到状态 79
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
+    expression              go to state 79
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
 
 
 State 53
@@ -879,13 +879,13 @@ State 53
     STRING_T        shift, and go to state 42
     ARRAY_T         shift, and go to state 43
 
-    expression              转到状态 80
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
+    expression              go to state 80
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
 
 
 State 54
@@ -901,13 +901,13 @@ State 54
     STRING_T        shift, and go to state 42
     ARRAY_T         shift, and go to state 43
 
-    expression              转到状态 81
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
+    expression              go to state 81
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
 
 
 State 55
@@ -923,13 +923,13 @@ State 55
     STRING_T        shift, and go to state 42
     ARRAY_T         shift, and go to state 43
 
-    expression              转到状态 82
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
+    expression              go to state 82
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
 
 
 State 56
@@ -945,13 +945,13 @@ State 56
     STRING_T        shift, and go to state 42
     ARRAY_T         shift, and go to state 43
 
-    expression              转到状态 83
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
+    expression              go to state 83
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
 
 
 State 57
@@ -967,13 +967,13 @@ State 57
     STRING_T        shift, and go to state 42
     ARRAY_T         shift, and go to state 43
 
-    expression              转到状态 84
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
+    expression              go to state 84
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
 
 
 State 58
@@ -989,13 +989,13 @@ State 58
     STRING_T        shift, and go to state 42
     ARRAY_T         shift, and go to state 43
 
-    expression              转到状态 85
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
+    expression              go to state 85
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
 
 
 State 59
@@ -1011,13 +1011,13 @@ State 59
     STRING_T        shift, and go to state 42
     ARRAY_T         shift, and go to state 43
 
-    expression              转到状态 86
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
+    expression              go to state 86
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
 
 
 State 60
@@ -1033,13 +1033,13 @@ State 60
     STRING_T        shift, and go to state 42
     ARRAY_T         shift, and go to state 43
 
-    expression              转到状态 87
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
+    expression              go to state 87
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
 
 
 State 61
@@ -1055,7 +1055,7 @@ State 61
    37                       | expression . MUL_T expression
    38                       | expression . DIV_T expression
    39                       | expression . MOD_T expression
-   50 actual_argument_list: expression .
+   50 argument_list: expression .
 
     EQ_T   shift, and go to state 50
     NE_T   shift, and go to state 51
@@ -1069,13 +1069,13 @@ State 61
     DIV_T  shift, and go to state 59
     MOD_T  shift, and go to state 60
 
-    $default  reduce using rule 50 (actual_argument_list)
+    $default  reduce using rule 50 (argument_list)
 
 
 State 62
 
-   15 expression: IDENTIFIER LP actual_argument_list . RP
-   51 actual_argument_list: actual_argument_list . COMMA expression
+   15 expression: IDENTIFIER LP argument_list . RP
+   51 argument_list: argument_list . COMMA expression
 
     RP     shift, and go to state 88
     COMMA  shift, and go to state 89
@@ -1124,39 +1124,39 @@ State 63
 
 State 64
 
-   53 formal_argument_list: INT_T . IDENTIFIER
+   53 parameter_list: INT_T . IDENTIFIER
 
     IDENTIFIER  shift, and go to state 90
 
 
 State 65
 
-   54 formal_argument_list: DOUBLE_T . IDENTIFIER
+   54 parameter_list: DOUBLE_T . IDENTIFIER
 
     IDENTIFIER  shift, and go to state 91
 
 
 State 66
 
-   55 formal_argument_list: STRING_T . IDENTIFIER
+   55 parameter_list: STRING_T . IDENTIFIER
 
     IDENTIFIER  shift, and go to state 92
 
 
 State 67
 
-   56 formal_argument_list: ARRAY_T . IDENTIFIER
+   56 parameter_list: ARRAY_T . IDENTIFIER
 
     IDENTIFIER  shift, and go to state 93
 
 
 State 68
 
-   44 function_definition_statement: INT_T LP formal_argument_list . RP block
-   57 formal_argument_list: formal_argument_list . COMMA INT_T IDENTIFIER
-   58                     | formal_argument_list . COMMA DOUBLE_T IDENTIFIER
-   59                     | formal_argument_list . COMMA STRING_T IDENTIFIER
-   60                     | formal_argument_list . COMMA ARRAY_T IDENTIFIER
+   44 function_definition_statement: INT_T LP parameter_list . RP block
+   57 parameter_list: parameter_list . COMMA INT_T IDENTIFIER
+   58               | parameter_list . COMMA DOUBLE_T IDENTIFIER
+   59               | parameter_list . COMMA STRING_T IDENTIFIER
+   60               | parameter_list . COMMA ARRAY_T IDENTIFIER
 
     RP     shift, and go to state 94
     COMMA  shift, and go to state 95
@@ -1164,11 +1164,11 @@ State 68
 
 State 69
 
-   45 function_definition_statement: DOUBLE_T LP formal_argument_list . RP block
-   57 formal_argument_list: formal_argument_list . COMMA INT_T IDENTIFIER
-   58                     | formal_argument_list . COMMA DOUBLE_T IDENTIFIER
-   59                     | formal_argument_list . COMMA STRING_T IDENTIFIER
-   60                     | formal_argument_list . COMMA ARRAY_T IDENTIFIER
+   45 function_definition_statement: DOUBLE_T LP parameter_list . RP block
+   57 parameter_list: parameter_list . COMMA INT_T IDENTIFIER
+   58               | parameter_list . COMMA DOUBLE_T IDENTIFIER
+   59               | parameter_list . COMMA STRING_T IDENTIFIER
+   60               | parameter_list . COMMA ARRAY_T IDENTIFIER
 
     RP     shift, and go to state 96
     COMMA  shift, and go to state 95
@@ -1176,11 +1176,11 @@ State 69
 
 State 70
 
-   46 function_definition_statement: STRING_T LP formal_argument_list . RP block
-   57 formal_argument_list: formal_argument_list . COMMA INT_T IDENTIFIER
-   58                     | formal_argument_list . COMMA DOUBLE_T IDENTIFIER
-   59                     | formal_argument_list . COMMA STRING_T IDENTIFIER
-   60                     | formal_argument_list . COMMA ARRAY_T IDENTIFIER
+   46 function_definition_statement: STRING_T LP parameter_list . RP block
+   57 parameter_list: parameter_list . COMMA INT_T IDENTIFIER
+   58               | parameter_list . COMMA DOUBLE_T IDENTIFIER
+   59               | parameter_list . COMMA STRING_T IDENTIFIER
+   60               | parameter_list . COMMA ARRAY_T IDENTIFIER
 
     RP     shift, and go to state 97
     COMMA  shift, and go to state 95
@@ -1188,11 +1188,11 @@ State 70
 
 State 71
 
-   47 function_definition_statement: ARRAY_T LP formal_argument_list . RP block
-   57 formal_argument_list: formal_argument_list . COMMA INT_T IDENTIFIER
-   58                     | formal_argument_list . COMMA DOUBLE_T IDENTIFIER
-   59                     | formal_argument_list . COMMA STRING_T IDENTIFIER
-   60                     | formal_argument_list . COMMA ARRAY_T IDENTIFIER
+   47 function_definition_statement: ARRAY_T LP parameter_list . RP block
+   57 parameter_list: parameter_list . COMMA INT_T IDENTIFIER
+   58               | parameter_list . COMMA DOUBLE_T IDENTIFIER
+   59               | parameter_list . COMMA STRING_T IDENTIFIER
+   60               | parameter_list . COMMA ARRAY_T IDENTIFIER
 
     RP     shift, and go to state 98
     COMMA  shift, and go to state 95
@@ -1230,7 +1230,7 @@ State 72
 State 73
 
     6 statement: FOR LP IDENTIFIER . IN expression RP block
-   15 expression: IDENTIFIER . LP actual_argument_list RP
+   15 expression: IDENTIFIER . LP argument_list RP
    16           | IDENTIFIER .
    40 assignment_expression: IDENTIFIER . ASSIGN_T expression
 
@@ -1738,14 +1738,14 @@ State 87
 
 State 88
 
-   15 expression: IDENTIFIER LP actual_argument_list RP .
+   15 expression: IDENTIFIER LP argument_list RP .
 
     $default  reduce using rule 15 (expression)
 
 
 State 89
 
-   51 actual_argument_list: actual_argument_list COMMA . expression
+   51 argument_list: argument_list COMMA . expression
 
     INT_LITERAL     shift, and go to state 1
     STRING_LITERAL  shift, and go to state 2
@@ -1756,58 +1756,58 @@ State 89
     STRING_T        shift, and go to state 42
     ARRAY_T         shift, and go to state 43
 
-    expression              转到状态 102
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
+    expression              go to state 102
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
 
 
 State 90
 
-   53 formal_argument_list: INT_T IDENTIFIER .
+   53 parameter_list: INT_T IDENTIFIER .
 
-    $default  reduce using rule 53 (formal_argument_list)
+    $default  reduce using rule 53 (parameter_list)
 
 
 State 91
 
-   54 formal_argument_list: DOUBLE_T IDENTIFIER .
+   54 parameter_list: DOUBLE_T IDENTIFIER .
 
-    $default  reduce using rule 54 (formal_argument_list)
+    $default  reduce using rule 54 (parameter_list)
 
 
 State 92
 
-   55 formal_argument_list: STRING_T IDENTIFIER .
+   55 parameter_list: STRING_T IDENTIFIER .
 
-    $default  reduce using rule 55 (formal_argument_list)
+    $default  reduce using rule 55 (parameter_list)
 
 
 State 93
 
-   56 formal_argument_list: ARRAY_T IDENTIFIER .
+   56 parameter_list: ARRAY_T IDENTIFIER .
 
-    $default  reduce using rule 56 (formal_argument_list)
+    $default  reduce using rule 56 (parameter_list)
 
 
 State 94
 
-   44 function_definition_statement: INT_T LP formal_argument_list RP . block
+   44 function_definition_statement: INT_T LP parameter_list RP . block
 
     LC  shift, and go to state 103
 
-    block  转到状态 104
+    block  go to state 104
 
 
 State 95
 
-   57 formal_argument_list: formal_argument_list COMMA . INT_T IDENTIFIER
-   58                     | formal_argument_list COMMA . DOUBLE_T IDENTIFIER
-   59                     | formal_argument_list COMMA . STRING_T IDENTIFIER
-   60                     | formal_argument_list COMMA . ARRAY_T IDENTIFIER
+   57 parameter_list: parameter_list COMMA . INT_T IDENTIFIER
+   58               | parameter_list COMMA . DOUBLE_T IDENTIFIER
+   59               | parameter_list COMMA . STRING_T IDENTIFIER
+   60               | parameter_list COMMA . ARRAY_T IDENTIFIER
 
     INT_T     shift, and go to state 105
     DOUBLE_T  shift, and go to state 106
@@ -1817,29 +1817,29 @@ State 95
 
 State 96
 
-   45 function_definition_statement: DOUBLE_T LP formal_argument_list RP . block
+   45 function_definition_statement: DOUBLE_T LP parameter_list RP . block
 
     LC  shift, and go to state 103
 
-    block  转到状态 109
+    block  go to state 109
 
 
 State 97
 
-   46 function_definition_statement: STRING_T LP formal_argument_list RP . block
+   46 function_definition_statement: STRING_T LP parameter_list RP . block
 
     LC  shift, and go to state 103
 
-    block  转到状态 110
+    block  go to state 110
 
 
 State 98
 
-   47 function_definition_statement: ARRAY_T LP formal_argument_list RP . block
+   47 function_definition_statement: ARRAY_T LP parameter_list RP . block
 
     LC  shift, and go to state 103
 
-    block  转到状态 111
+    block  go to state 111
 
 
 State 99
@@ -1848,7 +1848,7 @@ State 99
 
     LC  shift, and go to state 103
 
-    block  转到状态 112
+    block  go to state 112
 
 
 State 100
@@ -1864,13 +1864,13 @@ State 100
     STRING_T        shift, and go to state 42
     ARRAY_T         shift, and go to state 43
 
-    expression              转到状态 113
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
+    expression              go to state 113
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
 
 
 State 101
@@ -1888,14 +1888,14 @@ State 101
 
     $default  reduce using rule 17 (expression_optional)
 
-    expression              转到状态 74
-    expression_optional     转到状态 114
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
+    expression              go to state 74
+    expression_optional     go to state 114
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
 
 
 State 102
@@ -1911,7 +1911,7 @@ State 102
    37                       | expression . MUL_T expression
    38                       | expression . DIV_T expression
    39                       | expression . MOD_T expression
-   51 actual_argument_list: actual_argument_list COMMA expression .
+   51 argument_list: argument_list COMMA expression .
 
     EQ_T   shift, and go to state 50
     NE_T   shift, and go to state 51
@@ -1925,7 +1925,7 @@ State 102
     DIV_T  shift, and go to state 59
     MOD_T  shift, and go to state 60
 
-    $default  reduce using rule 51 (actual_argument_list)
+    $default  reduce using rule 51 (argument_list)
 
 
 State 103
@@ -1948,70 +1948,70 @@ State 103
     CONTINUE        shift, and go to state 13
     RC              shift, and go to state 115
 
-    statement_list                 转到状态 116
-    statement                      转到状态 15
-    expression                     转到状态 16
-    binary_expression              转到状态 17
-    comparison_expression          转到状态 18
-    declaration_expression         转到状态 19
-    computation_expression         转到状态 20
-    assignment_expression          转到状态 21
-    primary_expression             转到状态 22
-    function_definition_statement  转到状态 23
+    statement_list                 go to state 116
+    statement                      go to state 15
+    expression                     go to state 16
+    binary_expression              go to state 17
+    comparison_expression          go to state 18
+    declaration_expression         go to state 19
+    computation_expression         go to state 20
+    assignment_expression          go to state 21
+    primary_expression             go to state 22
+    function_definition_statement  go to state 23
 
 
 State 104
 
-   44 function_definition_statement: INT_T LP formal_argument_list RP block .
+   44 function_definition_statement: INT_T LP parameter_list RP block .
 
     $default  reduce using rule 44 (function_definition_statement)
 
 
 State 105
 
-   57 formal_argument_list: formal_argument_list COMMA INT_T . IDENTIFIER
+   57 parameter_list: parameter_list COMMA INT_T . IDENTIFIER
 
     IDENTIFIER  shift, and go to state 117
 
 
 State 106
 
-   58 formal_argument_list: formal_argument_list COMMA DOUBLE_T . IDENTIFIER
+   58 parameter_list: parameter_list COMMA DOUBLE_T . IDENTIFIER
 
     IDENTIFIER  shift, and go to state 118
 
 
 State 107
 
-   59 formal_argument_list: formal_argument_list COMMA STRING_T . IDENTIFIER
+   59 parameter_list: parameter_list COMMA STRING_T . IDENTIFIER
 
     IDENTIFIER  shift, and go to state 119
 
 
 State 108
 
-   60 formal_argument_list: formal_argument_list COMMA ARRAY_T . IDENTIFIER
+   60 parameter_list: parameter_list COMMA ARRAY_T . IDENTIFIER
 
     IDENTIFIER  shift, and go to state 120
 
 
 State 109
 
-   45 function_definition_statement: DOUBLE_T LP formal_argument_list RP block .
+   45 function_definition_statement: DOUBLE_T LP parameter_list RP block .
 
     $default  reduce using rule 45 (function_definition_statement)
 
 
 State 110
 
-   46 function_definition_statement: STRING_T LP formal_argument_list RP block .
+   46 function_definition_statement: STRING_T LP parameter_list RP block .
 
     $default  reduce using rule 46 (function_definition_statement)
 
 
 State 111
 
-   47 function_definition_statement: ARRAY_T LP formal_argument_list RP block .
+   47 function_definition_statement: ARRAY_T LP parameter_list RP block .
 
     $default  reduce using rule 47 (function_definition_statement)
 
@@ -2086,43 +2086,43 @@ State 116
     CONTINUE        shift, and go to state 13
     RC              shift, and go to state 123
 
-    statement                      转到状态 48
-    expression                     转到状态 16
-    binary_expression              转到状态 17
-    comparison_expression          转到状态 18
-    declaration_expression         转到状态 19
-    computation_expression         转到状态 20
-    assignment_expression          转到状态 21
-    primary_expression             转到状态 22
-    function_definition_statement  转到状态 23
+    statement                      go to state 48
+    expression                     go to state 16
+    binary_expression              go to state 17
+    comparison_expression          go to state 18
+    declaration_expression         go to state 19
+    computation_expression         go to state 20
+    assignment_expression          go to state 21
+    primary_expression             go to state 22
+    function_definition_statement  go to state 23
 
 
 State 117
 
-   57 formal_argument_list: formal_argument_list COMMA INT_T IDENTIFIER .
+   57 parameter_list: parameter_list COMMA INT_T IDENTIFIER .
 
-    $default  reduce using rule 57 (formal_argument_list)
+    $default  reduce using rule 57 (parameter_list)
 
 
 State 118
 
-   58 formal_argument_list: formal_argument_list COMMA DOUBLE_T IDENTIFIER .
+   58 parameter_list: parameter_list COMMA DOUBLE_T IDENTIFIER .
 
-    $default  reduce using rule 58 (formal_argument_list)
+    $default  reduce using rule 58 (parameter_list)
 
 
 State 119
 
-   59 formal_argument_list: formal_argument_list COMMA STRING_T IDENTIFIER .
+   59 parameter_list: parameter_list COMMA STRING_T IDENTIFIER .
 
-    $default  reduce using rule 59 (formal_argument_list)
+    $default  reduce using rule 59 (parameter_list)
 
 
 State 120
 
-   60 formal_argument_list: formal_argument_list COMMA ARRAY_T IDENTIFIER .
+   60 parameter_list: parameter_list COMMA ARRAY_T IDENTIFIER .
 
-    $default  reduce using rule 60 (formal_argument_list)
+    $default  reduce using rule 60 (parameter_list)
 
 
 State 121
@@ -2131,7 +2131,7 @@ State 121
 
     LC  shift, and go to state 103
 
-    block  转到状态 124
+    block  go to state 124
 
 
 State 122
@@ -2149,14 +2149,14 @@ State 122
 
     $default  reduce using rule 17 (expression_optional)
 
-    expression              转到状态 74
-    expression_optional     转到状态 125
-    binary_expression       转到状态 17
-    comparison_expression   转到状态 18
-    declaration_expression  转到状态 19
-    computation_expression  转到状态 20
-    assignment_expression   转到状态 21
-    primary_expression      转到状态 22
+    expression              go to state 74
+    expression_optional     go to state 125
+    binary_expression       go to state 17
+    comparison_expression   go to state 18
+    declaration_expression  go to state 19
+    computation_expression  go to state 20
+    assignment_expression   go to state 21
+    primary_expression      go to state 22
 
 
 State 123
@@ -2186,7 +2186,7 @@ State 126
 
     LC  shift, and go to state 103
 
-    block  转到状态 127
+    block  go to state 127
 
 
 State 127

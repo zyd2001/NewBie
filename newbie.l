@@ -4,7 +4,7 @@
 
 UTF8_String *string_buffer;
 
-extern int current_line;
+extern NB_Interpreter *inter;
 char *heredoc_tag;
 int yywarp(void)
 {
@@ -12,7 +12,7 @@ int yywarp(void)
 }
 void increase_line_number()
 {
-    current_line++;
+    inter->current_line++;
 }
 %}
 %start LINE_COMMENT BLOCK_COMMENT STRING_LITERAL_STATE HEREDOC
@@ -82,7 +82,7 @@ void increase_line_number()
     BEGIN STRING_LITERAL_STATE;
 }
 <INITIAL>"/*" {BEGIN BLOCK_COMMENT;}
-<INITIAL>\\\\ {BEGIN LINE_COMMENT;}
+<INITIAL>"//" {BEGIN LINE_COMMENT;}
 <INITIAL>"<<<"[A-Za-z_]+[\r\n]+ {
     heredoc_tag = (char*)malloc(32 * sizeof(char));
     for (int i = strlen(yytext) - 1; i > 0; i--)
@@ -126,8 +126,10 @@ void increase_line_number()
 <HEREDOC>\n {
     utf8_string_append(string_buffer, yytext);
 }
+<LINE_COMMENT>. ;
 <LINE_COMMENT>\n {BEGIN INITIAL;}
 <BLOCK_COMMENT>\n increase_line_number();
+<BLOCK_COMMENT>. ;
 <BLOCK_COMMENT>"*/" {BEGIN INITIAL;}
 <STRING_LITERAL_STATE>\n increase_line_number();
 <STRING_LITERAL_STATE>\\n {

@@ -7,5 +7,7 @@
 
 int main(void)
 {
-    
+    int *a = (int*)malloc(50 * sizeof(int));
+    void *b = (void*)a;
+    free(b);
 }

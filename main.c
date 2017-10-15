@@ -1,17 +1,18 @@
-#include <stdio.h>
 #include "newbie.h"
 
-int current_line;
-StatementList *slist;
+NB_Interpreter *inter;
 
 int main(int argc, char **argv)
 {
     extern int yyparse(void);
-    current_line = 1;
-    slist = NULL;
     FILE *fp;
     fp = fopen(argv[1], "r");
     extern FILE *yyin;
     yyin = fp;
+
+    inter = (NB_Interpreter*)calloc(1, sizeof(NB_Interpreter));
+    // inter->ptrs_list = NULL;
+    inter->current_line = 1;
     yyparse();
+    nb_interpret(inter);
 }

@@ -1,3 +1,4 @@
 int a;
 double n = 50;
-int b = a + n;
+// int b = a + n;
+string str = "asdasd";

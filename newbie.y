@@ -1,9 +1,9 @@
 %{
-// #include <stdio.h>
+
 #include "newbie.h"
 
 extern int yylex(void);
-extern StatementList *slist;
+extern NB_Interpreter *inter;
 void yyerror (char const *s)
 {
     fprintf (stderr, "%s\n", s);
@@ -30,16 +30,18 @@ void yyerror (char const *s)
 %%
     statement_list: statement
         {
-            slist = (StatementList*)malloc(sizeof(StatementList));
-            slist->s = $1;
-            slist->prev = NULL;
+            inter->global_list = (StatementList*)malloc(sizeof(StatementList));
+            inter->global_list->prev = NULL;
+            inter->global_list->next = NULL;
+            inter->global_list->s = $1;
         }
         | statement_list statement
         {
-            slist->next = (StatementList*)malloc(sizeof(StatementList));
-            slist->next->prev = slist;
-            slist = slist->next;
-            slist->s = $2;
+            inter->global_list->next = (StatementList*)malloc(sizeof(StatementList));
+            inter->global_list->next->prev = inter->global_list;
+            inter->global_list = inter->global_list->next;
+            inter->global_list->next = NULL;            
+            inter->global_list->s = $2;            
         }
         ;
     statement: expression SEMICOLON
@@ -58,7 +60,7 @@ void yyerror (char const *s)
         | declaration_expression
         | binary_expression
         | primary_expression
-        | IDENTIFIER LP actual_argument_list RP
+        | IDENTIFIER LP argument_list RP
         | IDENTIFIER
         {
             $$ = nb_create_identifier_expression($1);
@@ -158,24 +160,24 @@ void yyerror (char const *s)
         | DOUBLE_LITERAL
         | STRING_LITERAL
         ;
-    function_definition_statement: INT_T LP formal_argument_list RP block;
-        | DOUBLE_T LP formal_argument_list RP block;
-        | STRING_T LP formal_argument_list RP block;
-        | ARRAY_T LP formal_argument_list RP block;
+    function_definition_statement: INT_T LP parameter_list RP block;
+        | DOUBLE_T LP parameter_list RP block;
+        | STRING_T LP parameter_list RP block;
+        | ARRAY_T LP parameter_list RP block;
     block: LC statement_list RC
         | LC RC
         ;
-    actual_argument_list: expression
-        | actual_argument_list COMMA expression
+    argument_list: expression
+        | argument_list COMMA expression
         ;
-    formal_argument_list: /* empty */
+    parameter_list: /* empty */
         | INT_T IDENTIFIER
         | DOUBLE_T IDENTIFIER
         | STRING_T IDENTIFIER
         | ARRAY_T IDENTIFIER
-        | formal_argument_list COMMA INT_T IDENTIFIER
-        | formal_argument_list COMMA DOUBLE_T IDENTIFIER
-        | formal_argument_list COMMA STRING_T IDENTIFIER
-        | formal_argument_list COMMA ARRAY_T IDENTIFIER
+        | parameter_list COMMA INT_T IDENTIFIER
+        | parameter_list COMMA DOUBLE_T IDENTIFIER
+        | parameter_list COMMA STRING_T IDENTIFIER
+        | parameter_list COMMA ARRAY_T IDENTIFIER
         ;
 %%

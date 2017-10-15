@@ -64,11 +64,11 @@
 /* Copy the first part of user declarations.  */
 #line 1 "newbie.y" /* yacc.c:339  */
 
-// #include <stdio.h>
+
 #include "newbie.h"
 
 extern int yylex(void);
-extern StatementList *slist;
+extern Interpreter *inter;
 void yyerror (char const *s)
 {
     fprintf (stderr, "%s\n", s);
@@ -219,16 +219,11 @@ union YYSTYPE
 #line 14 "newbie.y" /* yacc.c:355  */
 
     UTF8_String         *identifier;
-    // ParameterList       *parameter_list;
-    // ArgumentList        *argument_list;
     Expression          *expression;
     Statement           *statement;
     StatementList       *statement_list;
-    // Block               *block;
-    // Elseif              *elseif;
-    // IdentifierList      *identifier_list;
 
-#line 232 "y.tab.c" /* yacc.c:355  */
+#line 227 "y.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -245,7 +240,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 249 "y.tab.c" /* yacc.c:358  */
+#line 244 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -547,13 +542,13 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    36,    36,    42,    50,    54,    55,    56,    57,    58,
-      59,    60,    62,    63,    64,    65,    66,    67,    72,    73,
-      75,    76,    78,    82,    86,    90,    94,    98,   103,   107,
-     111,   115,   119,   123,   127,   131,   136,   140,   144,   148,
-     152,   157,   162,   163,   164,   166,   167,   168,   169,   170,
-     171,   173,   174,   176,   177,   178,   179,   180,   181,   182,
-     183,   184
+       0,    31,    31,    38,    47,    51,    52,    53,    54,    55,
+      56,    57,    59,    60,    61,    62,    63,    64,    69,    70,
+      72,    73,    75,    79,    83,    87,    91,    95,   100,   104,
+     108,   112,   116,   120,   124,   128,   133,   137,   141,   145,
+     149,   154,   159,   160,   161,   163,   164,   165,   166,   167,
+     168,   170,   171,   173,   174,   175,   176,   177,   178,   179,
+     180,   181
 };
 #endif
 
@@ -573,8 +568,8 @@ static const char *const yytname[] =
   "statement_list", "statement", "expression", "expression_optional",
   "binary_expression", "comparison_expression", "declaration_expression",
   "computation_expression", "assignment_expression", "primary_expression",
-  "function_definition_statement", "block", "actual_argument_list",
-  "formal_argument_list", YY_NULLPTR
+  "function_definition_statement", "block", "argument_list",
+  "parameter_list", YY_NULLPTR
 };
 #endif
 
@@ -1431,204 +1426,206 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 37 "newbie.y" /* yacc.c:1646  */
+#line 32 "newbie.y" /* yacc.c:1646  */
     {
-            slist = (StatementList*)malloc(sizeof(StatementList));
-            slist->s = (yyvsp[0].statement);
-            slist->prev = NULL;
+            inter->global_list = (StatementList*)malloc(sizeof(StatementList));
+            inter->global_list->prev = NULL;
+            inter->global_list->next = NULL;
+            inter->global_list->s = (yyvsp[0].statement);
         }
-#line 1441 "y.tab.c" /* yacc.c:1646  */
+#line 1437 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 43 "newbie.y" /* yacc.c:1646  */
+#line 39 "newbie.y" /* yacc.c:1646  */
     {
-            slist->next = (StatementList*)malloc(sizeof(StatementList));
-            slist->next->prev = slist;
-            slist = slist->next;
-            slist->s = (yyvsp[0].statement);
+            inter->global_list->next = (StatementList*)malloc(sizeof(StatementList));
+            inter->global_list->next->prev = inter->global_list;
+            inter->global_list = inter->global_list->next;
+            inter->global_list->next = NULL;            
+            inter->global_list->s = (yyvsp[0].statement);            
         }
-#line 1452 "y.tab.c" /* yacc.c:1646  */
+#line 1449 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 51 "newbie.y" /* yacc.c:1646  */
+#line 48 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.statement) = nb_create_expression_statement((yyvsp[-1].expression));
         }
-#line 1460 "y.tab.c" /* yacc.c:1646  */
+#line 1457 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 68 "newbie.y" /* yacc.c:1646  */
+#line 65 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_identifier_expression((yyvsp[0].identifier));
         }
-#line 1468 "y.tab.c" /* yacc.c:1646  */
+#line 1465 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 79 "newbie.y" /* yacc.c:1646  */
+#line 76 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_binary_expression(EQ, (yyvsp[-2].expression), (yyvsp[0].expression));
         }
-#line 1476 "y.tab.c" /* yacc.c:1646  */
+#line 1473 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 83 "newbie.y" /* yacc.c:1646  */
+#line 80 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_binary_expression(NE, (yyvsp[-2].expression), (yyvsp[0].expression));
         }
-#line 1484 "y.tab.c" /* yacc.c:1646  */
+#line 1481 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 87 "newbie.y" /* yacc.c:1646  */
+#line 84 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_binary_expression(GT, (yyvsp[-2].expression), (yyvsp[0].expression));
         }
-#line 1492 "y.tab.c" /* yacc.c:1646  */
+#line 1489 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 91 "newbie.y" /* yacc.c:1646  */
+#line 88 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_binary_expression(GE, (yyvsp[-2].expression), (yyvsp[0].expression));
         }
-#line 1500 "y.tab.c" /* yacc.c:1646  */
+#line 1497 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 95 "newbie.y" /* yacc.c:1646  */
+#line 92 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_binary_expression(LT, (yyvsp[-2].expression), (yyvsp[0].expression));
         }
-#line 1508 "y.tab.c" /* yacc.c:1646  */
+#line 1505 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 99 "newbie.y" /* yacc.c:1646  */
+#line 96 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_binary_expression(LE, (yyvsp[-2].expression), (yyvsp[0].expression));
         }
-#line 1516 "y.tab.c" /* yacc.c:1646  */
+#line 1513 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 104 "newbie.y" /* yacc.c:1646  */
+#line 101 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_declaration_expression(INT, (yyvsp[0].identifier), NULL);
         }
-#line 1524 "y.tab.c" /* yacc.c:1646  */
+#line 1521 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 108 "newbie.y" /* yacc.c:1646  */
+#line 105 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_declaration_expression(DOUBLE, (yyvsp[0].identifier), NULL);
         }
-#line 1532 "y.tab.c" /* yacc.c:1646  */
+#line 1529 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 112 "newbie.y" /* yacc.c:1646  */
+#line 109 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_declaration_expression(STRING, (yyvsp[0].identifier), NULL);
         }
-#line 1540 "y.tab.c" /* yacc.c:1646  */
+#line 1537 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 31:
-#line 116 "newbie.y" /* yacc.c:1646  */
+#line 113 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_declaration_expression(ARRAY, (yyvsp[0].identifier), NULL);
         }
-#line 1548 "y.tab.c" /* yacc.c:1646  */
+#line 1545 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 120 "newbie.y" /* yacc.c:1646  */
+#line 117 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_declaration_expression(INT, NULL, (yyvsp[0].expression));
         }
-#line 1556 "y.tab.c" /* yacc.c:1646  */
+#line 1553 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 33:
-#line 124 "newbie.y" /* yacc.c:1646  */
+#line 121 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_declaration_expression(DOUBLE, NULL, (yyvsp[0].expression));
         }
-#line 1564 "y.tab.c" /* yacc.c:1646  */
+#line 1561 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 128 "newbie.y" /* yacc.c:1646  */
+#line 125 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_declaration_expression(STRING, NULL, (yyvsp[0].expression));
         }
-#line 1572 "y.tab.c" /* yacc.c:1646  */
+#line 1569 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 132 "newbie.y" /* yacc.c:1646  */
+#line 129 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_declaration_expression(ARRAY, NULL, (yyvsp[0].expression));
         }
-#line 1580 "y.tab.c" /* yacc.c:1646  */
+#line 1577 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 36:
-#line 137 "newbie.y" /* yacc.c:1646  */
+#line 134 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_binary_expression(ADD, (yyvsp[-2].expression), (yyvsp[0].expression));
         }
-#line 1588 "y.tab.c" /* yacc.c:1646  */
+#line 1585 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 37:
-#line 141 "newbie.y" /* yacc.c:1646  */
+#line 138 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_binary_expression(SUB, (yyvsp[-2].expression), (yyvsp[0].expression));            
         }
-#line 1596 "y.tab.c" /* yacc.c:1646  */
+#line 1593 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 145 "newbie.y" /* yacc.c:1646  */
+#line 142 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_binary_expression(MUL, (yyvsp[-2].expression), (yyvsp[0].expression));            
         }
-#line 1604 "y.tab.c" /* yacc.c:1646  */
+#line 1601 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 39:
-#line 149 "newbie.y" /* yacc.c:1646  */
+#line 146 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_binary_expression(DIV, (yyvsp[-2].expression), (yyvsp[0].expression));            
         }
-#line 1612 "y.tab.c" /* yacc.c:1646  */
+#line 1609 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 153 "newbie.y" /* yacc.c:1646  */
+#line 150 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_binary_expression(MOD, (yyvsp[-2].expression), (yyvsp[0].expression));            
         }
-#line 1620 "y.tab.c" /* yacc.c:1646  */
+#line 1617 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 158 "newbie.y" /* yacc.c:1646  */
+#line 155 "newbie.y" /* yacc.c:1646  */
     {
             (yyval.expression) = nb_create_assignment_expression((yyvsp[-2].identifier), (yyvsp[0].expression));
         }
-#line 1628 "y.tab.c" /* yacc.c:1646  */
+#line 1625 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1632 "y.tab.c" /* yacc.c:1646  */
+#line 1629 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1856,4 +1853,4 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 186 "newbie.y" /* yacc.c:1906  */
+#line 183 "newbie.y" /* yacc.c:1906  */
