@@ -4,7 +4,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "taskName": "build",
+            "taskName": "utility_build",
             "type": "shell",
             "command": "gcc",
             "args": [
@@ -13,6 +13,20 @@
                 "utility.c",
                 "-o",
                 "${fileBasenameNoExtension}.out"
+            ]
+        },
+        {
+            "taskName": "build",
+            "type": "shell",
+            "command": "gcc",
+            "args": [
+                "-g",
+                "main.c",
+                "utility.c",
+                "y.tab.c",
+                "lex.yy.c",
+                "compile.c",
+                "-ll"
             ]
         }
     ]

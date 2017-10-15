@@ -2,12 +2,17 @@
 #include "newbie.h"
 #include "y.tab.h"
 
-String *string_buffer;
+UTF8_String *string_buffer;
 
-char *heredoc_tag = (char*)malloc(32 * sizeof(char));
+extern int current_line;
+char *heredoc_tag;
 int yywarp(void)
 {
     return 1;
+}
+void increase_line_number()
+{
+    current_line++;
 }
 %}
 %start LINE_COMMENT BLOCK_COMMENT STRING_LITERAL_STATE HEREDOC
@@ -25,7 +30,6 @@ int yywarp(void)
 <INITIAL>"continue"     return CONTINUE;
 <INITIAL>"return"       return RETURN;
 <INITIAL>"class"        return CLASS;
-<INITIAL>"require"      return REQUIRE;
 <INITIAL>"("            return LP;
 <INITIAL>")"            return RP;
 <INITIAL>"{"            return LC;
@@ -39,17 +43,17 @@ int yywarp(void)
 <INITIAL>"||"           return LOGICAL_OR;
 <INITIAL>"AND"          return LOGICAL_OR;
 <INITIAL>"="            return ASSIGN_T;
-<INITIAL>"=="           return EQ;
-<INITIAL>"!="           return NE;
-<INITIAL>">"            return GT;
-<INITIAL>">="           return GE;
-<INITIAL>"<"            return LT;
-<INITIAL>"<="           return LE;
-<INITIAL>"+"            return ADD;
-<INITIAL>"-"            return SUB;
-<INITIAL>"*"            return MUL;
-<INITIAL>"/"            return DIV;
-<INITIAL>"%"            return MOD;
+<INITIAL>"=="           return EQ_T;
+<INITIAL>"!="           return NE_T;
+<INITIAL>">"            return GT_T;
+<INITIAL>">="           return GE_T;
+<INITIAL>"<"            return LT_T;
+<INITIAL>"<="           return LE_T;
+<INITIAL>"+"            return ADD_T;
+<INITIAL>"-"            return SUB_T;
+<INITIAL>"*"            return MUL_T;
+<INITIAL>"/"            return DIV_T;
+<INITIAL>"%"            return MOD_T;
 <INITIAL>"+="           return ADD_ASSIGN;
 <INITIAL>"-="           return SUB_ASSIGN;
 <INITIAL>"*="           return MUL_ASSIGN;
@@ -62,7 +66,7 @@ int yywarp(void)
 <INITIAL>[ \t] ;
 <INITIAL>\n increase_line_number();
 <INITIAL>[A-Za-z_][A-Za-z_0-9]* {
-    yylval.identifier = yytext;
+    yylval.identifier = utf8_string_new_wrap(yytext);
     return IDENTIFIER;
 }
 <INITIAL>[1-9][0-9]*|"0" {
@@ -74,12 +78,13 @@ int yywarp(void)
     return DOUBLE_LITERAL;
 }
 <INITIAL>\" {
-    string_buffer = string_new();
+    string_buffer = utf8_string_new();
     BEGIN STRING_LITERAL_STATE;
 }
 <INITIAL>"/*" {BEGIN BLOCK_COMMENT;}
 <INITIAL>\\\\ {BEGIN LINE_COMMENT;}
 <INITIAL>"<<<"[A-Za-z_]+[\r\n]+ {
+    heredoc_tag = (char*)malloc(32 * sizeof(char));
     for (int i = strlen(yytext) - 1; i > 0; i--)
     {
         if (yytext[i] == '\n' | yytext[i] == '\r')
@@ -88,53 +93,56 @@ int yywarp(void)
             break;
     }
     strcpy(heredoc_tag, yytext + 3);
-    string_buffer = string_new();
+    string_buffer = utf8_string_new();
     BEGIN HEREDOC;
 }
 <HEREDOC>^">>>"[A-Za-z_]+/";" {
     if(!strcmp(heredoc_tag, yytext + 3))
     {
-        for(int i = string_buffer->size - 1; i > 0; i--)
+        char *temp = utf8_string_get_value(string_buffer);
+        size_t size = strlen(temp);
+        for(int i = size - 1; i > 0; i--)
         {
-            if (string_buffer->value[i] == '\n' || string_buffer->value[i] == '\r')
+            if (temp[i] == '\n' || temp[i] == '\r')
             {
-                string_buffer->value[i] = '\0';
-                string_buffer->size--;
+                temp[i] = '\0';
+                // string_buffer->size--;
             }
             else
                 break;
         }
-        yylval.expression = nb_create_literal_expression(STRING, string_buffer->value);
-        string_buffer = string_delete(string_buffer);
+        yylval.expression = nb_create_literal_expression(STRING, utf8_string_get_value(string_buffer));
+        utf8_string_delete(&string_buffer);
+        __free(heredoc_tag);
         BEGIN INITIAL;
         return STRING_LITERAL;
     }
     else
-        string_append(string_buffer, yytext);
+        utf8_string_append(string_buffer, yytext);
 }
 <HEREDOC>. {
-    string_append(string_buffer, yytext);
+    utf8_string_append(string_buffer, yytext);
 }
 <HEREDOC>\n {
-    string_append(string_buffer, yytext);
+    utf8_string_append(string_buffer, yytext);
 }
 <LINE_COMMENT>\n {BEGIN INITIAL;}
 <BLOCK_COMMENT>\n increase_line_number();
 <BLOCK_COMMENT>"*/" {BEGIN INITIAL;}
 <STRING_LITERAL_STATE>\n increase_line_number();
 <STRING_LITERAL_STATE>\\n {
-    string_append(string_buffer, "\\n");
+    utf8_string_append(string_buffer, "\\n");
 }
 <STRING_LITERAL_STATE>\\\" {
-    string_append(string_buffer, "\"");
+    utf8_string_append(string_buffer, "\"");
 }
 <STRING_LITERAL_STATE>\" {
-    yylval.expression = nb_create_literal_expression(STRING, string_buffer->value);
-    string_buffer = string_delete(string_buffer);
+    yylval.expression = nb_create_literal_expression(STRING, utf8_string_get_value(string_buffer));
+    utf8_string_delete(&string_buffer);
     BEGIN INITIAL;
     return STRING_LITERAL;
 }
 <STRING_LITERAL_STATE>. {
-    string_append(string_buffer, yytext);
+    utf8_string_append(string_buffer, yytext);
 }
 %%

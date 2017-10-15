@@ -3,8 +3,6 @@
 
 #define __free(ptr) do {free(ptr);ptr = NULL;}while(0)
 
-typedef struct Value_tag Value;
-
 typedef struct Array_tag Array;
 
 typedef struct UTF8_String_tag UTF8_String;
@@ -13,7 +11,25 @@ typedef struct UTF8_String_tag UTF8_String;
 
 typedef struct UTF32_String_tag UTF32_String;
 
-typedef enum ValueType_tag ValueType;
+typedef enum ValueType_tag
+{
+    INT,
+    DOUBLE,
+    STRING,
+    ARRAY
+} ValueType;
+
+typedef struct Value_tag 
+{
+    ValueType type;
+    union 
+    {
+        int int_value;
+        double double_value;
+        UTF32_String *string_value;
+        Array *array_value;
+    } value;
+} Value;
 
 typedef struct Linked_List_tag Linked_List;
 
@@ -78,6 +94,8 @@ int utf32_string_indexof(UTF32_String *str, char *target, size_t size);
 int utf32_string_indexof_utf32(UTF32_String *str, UTF32_String *target);
 int utf32_string_indexof_utf8(UTF32_String *str, char *target);
 size_t utf32_string_print(UTF32_String *str);
+char *utf32_string_get_value(UTF32_String *str);
+size_t utf32_string_get_length(UTF32_String *str);
 void *utf32_string_delete_func(UTF32_String **str, ...);
 #define utf32_string_delete(...) utf32_string_delete_func(__VA_ARGS__, NULL)
 

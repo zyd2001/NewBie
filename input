@@ -1,1 +1,3 @@
-"asdasd vfv真是的"
+int a;
+double n = 50;
+int b = a + n;

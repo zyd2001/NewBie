@@ -37,26 +37,6 @@ struct UTF32_String_tag
     size_t size;
 };
 
-enum ValueType_tag
-{
-    INT,
-    DOUBLE,
-    STRING,
-    ARRAY
-};
-
-struct Value_tag 
-{
-    ValueType type;
-    union 
-    {
-        int int_value;
-        double double_value;
-        UTF32_String *string_value;
-        Array *array_value;
-    } value;
-};
-
 struct Linked_List_tag
 {
     Linked_List *prev;
@@ -568,6 +548,16 @@ size_t utf32_string_print(UTF32_String *str)
     return size;
 }
 
+char *utf32_string_get_value(UTF32_String *str)
+{
+    return str->value;
+}
+
+size_t utf32_string_get_length(UTF32_String *str)
+{
+    return str->length;
+}
+
 void *utf32_string_delete_func(UTF32_String **str, ...)
 {
     va_list args;
@@ -870,7 +860,7 @@ int linked_list_remove_item(Linked_List **list, struct delete_func_struct_tag *d
                 temp->index--;
         }
     }
-    if (stored->next == stored->prev == NULL)
+    if (stored->next == NULL && stored->prev == NULL)
         __free(*list);
     else
         __free(stored);

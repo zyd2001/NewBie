@@ -59,7 +59,7 @@ extern int yydebug;
     FOR = 269,
     IN = 270,
     CLASS = 271,
-    RETURN = 272,
+    RETURN_T = 272,
     BREAK = 273,
     CONTINUE = 274,
     LP = 275,
@@ -73,17 +73,17 @@ extern int yydebug;
     ASSIGN_T = 283,
     LOGICAL_AND = 284,
     LOGICAL_OR = 285,
-    EQ = 286,
-    NE = 287,
-    GT = 288,
-    GE = 289,
-    LT = 290,
-    LE = 291,
-    ADD = 292,
-    SUB = 293,
-    MUL = 294,
-    DIV = 295,
-    MOD = 296,
+    EQ_T = 286,
+    NE_T = 287,
+    GT_T = 288,
+    GE_T = 289,
+    LT_T = 290,
+    LE_T = 291,
+    ADD_T = 292,
+    SUB_T = 293,
+    MUL_T = 294,
+    DIV_T = 295,
+    MOD_T = 296,
     EXCLAMATION = 297,
     DOT = 298,
     ADD_ASSIGN = 299,
@@ -110,7 +110,7 @@ extern int yydebug;
 #define FOR 269
 #define IN 270
 #define CLASS 271
-#define RETURN 272
+#define RETURN_T 272
 #define BREAK 273
 #define CONTINUE 274
 #define LP 275
@@ -124,17 +124,17 @@ extern int yydebug;
 #define ASSIGN_T 283
 #define LOGICAL_AND 284
 #define LOGICAL_OR 285
-#define EQ 286
-#define NE 287
-#define GT 288
-#define GE 289
-#define LT 290
-#define LE 291
-#define ADD 292
-#define SUB 293
-#define MUL 294
-#define DIV 295
-#define MOD 296
+#define EQ_T 286
+#define NE_T 287
+#define GT_T 288
+#define GE_T 289
+#define LT_T 290
+#define LE_T 291
+#define ADD_T 292
+#define SUB_T 293
+#define MUL_T 294
+#define DIV_T 295
+#define MOD_T 296
 #define EXCLAMATION 297
 #define DOT 298
 #define ADD_ASSIGN 299
@@ -150,17 +150,17 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 6 "newbie.y" /* yacc.c:1909  */
+#line 14 "newbie.y" /* yacc.c:1909  */
 
-    char                *identifier;
-    ParameterList       *parameter_list;
-    ArgumentList        *argument_list;
+    UTF8_String         *identifier;
+    // ParameterList       *parameter_list;
+    // ArgumentList        *argument_list;
     Expression          *expression;
     Statement           *statement;
     StatementList       *statement_list;
-    Block               *block;
-    Elseif              *elseif;
-    IdentifierList      *identifier_list;
+    // Block               *block;
+    // Elseif              *elseif;
+    // IdentifierList      *identifier_list;
 
 #line 166 "y.tab.h" /* yacc.c:1909  */
 };

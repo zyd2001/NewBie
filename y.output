@@ -7,7 +7,6 @@ Terminals unused in grammar
    RB
    LOGICAL_AND
    LOGICAL_OR
-   MOD
    EXCLAMATION
    DOT
    ADD_ASSIGN
@@ -19,138 +18,142 @@ Terminals unused in grammar
    DECREMENT
 
 
-State 59 conflicts: 10 shift/reduce
-State 73 conflicts: 10 shift/reduce
-State 74 conflicts: 10 shift/reduce
-State 75 conflicts: 10 shift/reduce
-State 76 conflicts: 10 shift/reduce
-State 77 conflicts: 10 shift/reduce
-State 78 conflicts: 10 shift/reduce
-State 79 conflicts: 10 shift/reduce
-State 80 conflicts: 10 shift/reduce
-State 81 conflicts: 10 shift/reduce
-State 82 conflicts: 10 shift/reduce
+状态 63 conflicts: 11 shift/reduce
+状态 77 conflicts: 11 shift/reduce
+状态 78 conflicts: 11 shift/reduce
+状态 79 conflicts: 11 shift/reduce
+状态 80 conflicts: 11 shift/reduce
+状态 81 conflicts: 11 shift/reduce
+状态 82 conflicts: 11 shift/reduce
+状态 83 conflicts: 11 shift/reduce
+状态 84 conflicts: 11 shift/reduce
+状态 85 conflicts: 11 shift/reduce
+状态 86 conflicts: 11 shift/reduce
+状态 87 conflicts: 11 shift/reduce
 
 
-Grammar
+语法
 
-    0 $accept: statement $end
+    0 $accept: statement_list $end
 
-    1 statement: expression SEMICOLON
-    2          | function_definition_statement
-    3          | IF LP expression RP block
-    4          | FOR LP IDENTIFIER IN expression RP block
-    5          | FOR LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional RP block
-    6          | RETURN expression SEMICOLON
-    7          | CONTINUE SEMICOLON
-    8          | BREAK SEMICOLON
+    1 statement_list: statement
+    2               | statement_list statement
 
-    9 expression: assignment_expression
-   10           | declaration_expression
-   11           | comparison_expression
-   12           | computation_expression
-   13           | primary_expression
-   14           | IDENTIFIER LP actual_argument_list RP
-   15           | IDENTIFIER
+    3 statement: expression SEMICOLON
+    4          | function_definition_statement
+    5          | IF LP expression RP block
+    6          | FOR LP IDENTIFIER IN expression RP block
+    7          | FOR LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional RP block
+    8          | RETURN_T expression SEMICOLON
+    9          | CONTINUE SEMICOLON
+   10          | BREAK SEMICOLON
 
-   16 comparison_expression: expression EQ expression
-   17                      | expression NE expression
-   18                      | expression GT expression
-   19                      | expression GE expression
-   20                      | expression LT expression
-   21                      | expression LE expression
+   11 expression: assignment_expression
+   12           | declaration_expression
+   13           | binary_expression
+   14           | primary_expression
+   15           | IDENTIFIER LP actual_argument_list RP
+   16           | IDENTIFIER
 
-   22 declaration_expression: INT_T IDENTIFIER
-   23                       | DOUBLE_T IDENTIFIER
-   24                       | STRING_T IDENTIFIER
-   25                       | ARRAY_T IDENTIFIER
-   26                       | INT_T assignment_expression
-   27                       | DOUBLE_T assignment_expression
-   28                       | STRING_T assignment_expression
-   29                       | ARRAY_T assignment_expression
+   17 expression_optional: %empty
+   18                    | expression
 
-   30 computation_expression: expression ADD expression
-   31                       | expression SUB expression
-   32                       | expression MUL expression
-   33                       | expression DIV expression
+   19 binary_expression: comparison_expression
+   20                  | computation_expression
 
-   34 assignment_expression: IDENTIFIER ASSIGN_T expression
+   21 comparison_expression: expression EQ_T expression
+   22                      | expression NE_T expression
+   23                      | expression GT_T expression
+   24                      | expression GE_T expression
+   25                      | expression LT_T expression
+   26                      | expression LE_T expression
 
-   35 primary_expression: INT_LITERAL
-   36                   | DOUBLE_LITERAL
-   37                   | STRING_LITERAL
+   27 declaration_expression: INT_T IDENTIFIER
+   28                       | DOUBLE_T IDENTIFIER
+   29                       | STRING_T IDENTIFIER
+   30                       | ARRAY_T IDENTIFIER
+   31                       | INT_T assignment_expression
+   32                       | DOUBLE_T assignment_expression
+   33                       | STRING_T assignment_expression
+   34                       | ARRAY_T assignment_expression
 
-   38 expression_optional: %empty
-   39                    | expression
+   35 computation_expression: expression ADD_T expression
+   36                       | expression SUB_T expression
+   37                       | expression MUL_T expression
+   38                       | expression DIV_T expression
+   39                       | expression MOD_T expression
 
-   40 function_definition_statement: INT_T LP formal_argument_list RP block
-   41                              | DOUBLE_T LP formal_argument_list RP block
-   42                              | STRING_T LP formal_argument_list RP block
-   43                              | ARRAY_T LP formal_argument_list RP block
+   40 assignment_expression: IDENTIFIER ASSIGN_T expression
 
-   44 block: LC statement_list RC
-   45      | LC RC
+   41 primary_expression: INT_LITERAL
+   42                   | DOUBLE_LITERAL
+   43                   | STRING_LITERAL
 
-   46 statement_list: statement
-   47               | statement_list statement
+   44 function_definition_statement: INT_T LP formal_argument_list RP block
+   45                              | DOUBLE_T LP formal_argument_list RP block
+   46                              | STRING_T LP formal_argument_list RP block
+   47                              | ARRAY_T LP formal_argument_list RP block
 
-   48 actual_argument_list: expression
-   49                     | actual_argument_list COMMA expression
+   48 block: LC statement_list RC
+   49      | LC RC
 
-   50 formal_argument_list: %empty
-   51                     | INT_T IDENTIFIER
-   52                     | DOUBLE_T IDENTIFIER
-   53                     | STRING_T IDENTIFIER
-   54                     | ARRAY_T IDENTIFIER
-   55                     | formal_argument_list COMMA INT_T IDENTIFIER
-   56                     | formal_argument_list COMMA DOUBLE_T IDENTIFIER
-   57                     | formal_argument_list COMMA STRING_T IDENTIFIER
-   58                     | formal_argument_list COMMA ARRAY_T IDENTIFIER
+   50 actual_argument_list: expression
+   51                     | actual_argument_list COMMA expression
+
+   52 formal_argument_list: %empty
+   53                     | INT_T IDENTIFIER
+   54                     | DOUBLE_T IDENTIFIER
+   55                     | STRING_T IDENTIFIER
+   56                     | ARRAY_T IDENTIFIER
+   57                     | formal_argument_list COMMA INT_T IDENTIFIER
+   58                     | formal_argument_list COMMA DOUBLE_T IDENTIFIER
+   59                     | formal_argument_list COMMA STRING_T IDENTIFIER
+   60                     | formal_argument_list COMMA ARRAY_T IDENTIFIER
 
 
 Terminals, with rules where they appear
 
 $end (0) 0
 error (256)
-INT_LITERAL (258) 35
-STRING_LITERAL (259) 37
-DOUBLE_LITERAL (260) 36
-IDENTIFIER (261) 4 14 15 22 23 24 25 34 51 52 53 54 55 56 57 58
-INT_T (262) 22 26 40 51 55
-DOUBLE_T (263) 23 27 41 52 56
-STRING_T (264) 24 28 42 53 57
-ARRAY_T (265) 25 29 43 54 58
-IF (266) 3
+INT_LITERAL (258) 41
+STRING_LITERAL (259) 43
+DOUBLE_LITERAL (260) 42
+IDENTIFIER (261) 6 15 16 27 28 29 30 40 53 54 55 56 57 58 59 60
+INT_T (262) 27 31 44 53 57
+DOUBLE_T (263) 28 32 45 54 58
+STRING_T (264) 29 33 46 55 59
+ARRAY_T (265) 30 34 47 56 60
+IF (266) 5
 ELSE (267)
 ELSEIF (268)
-FOR (269) 4 5
-IN (270) 4
+FOR (269) 6 7
+IN (270) 6
 CLASS (271)
-RETURN (272) 6
-BREAK (273) 8
-CONTINUE (274) 7
-LP (275) 3 4 5 14 40 41 42 43
-RP (276) 3 4 5 14 40 41 42 43
-LC (277) 44 45
-RC (278) 44 45
+RETURN_T (272) 8
+BREAK (273) 10
+CONTINUE (274) 9
+LP (275) 5 6 7 15 44 45 46 47
+RP (276) 5 6 7 15 44 45 46 47
+LC (277) 48 49
+RC (278) 48 49
 LB (279)
 RB (280)
-SEMICOLON (281) 1 5 6 7 8
-COMMA (282) 49 55 56 57 58
-ASSIGN_T (283) 34
+SEMICOLON (281) 3 7 8 9 10
+COMMA (282) 51 57 58 59 60
+ASSIGN_T (283) 40
 LOGICAL_AND (284)
 LOGICAL_OR (285)
-EQ (286) 16
-NE (287) 17
-GT (288) 18
-GE (289) 19
-LT (290) 20
-LE (291) 21
-ADD (292) 30
-SUB (293) 31
-MUL (294) 32
-DIV (295) 33
-MOD (296)
+EQ_T (286) 21
+NE_T (287) 22
+GT_T (288) 23
+GE_T (289) 24
+LT_T (290) 25
+LE_T (291) 26
+ADD_T (292) 35
+SUB_T (293) 36
+MUL_T (294) 37
+DIV_T (295) 38
+MOD_T (296) 39
 EXCLAMATION (297)
 DOT (298)
 ADD_ASSIGN (299)
@@ -165,40 +168,42 @@ DECREMENT (305)
 Nonterminals, with rules where they appear
 
 $accept (51)
-    on left: 0
-statement (52)
-    on left: 1 2 3 4 5 6 7 8, on right: 0 46 47
-expression (53)
-    on left: 9 10 11 12 13 14 15, on right: 1 3 4 6 16 17 18 19 20
-    21 30 31 32 33 34 39 48 49
-comparison_expression (54)
-    on left: 16 17 18 19 20 21, on right: 11
-declaration_expression (55)
-    on left: 22 23 24 25 26 27 28 29, on right: 10
-computation_expression (56)
-    on left: 30 31 32 33, on right: 12
-assignment_expression (57)
-    on left: 34, on right: 9 26 27 28 29
-primary_expression (58)
-    on left: 35 36 37, on right: 13
-expression_optional (59)
-    on left: 38 39, on right: 5
-function_definition_statement (60)
-    on left: 40 41 42 43, on right: 2
-block (61)
-    on left: 44 45, on right: 3 4 5 40 41 42 43
-statement_list (62)
-    on left: 46 47, on right: 44 47
-actual_argument_list (63)
-    on left: 48 49, on right: 14 49
-formal_argument_list (64)
-    on left: 50 51 52 53 54 55 56 57 58, on right: 40 41 42 43 55 56
-    57 58
+    左： 0
+statement_list (52)
+    左： 1 2, 右： 0 2 48
+statement (53)
+    左： 3 4 5 6 7 8 9 10, 右： 1 2
+expression (54)
+    左： 11 12 13 14 15 16, 右： 3 5 6 8 18 21 22 23 24 25 26 35
+    36 37 38 39 40 50 51
+expression_optional (55)
+    左： 17 18, 右： 7
+binary_expression (56)
+    左： 19 20, 右： 13
+comparison_expression (57)
+    左： 21 22 23 24 25 26, 右： 19
+declaration_expression (58)
+    左： 27 28 29 30 31 32 33 34, 右： 12
+computation_expression (59)
+    左： 35 36 37 38 39, 右： 20
+assignment_expression (60)
+    左： 40, 右： 11 31 32 33 34
+primary_expression (61)
+    左： 41 42 43, 右： 14
+function_definition_statement (62)
+    左： 44 45 46 47, 右： 4
+block (63)
+    左： 48 49, 右： 5 6 7 44 45 46 47
+actual_argument_list (64)
+    左： 50 51, 右： 15 51
+formal_argument_list (65)
+    左： 52 53 54 55 56 57 58 59 60, 右： 44 45 46 47 57 58 59
+    60
 
 
 State 0
 
-    0 $accept: . statement $end
+    0 $accept: . statement_list $end
 
     INT_LITERAL     shift, and go to state 1
     STRING_LITERAL  shift, and go to state 2
@@ -210,1818 +215,1982 @@ State 0
     ARRAY_T         shift, and go to state 8
     IF              shift, and go to state 9
     FOR             shift, and go to state 10
-    RETURN          shift, and go to state 11
+    RETURN_T        shift, and go to state 11
     BREAK           shift, and go to state 12
     CONTINUE        shift, and go to state 13
 
-    statement                      go to state 14
-    expression                     go to state 15
-    comparison_expression          go to state 16
-    declaration_expression         go to state 17
-    computation_expression         go to state 18
-    assignment_expression          go to state 19
-    primary_expression             go to state 20
-    function_definition_statement  go to state 21
+    statement_list                 转到状态 14
+    statement                      转到状态 15
+    expression                     转到状态 16
+    binary_expression              转到状态 17
+    comparison_expression          转到状态 18
+    declaration_expression         转到状态 19
+    computation_expression         转到状态 20
+    assignment_expression          转到状态 21
+    primary_expression             转到状态 22
+    function_definition_statement  转到状态 23
 
 
 State 1
 
-   35 primary_expression: INT_LITERAL .
+   41 primary_expression: INT_LITERAL .
 
-    $default  reduce using rule 35 (primary_expression)
+    $default  reduce using rule 41 (primary_expression)
 
 
 State 2
 
-   37 primary_expression: STRING_LITERAL .
+   43 primary_expression: STRING_LITERAL .
 
-    $default  reduce using rule 37 (primary_expression)
+    $default  reduce using rule 43 (primary_expression)
 
 
 State 3
 
-   36 primary_expression: DOUBLE_LITERAL .
+   42 primary_expression: DOUBLE_LITERAL .
 
-    $default  reduce using rule 36 (primary_expression)
+    $default  reduce using rule 42 (primary_expression)
 
 
 State 4
 
-   14 expression: IDENTIFIER . LP actual_argument_list RP
-   15           | IDENTIFIER .
-   34 assignment_expression: IDENTIFIER . ASSIGN_T expression
+   15 expression: IDENTIFIER . LP actual_argument_list RP
+   16           | IDENTIFIER .
+   40 assignment_expression: IDENTIFIER . ASSIGN_T expression
 
-    LP        shift, and go to state 22
-    ASSIGN_T  shift, and go to state 23
+    LP        shift, and go to state 24
+    ASSIGN_T  shift, and go to state 25
 
-    $default  reduce using rule 15 (expression)
+    $default  reduce using rule 16 (expression)
 
 
 State 5
 
-   22 declaration_expression: INT_T . IDENTIFIER
-   26                       | INT_T . assignment_expression
-   40 function_definition_statement: INT_T . LP formal_argument_list RP block
+   27 declaration_expression: INT_T . IDENTIFIER
+   31                       | INT_T . assignment_expression
+   44 function_definition_statement: INT_T . LP formal_argument_list RP block
 
-    IDENTIFIER  shift, and go to state 24
-    LP          shift, and go to state 25
+    IDENTIFIER  shift, and go to state 26
+    LP          shift, and go to state 27
 
-    assignment_expression  go to state 26
+    assignment_expression  转到状态 28
 
 
 State 6
 
-   23 declaration_expression: DOUBLE_T . IDENTIFIER
-   27                       | DOUBLE_T . assignment_expression
-   41 function_definition_statement: DOUBLE_T . LP formal_argument_list RP block
+   28 declaration_expression: DOUBLE_T . IDENTIFIER
+   32                       | DOUBLE_T . assignment_expression
+   45 function_definition_statement: DOUBLE_T . LP formal_argument_list RP block
 
-    IDENTIFIER  shift, and go to state 27
-    LP          shift, and go to state 28
+    IDENTIFIER  shift, and go to state 29
+    LP          shift, and go to state 30
 
-    assignment_expression  go to state 29
+    assignment_expression  转到状态 31
 
 
 State 7
 
-   24 declaration_expression: STRING_T . IDENTIFIER
-   28                       | STRING_T . assignment_expression
-   42 function_definition_statement: STRING_T . LP formal_argument_list RP block
+   29 declaration_expression: STRING_T . IDENTIFIER
+   33                       | STRING_T . assignment_expression
+   46 function_definition_statement: STRING_T . LP formal_argument_list RP block
 
-    IDENTIFIER  shift, and go to state 30
-    LP          shift, and go to state 31
+    IDENTIFIER  shift, and go to state 32
+    LP          shift, and go to state 33
 
-    assignment_expression  go to state 32
+    assignment_expression  转到状态 34
 
 
 State 8
 
-   25 declaration_expression: ARRAY_T . IDENTIFIER
-   29                       | ARRAY_T . assignment_expression
-   43 function_definition_statement: ARRAY_T . LP formal_argument_list RP block
+   30 declaration_expression: ARRAY_T . IDENTIFIER
+   34                       | ARRAY_T . assignment_expression
+   47 function_definition_statement: ARRAY_T . LP formal_argument_list RP block
 
-    IDENTIFIER  shift, and go to state 33
-    LP          shift, and go to state 34
+    IDENTIFIER  shift, and go to state 35
+    LP          shift, and go to state 36
 
-    assignment_expression  go to state 35
+    assignment_expression  转到状态 37
 
 
 State 9
 
-    3 statement: IF . LP expression RP block
+    5 statement: IF . LP expression RP block
 
-    LP  shift, and go to state 36
+    LP  shift, and go to state 38
 
 
 State 10
 
-    4 statement: FOR . LP IDENTIFIER IN expression RP block
-    5          | FOR . LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional RP block
+    6 statement: FOR . LP IDENTIFIER IN expression RP block
+    7          | FOR . LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional RP block
 
-    LP  shift, and go to state 37
+    LP  shift, and go to state 39
 
 
 State 11
 
-    6 statement: RETURN . expression SEMICOLON
+    8 statement: RETURN_T . expression SEMICOLON
 
     INT_LITERAL     shift, and go to state 1
     STRING_LITERAL  shift, and go to state 2
     DOUBLE_LITERAL  shift, and go to state 3
     IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 38
-    DOUBLE_T        shift, and go to state 39
-    STRING_T        shift, and go to state 40
-    ARRAY_T         shift, and go to state 41
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
 
-    expression              go to state 42
-    comparison_expression   go to state 16
-    declaration_expression  go to state 17
-    computation_expression  go to state 18
-    assignment_expression   go to state 19
-    primary_expression      go to state 20
+    expression              转到状态 44
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
 
 
 State 12
 
-    8 statement: BREAK . SEMICOLON
+   10 statement: BREAK . SEMICOLON
 
-    SEMICOLON  shift, and go to state 43
+    SEMICOLON  shift, and go to state 45
 
 
 State 13
 
-    7 statement: CONTINUE . SEMICOLON
+    9 statement: CONTINUE . SEMICOLON
 
-    SEMICOLON  shift, and go to state 44
+    SEMICOLON  shift, and go to state 46
 
 
 State 14
 
-    0 $accept: statement . $end
+    0 $accept: statement_list . $end
+    2 statement_list: statement_list . statement
 
-    $end  shift, and go to state 45
+    $end            shift, and go to state 47
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 5
+    DOUBLE_T        shift, and go to state 6
+    STRING_T        shift, and go to state 7
+    ARRAY_T         shift, and go to state 8
+    IF              shift, and go to state 9
+    FOR             shift, and go to state 10
+    RETURN_T        shift, and go to state 11
+    BREAK           shift, and go to state 12
+    CONTINUE        shift, and go to state 13
+
+    statement                      转到状态 48
+    expression                     转到状态 16
+    binary_expression              转到状态 17
+    comparison_expression          转到状态 18
+    declaration_expression         转到状态 19
+    computation_expression         转到状态 20
+    assignment_expression          转到状态 21
+    primary_expression             转到状态 22
+    function_definition_statement  转到状态 23
 
 
 State 15
 
-    1 statement: expression . SEMICOLON
-   16 comparison_expression: expression . EQ expression
-   17                      | expression . NE expression
-   18                      | expression . GT expression
-   19                      | expression . GE expression
-   20                      | expression . LT expression
-   21                      | expression . LE expression
-   30 computation_expression: expression . ADD expression
-   31                       | expression . SUB expression
-   32                       | expression . MUL expression
-   33                       | expression . DIV expression
+    1 statement_list: statement .
 
-    SEMICOLON  shift, and go to state 46
-    EQ         shift, and go to state 47
-    NE         shift, and go to state 48
-    GT         shift, and go to state 49
-    GE         shift, and go to state 50
-    LT         shift, and go to state 51
-    LE         shift, and go to state 52
-    ADD        shift, and go to state 53
-    SUB        shift, and go to state 54
-    MUL        shift, and go to state 55
-    DIV        shift, and go to state 56
+    $default  reduce using rule 1 (statement_list)
 
 
 State 16
 
-   11 expression: comparison_expression .
+    3 statement: expression . SEMICOLON
+   21 comparison_expression: expression . EQ_T expression
+   22                      | expression . NE_T expression
+   23                      | expression . GT_T expression
+   24                      | expression . GE_T expression
+   25                      | expression . LT_T expression
+   26                      | expression . LE_T expression
+   35 computation_expression: expression . ADD_T expression
+   36                       | expression . SUB_T expression
+   37                       | expression . MUL_T expression
+   38                       | expression . DIV_T expression
+   39                       | expression . MOD_T expression
 
-    $default  reduce using rule 11 (expression)
+    SEMICOLON  shift, and go to state 49
+    EQ_T       shift, and go to state 50
+    NE_T       shift, and go to state 51
+    GT_T       shift, and go to state 52
+    GE_T       shift, and go to state 53
+    LT_T       shift, and go to state 54
+    LE_T       shift, and go to state 55
+    ADD_T      shift, and go to state 56
+    SUB_T      shift, and go to state 57
+    MUL_T      shift, and go to state 58
+    DIV_T      shift, and go to state 59
+    MOD_T      shift, and go to state 60
 
 
 State 17
 
-   10 expression: declaration_expression .
-
-    $default  reduce using rule 10 (expression)
-
-
-State 18
-
-   12 expression: computation_expression .
-
-    $default  reduce using rule 12 (expression)
-
-
-State 19
-
-    9 expression: assignment_expression .
-
-    $default  reduce using rule 9 (expression)
-
-
-State 20
-
-   13 expression: primary_expression .
+   13 expression: binary_expression .
 
     $default  reduce using rule 13 (expression)
 
 
+State 18
+
+   19 binary_expression: comparison_expression .
+
+    $default  reduce using rule 19 (binary_expression)
+
+
+State 19
+
+   12 expression: declaration_expression .
+
+    $default  reduce using rule 12 (expression)
+
+
+State 20
+
+   20 binary_expression: computation_expression .
+
+    $default  reduce using rule 20 (binary_expression)
+
+
 State 21
 
-    2 statement: function_definition_statement .
+   11 expression: assignment_expression .
 
-    $default  reduce using rule 2 (statement)
+    $default  reduce using rule 11 (expression)
 
 
 State 22
 
-   14 expression: IDENTIFIER LP . actual_argument_list RP
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 38
-    DOUBLE_T        shift, and go to state 39
-    STRING_T        shift, and go to state 40
-    ARRAY_T         shift, and go to state 41
-
-    expression              go to state 57
-    comparison_expression   go to state 16
-    declaration_expression  go to state 17
-    computation_expression  go to state 18
-    assignment_expression   go to state 19
-    primary_expression      go to state 20
-    actual_argument_list    go to state 58
-
-
-State 23
-
-   34 assignment_expression: IDENTIFIER ASSIGN_T . expression
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 38
-    DOUBLE_T        shift, and go to state 39
-    STRING_T        shift, and go to state 40
-    ARRAY_T         shift, and go to state 41
-
-    expression              go to state 59
-    comparison_expression   go to state 16
-    declaration_expression  go to state 17
-    computation_expression  go to state 18
-    assignment_expression   go to state 19
-    primary_expression      go to state 20
-
-
-State 24
-
-   22 declaration_expression: INT_T IDENTIFIER .
-   34 assignment_expression: IDENTIFIER . ASSIGN_T expression
-
-    ASSIGN_T  shift, and go to state 23
-
-    $default  reduce using rule 22 (declaration_expression)
-
-
-State 25
-
-   40 function_definition_statement: INT_T LP . formal_argument_list RP block
-
-    INT_T     shift, and go to state 60
-    DOUBLE_T  shift, and go to state 61
-    STRING_T  shift, and go to state 62
-    ARRAY_T   shift, and go to state 63
-
-    $default  reduce using rule 50 (formal_argument_list)
-
-    formal_argument_list  go to state 64
-
-
-State 26
-
-   26 declaration_expression: INT_T assignment_expression .
-
-    $default  reduce using rule 26 (declaration_expression)
-
-
-State 27
-
-   23 declaration_expression: DOUBLE_T IDENTIFIER .
-   34 assignment_expression: IDENTIFIER . ASSIGN_T expression
-
-    ASSIGN_T  shift, and go to state 23
-
-    $default  reduce using rule 23 (declaration_expression)
-
-
-State 28
-
-   41 function_definition_statement: DOUBLE_T LP . formal_argument_list RP block
-
-    INT_T     shift, and go to state 60
-    DOUBLE_T  shift, and go to state 61
-    STRING_T  shift, and go to state 62
-    ARRAY_T   shift, and go to state 63
-
-    $default  reduce using rule 50 (formal_argument_list)
-
-    formal_argument_list  go to state 65
-
-
-State 29
-
-   27 declaration_expression: DOUBLE_T assignment_expression .
-
-    $default  reduce using rule 27 (declaration_expression)
-
-
-State 30
-
-   24 declaration_expression: STRING_T IDENTIFIER .
-   34 assignment_expression: IDENTIFIER . ASSIGN_T expression
-
-    ASSIGN_T  shift, and go to state 23
-
-    $default  reduce using rule 24 (declaration_expression)
-
-
-State 31
-
-   42 function_definition_statement: STRING_T LP . formal_argument_list RP block
-
-    INT_T     shift, and go to state 60
-    DOUBLE_T  shift, and go to state 61
-    STRING_T  shift, and go to state 62
-    ARRAY_T   shift, and go to state 63
-
-    $default  reduce using rule 50 (formal_argument_list)
-
-    formal_argument_list  go to state 66
-
-
-State 32
-
-   28 declaration_expression: STRING_T assignment_expression .
-
-    $default  reduce using rule 28 (declaration_expression)
-
-
-State 33
-
-   25 declaration_expression: ARRAY_T IDENTIFIER .
-   34 assignment_expression: IDENTIFIER . ASSIGN_T expression
-
-    ASSIGN_T  shift, and go to state 23
-
-    $default  reduce using rule 25 (declaration_expression)
-
-
-State 34
-
-   43 function_definition_statement: ARRAY_T LP . formal_argument_list RP block
-
-    INT_T     shift, and go to state 60
-    DOUBLE_T  shift, and go to state 61
-    STRING_T  shift, and go to state 62
-    ARRAY_T   shift, and go to state 63
-
-    $default  reduce using rule 50 (formal_argument_list)
-
-    formal_argument_list  go to state 67
-
-
-State 35
-
-   29 declaration_expression: ARRAY_T assignment_expression .
-
-    $default  reduce using rule 29 (declaration_expression)
-
-
-State 36
-
-    3 statement: IF LP . expression RP block
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 38
-    DOUBLE_T        shift, and go to state 39
-    STRING_T        shift, and go to state 40
-    ARRAY_T         shift, and go to state 41
-
-    expression              go to state 68
-    comparison_expression   go to state 16
-    declaration_expression  go to state 17
-    computation_expression  go to state 18
-    assignment_expression   go to state 19
-    primary_expression      go to state 20
-
-
-State 37
-
-    4 statement: FOR LP . IDENTIFIER IN expression RP block
-    5          | FOR LP . expression_optional SEMICOLON expression_optional SEMICOLON expression_optional RP block
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 69
-    INT_T           shift, and go to state 38
-    DOUBLE_T        shift, and go to state 39
-    STRING_T        shift, and go to state 40
-    ARRAY_T         shift, and go to state 41
-
-    $default  reduce using rule 38 (expression_optional)
-
-    expression              go to state 70
-    comparison_expression   go to state 16
-    declaration_expression  go to state 17
-    computation_expression  go to state 18
-    assignment_expression   go to state 19
-    primary_expression      go to state 20
-    expression_optional     go to state 71
-
-
-State 38
-
-   22 declaration_expression: INT_T . IDENTIFIER
-   26                       | INT_T . assignment_expression
-
-    IDENTIFIER  shift, and go to state 24
-
-    assignment_expression  go to state 26
-
-
-State 39
-
-   23 declaration_expression: DOUBLE_T . IDENTIFIER
-   27                       | DOUBLE_T . assignment_expression
-
-    IDENTIFIER  shift, and go to state 27
-
-    assignment_expression  go to state 29
-
-
-State 40
-
-   24 declaration_expression: STRING_T . IDENTIFIER
-   28                       | STRING_T . assignment_expression
-
-    IDENTIFIER  shift, and go to state 30
-
-    assignment_expression  go to state 32
-
-
-State 41
-
-   25 declaration_expression: ARRAY_T . IDENTIFIER
-   29                       | ARRAY_T . assignment_expression
-
-    IDENTIFIER  shift, and go to state 33
-
-    assignment_expression  go to state 35
-
-
-State 42
-
-    6 statement: RETURN expression . SEMICOLON
-   16 comparison_expression: expression . EQ expression
-   17                      | expression . NE expression
-   18                      | expression . GT expression
-   19                      | expression . GE expression
-   20                      | expression . LT expression
-   21                      | expression . LE expression
-   30 computation_expression: expression . ADD expression
-   31                       | expression . SUB expression
-   32                       | expression . MUL expression
-   33                       | expression . DIV expression
-
-    SEMICOLON  shift, and go to state 72
-    EQ         shift, and go to state 47
-    NE         shift, and go to state 48
-    GT         shift, and go to state 49
-    GE         shift, and go to state 50
-    LT         shift, and go to state 51
-    LE         shift, and go to state 52
-    ADD        shift, and go to state 53
-    SUB        shift, and go to state 54
-    MUL        shift, and go to state 55
-    DIV        shift, and go to state 56
-
-
-State 43
-
-    8 statement: BREAK SEMICOLON .
-
-    $default  reduce using rule 8 (statement)
-
-
-State 44
-
-    7 statement: CONTINUE SEMICOLON .
-
-    $default  reduce using rule 7 (statement)
-
-
-State 45
-
-    0 $accept: statement $end .
-
-    $default  accept
-
-
-State 46
-
-    1 statement: expression SEMICOLON .
-
-    $default  reduce using rule 1 (statement)
-
-
-State 47
-
-   16 comparison_expression: expression EQ . expression
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 38
-    DOUBLE_T        shift, and go to state 39
-    STRING_T        shift, and go to state 40
-    ARRAY_T         shift, and go to state 41
-
-    expression              go to state 73
-    comparison_expression   go to state 16
-    declaration_expression  go to state 17
-    computation_expression  go to state 18
-    assignment_expression   go to state 19
-    primary_expression      go to state 20
-
-
-State 48
-
-   17 comparison_expression: expression NE . expression
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 38
-    DOUBLE_T        shift, and go to state 39
-    STRING_T        shift, and go to state 40
-    ARRAY_T         shift, and go to state 41
-
-    expression              go to state 74
-    comparison_expression   go to state 16
-    declaration_expression  go to state 17
-    computation_expression  go to state 18
-    assignment_expression   go to state 19
-    primary_expression      go to state 20
-
-
-State 49
-
-   18 comparison_expression: expression GT . expression
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 38
-    DOUBLE_T        shift, and go to state 39
-    STRING_T        shift, and go to state 40
-    ARRAY_T         shift, and go to state 41
-
-    expression              go to state 75
-    comparison_expression   go to state 16
-    declaration_expression  go to state 17
-    computation_expression  go to state 18
-    assignment_expression   go to state 19
-    primary_expression      go to state 20
-
-
-State 50
-
-   19 comparison_expression: expression GE . expression
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 38
-    DOUBLE_T        shift, and go to state 39
-    STRING_T        shift, and go to state 40
-    ARRAY_T         shift, and go to state 41
-
-    expression              go to state 76
-    comparison_expression   go to state 16
-    declaration_expression  go to state 17
-    computation_expression  go to state 18
-    assignment_expression   go to state 19
-    primary_expression      go to state 20
-
-
-State 51
-
-   20 comparison_expression: expression LT . expression
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 38
-    DOUBLE_T        shift, and go to state 39
-    STRING_T        shift, and go to state 40
-    ARRAY_T         shift, and go to state 41
-
-    expression              go to state 77
-    comparison_expression   go to state 16
-    declaration_expression  go to state 17
-    computation_expression  go to state 18
-    assignment_expression   go to state 19
-    primary_expression      go to state 20
-
-
-State 52
-
-   21 comparison_expression: expression LE . expression
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 38
-    DOUBLE_T        shift, and go to state 39
-    STRING_T        shift, and go to state 40
-    ARRAY_T         shift, and go to state 41
-
-    expression              go to state 78
-    comparison_expression   go to state 16
-    declaration_expression  go to state 17
-    computation_expression  go to state 18
-    assignment_expression   go to state 19
-    primary_expression      go to state 20
-
-
-State 53
-
-   30 computation_expression: expression ADD . expression
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 38
-    DOUBLE_T        shift, and go to state 39
-    STRING_T        shift, and go to state 40
-    ARRAY_T         shift, and go to state 41
-
-    expression              go to state 79
-    comparison_expression   go to state 16
-    declaration_expression  go to state 17
-    computation_expression  go to state 18
-    assignment_expression   go to state 19
-    primary_expression      go to state 20
-
-
-State 54
-
-   31 computation_expression: expression SUB . expression
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 38
-    DOUBLE_T        shift, and go to state 39
-    STRING_T        shift, and go to state 40
-    ARRAY_T         shift, and go to state 41
-
-    expression              go to state 80
-    comparison_expression   go to state 16
-    declaration_expression  go to state 17
-    computation_expression  go to state 18
-    assignment_expression   go to state 19
-    primary_expression      go to state 20
-
-
-State 55
-
-   32 computation_expression: expression MUL . expression
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 38
-    DOUBLE_T        shift, and go to state 39
-    STRING_T        shift, and go to state 40
-    ARRAY_T         shift, and go to state 41
-
-    expression              go to state 81
-    comparison_expression   go to state 16
-    declaration_expression  go to state 17
-    computation_expression  go to state 18
-    assignment_expression   go to state 19
-    primary_expression      go to state 20
-
-
-State 56
-
-   33 computation_expression: expression DIV . expression
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 38
-    DOUBLE_T        shift, and go to state 39
-    STRING_T        shift, and go to state 40
-    ARRAY_T         shift, and go to state 41
-
-    expression              go to state 82
-    comparison_expression   go to state 16
-    declaration_expression  go to state 17
-    computation_expression  go to state 18
-    assignment_expression   go to state 19
-    primary_expression      go to state 20
-
-
-State 57
-
-   16 comparison_expression: expression . EQ expression
-   17                      | expression . NE expression
-   18                      | expression . GT expression
-   19                      | expression . GE expression
-   20                      | expression . LT expression
-   21                      | expression . LE expression
-   30 computation_expression: expression . ADD expression
-   31                       | expression . SUB expression
-   32                       | expression . MUL expression
-   33                       | expression . DIV expression
-   48 actual_argument_list: expression .
-
-    EQ   shift, and go to state 47
-    NE   shift, and go to state 48
-    GT   shift, and go to state 49
-    GE   shift, and go to state 50
-    LT   shift, and go to state 51
-    LE   shift, and go to state 52
-    ADD  shift, and go to state 53
-    SUB  shift, and go to state 54
-    MUL  shift, and go to state 55
-    DIV  shift, and go to state 56
-
-    $default  reduce using rule 48 (actual_argument_list)
-
-
-State 58
-
-   14 expression: IDENTIFIER LP actual_argument_list . RP
-   49 actual_argument_list: actual_argument_list . COMMA expression
-
-    RP     shift, and go to state 83
-    COMMA  shift, and go to state 84
-
-
-State 59
-
-   16 comparison_expression: expression . EQ expression
-   17                      | expression . NE expression
-   18                      | expression . GT expression
-   19                      | expression . GE expression
-   20                      | expression . LT expression
-   21                      | expression . LE expression
-   30 computation_expression: expression . ADD expression
-   31                       | expression . SUB expression
-   32                       | expression . MUL expression
-   33                       | expression . DIV expression
-   34 assignment_expression: IDENTIFIER ASSIGN_T expression .
-
-    EQ   shift, and go to state 47
-    NE   shift, and go to state 48
-    GT   shift, and go to state 49
-    GE   shift, and go to state 50
-    LT   shift, and go to state 51
-    LE   shift, and go to state 52
-    ADD  shift, and go to state 53
-    SUB  shift, and go to state 54
-    MUL  shift, and go to state 55
-    DIV  shift, and go to state 56
-
-    EQ        [reduce using rule 34 (assignment_expression)]
-    NE        [reduce using rule 34 (assignment_expression)]
-    GT        [reduce using rule 34 (assignment_expression)]
-    GE        [reduce using rule 34 (assignment_expression)]
-    LT        [reduce using rule 34 (assignment_expression)]
-    LE        [reduce using rule 34 (assignment_expression)]
-    ADD       [reduce using rule 34 (assignment_expression)]
-    SUB       [reduce using rule 34 (assignment_expression)]
-    MUL       [reduce using rule 34 (assignment_expression)]
-    DIV       [reduce using rule 34 (assignment_expression)]
-    $default  reduce using rule 34 (assignment_expression)
-
-
-State 60
-
-   51 formal_argument_list: INT_T . IDENTIFIER
-
-    IDENTIFIER  shift, and go to state 85
-
-
-State 61
-
-   52 formal_argument_list: DOUBLE_T . IDENTIFIER
-
-    IDENTIFIER  shift, and go to state 86
-
-
-State 62
-
-   53 formal_argument_list: STRING_T . IDENTIFIER
-
-    IDENTIFIER  shift, and go to state 87
-
-
-State 63
-
-   54 formal_argument_list: ARRAY_T . IDENTIFIER
-
-    IDENTIFIER  shift, and go to state 88
-
-
-State 64
-
-   40 function_definition_statement: INT_T LP formal_argument_list . RP block
-   55 formal_argument_list: formal_argument_list . COMMA INT_T IDENTIFIER
-   56                     | formal_argument_list . COMMA DOUBLE_T IDENTIFIER
-   57                     | formal_argument_list . COMMA STRING_T IDENTIFIER
-   58                     | formal_argument_list . COMMA ARRAY_T IDENTIFIER
-
-    RP     shift, and go to state 89
-    COMMA  shift, and go to state 90
-
-
-State 65
-
-   41 function_definition_statement: DOUBLE_T LP formal_argument_list . RP block
-   55 formal_argument_list: formal_argument_list . COMMA INT_T IDENTIFIER
-   56                     | formal_argument_list . COMMA DOUBLE_T IDENTIFIER
-   57                     | formal_argument_list . COMMA STRING_T IDENTIFIER
-   58                     | formal_argument_list . COMMA ARRAY_T IDENTIFIER
-
-    RP     shift, and go to state 91
-    COMMA  shift, and go to state 90
-
-
-State 66
-
-   42 function_definition_statement: STRING_T LP formal_argument_list . RP block
-   55 formal_argument_list: formal_argument_list . COMMA INT_T IDENTIFIER
-   56                     | formal_argument_list . COMMA DOUBLE_T IDENTIFIER
-   57                     | formal_argument_list . COMMA STRING_T IDENTIFIER
-   58                     | formal_argument_list . COMMA ARRAY_T IDENTIFIER
-
-    RP     shift, and go to state 92
-    COMMA  shift, and go to state 90
-
-
-State 67
-
-   43 function_definition_statement: ARRAY_T LP formal_argument_list . RP block
-   55 formal_argument_list: formal_argument_list . COMMA INT_T IDENTIFIER
-   56                     | formal_argument_list . COMMA DOUBLE_T IDENTIFIER
-   57                     | formal_argument_list . COMMA STRING_T IDENTIFIER
-   58                     | formal_argument_list . COMMA ARRAY_T IDENTIFIER
-
-    RP     shift, and go to state 93
-    COMMA  shift, and go to state 90
-
-
-State 68
-
-    3 statement: IF LP expression . RP block
-   16 comparison_expression: expression . EQ expression
-   17                      | expression . NE expression
-   18                      | expression . GT expression
-   19                      | expression . GE expression
-   20                      | expression . LT expression
-   21                      | expression . LE expression
-   30 computation_expression: expression . ADD expression
-   31                       | expression . SUB expression
-   32                       | expression . MUL expression
-   33                       | expression . DIV expression
-
-    RP   shift, and go to state 94
-    EQ   shift, and go to state 47
-    NE   shift, and go to state 48
-    GT   shift, and go to state 49
-    GE   shift, and go to state 50
-    LT   shift, and go to state 51
-    LE   shift, and go to state 52
-    ADD  shift, and go to state 53
-    SUB  shift, and go to state 54
-    MUL  shift, and go to state 55
-    DIV  shift, and go to state 56
-
-
-State 69
-
-    4 statement: FOR LP IDENTIFIER . IN expression RP block
-   14 expression: IDENTIFIER . LP actual_argument_list RP
-   15           | IDENTIFIER .
-   34 assignment_expression: IDENTIFIER . ASSIGN_T expression
-
-    IN        shift, and go to state 95
-    LP        shift, and go to state 22
-    ASSIGN_T  shift, and go to state 23
-
-    $default  reduce using rule 15 (expression)
-
-
-State 70
-
-   16 comparison_expression: expression . EQ expression
-   17                      | expression . NE expression
-   18                      | expression . GT expression
-   19                      | expression . GE expression
-   20                      | expression . LT expression
-   21                      | expression . LE expression
-   30 computation_expression: expression . ADD expression
-   31                       | expression . SUB expression
-   32                       | expression . MUL expression
-   33                       | expression . DIV expression
-   39 expression_optional: expression .
-
-    EQ   shift, and go to state 47
-    NE   shift, and go to state 48
-    GT   shift, and go to state 49
-    GE   shift, and go to state 50
-    LT   shift, and go to state 51
-    LE   shift, and go to state 52
-    ADD  shift, and go to state 53
-    SUB  shift, and go to state 54
-    MUL  shift, and go to state 55
-    DIV  shift, and go to state 56
-
-    $default  reduce using rule 39 (expression_optional)
-
-
-State 71
-
-    5 statement: FOR LP expression_optional . SEMICOLON expression_optional SEMICOLON expression_optional RP block
-
-    SEMICOLON  shift, and go to state 96
-
-
-State 72
-
-    6 statement: RETURN expression SEMICOLON .
-
-    $default  reduce using rule 6 (statement)
-
-
-State 73
-
-   16 comparison_expression: expression . EQ expression
-   16                      | expression EQ expression .
-   17                      | expression . NE expression
-   18                      | expression . GT expression
-   19                      | expression . GE expression
-   20                      | expression . LT expression
-   21                      | expression . LE expression
-   30 computation_expression: expression . ADD expression
-   31                       | expression . SUB expression
-   32                       | expression . MUL expression
-   33                       | expression . DIV expression
-
-    EQ   shift, and go to state 47
-    NE   shift, and go to state 48
-    GT   shift, and go to state 49
-    GE   shift, and go to state 50
-    LT   shift, and go to state 51
-    LE   shift, and go to state 52
-    ADD  shift, and go to state 53
-    SUB  shift, and go to state 54
-    MUL  shift, and go to state 55
-    DIV  shift, and go to state 56
-
-    EQ        [reduce using rule 16 (comparison_expression)]
-    NE        [reduce using rule 16 (comparison_expression)]
-    GT        [reduce using rule 16 (comparison_expression)]
-    GE        [reduce using rule 16 (comparison_expression)]
-    LT        [reduce using rule 16 (comparison_expression)]
-    LE        [reduce using rule 16 (comparison_expression)]
-    ADD       [reduce using rule 16 (comparison_expression)]
-    SUB       [reduce using rule 16 (comparison_expression)]
-    MUL       [reduce using rule 16 (comparison_expression)]
-    DIV       [reduce using rule 16 (comparison_expression)]
-    $default  reduce using rule 16 (comparison_expression)
-
-
-State 74
-
-   16 comparison_expression: expression . EQ expression
-   17                      | expression . NE expression
-   17                      | expression NE expression .
-   18                      | expression . GT expression
-   19                      | expression . GE expression
-   20                      | expression . LT expression
-   21                      | expression . LE expression
-   30 computation_expression: expression . ADD expression
-   31                       | expression . SUB expression
-   32                       | expression . MUL expression
-   33                       | expression . DIV expression
-
-    EQ   shift, and go to state 47
-    NE   shift, and go to state 48
-    GT   shift, and go to state 49
-    GE   shift, and go to state 50
-    LT   shift, and go to state 51
-    LE   shift, and go to state 52
-    ADD  shift, and go to state 53
-    SUB  shift, and go to state 54
-    MUL  shift, and go to state 55
-    DIV  shift, and go to state 56
-
-    EQ        [reduce using rule 17 (comparison_expression)]
-    NE        [reduce using rule 17 (comparison_expression)]
-    GT        [reduce using rule 17 (comparison_expression)]
-    GE        [reduce using rule 17 (comparison_expression)]
-    LT        [reduce using rule 17 (comparison_expression)]
-    LE        [reduce using rule 17 (comparison_expression)]
-    ADD       [reduce using rule 17 (comparison_expression)]
-    SUB       [reduce using rule 17 (comparison_expression)]
-    MUL       [reduce using rule 17 (comparison_expression)]
-    DIV       [reduce using rule 17 (comparison_expression)]
-    $default  reduce using rule 17 (comparison_expression)
-
-
-State 75
-
-   16 comparison_expression: expression . EQ expression
-   17                      | expression . NE expression
-   18                      | expression . GT expression
-   18                      | expression GT expression .
-   19                      | expression . GE expression
-   20                      | expression . LT expression
-   21                      | expression . LE expression
-   30 computation_expression: expression . ADD expression
-   31                       | expression . SUB expression
-   32                       | expression . MUL expression
-   33                       | expression . DIV expression
-
-    EQ   shift, and go to state 47
-    NE   shift, and go to state 48
-    GT   shift, and go to state 49
-    GE   shift, and go to state 50
-    LT   shift, and go to state 51
-    LE   shift, and go to state 52
-    ADD  shift, and go to state 53
-    SUB  shift, and go to state 54
-    MUL  shift, and go to state 55
-    DIV  shift, and go to state 56
-
-    EQ        [reduce using rule 18 (comparison_expression)]
-    NE        [reduce using rule 18 (comparison_expression)]
-    GT        [reduce using rule 18 (comparison_expression)]
-    GE        [reduce using rule 18 (comparison_expression)]
-    LT        [reduce using rule 18 (comparison_expression)]
-    LE        [reduce using rule 18 (comparison_expression)]
-    ADD       [reduce using rule 18 (comparison_expression)]
-    SUB       [reduce using rule 18 (comparison_expression)]
-    MUL       [reduce using rule 18 (comparison_expression)]
-    DIV       [reduce using rule 18 (comparison_expression)]
-    $default  reduce using rule 18 (comparison_expression)
-
-
-State 76
-
-   16 comparison_expression: expression . EQ expression
-   17                      | expression . NE expression
-   18                      | expression . GT expression
-   19                      | expression . GE expression
-   19                      | expression GE expression .
-   20                      | expression . LT expression
-   21                      | expression . LE expression
-   30 computation_expression: expression . ADD expression
-   31                       | expression . SUB expression
-   32                       | expression . MUL expression
-   33                       | expression . DIV expression
-
-    EQ   shift, and go to state 47
-    NE   shift, and go to state 48
-    GT   shift, and go to state 49
-    GE   shift, and go to state 50
-    LT   shift, and go to state 51
-    LE   shift, and go to state 52
-    ADD  shift, and go to state 53
-    SUB  shift, and go to state 54
-    MUL  shift, and go to state 55
-    DIV  shift, and go to state 56
-
-    EQ        [reduce using rule 19 (comparison_expression)]
-    NE        [reduce using rule 19 (comparison_expression)]
-    GT        [reduce using rule 19 (comparison_expression)]
-    GE        [reduce using rule 19 (comparison_expression)]
-    LT        [reduce using rule 19 (comparison_expression)]
-    LE        [reduce using rule 19 (comparison_expression)]
-    ADD       [reduce using rule 19 (comparison_expression)]
-    SUB       [reduce using rule 19 (comparison_expression)]
-    MUL       [reduce using rule 19 (comparison_expression)]
-    DIV       [reduce using rule 19 (comparison_expression)]
-    $default  reduce using rule 19 (comparison_expression)
-
-
-State 77
-
-   16 comparison_expression: expression . EQ expression
-   17                      | expression . NE expression
-   18                      | expression . GT expression
-   19                      | expression . GE expression
-   20                      | expression . LT expression
-   20                      | expression LT expression .
-   21                      | expression . LE expression
-   30 computation_expression: expression . ADD expression
-   31                       | expression . SUB expression
-   32                       | expression . MUL expression
-   33                       | expression . DIV expression
-
-    EQ   shift, and go to state 47
-    NE   shift, and go to state 48
-    GT   shift, and go to state 49
-    GE   shift, and go to state 50
-    LT   shift, and go to state 51
-    LE   shift, and go to state 52
-    ADD  shift, and go to state 53
-    SUB  shift, and go to state 54
-    MUL  shift, and go to state 55
-    DIV  shift, and go to state 56
-
-    EQ        [reduce using rule 20 (comparison_expression)]
-    NE        [reduce using rule 20 (comparison_expression)]
-    GT        [reduce using rule 20 (comparison_expression)]
-    GE        [reduce using rule 20 (comparison_expression)]
-    LT        [reduce using rule 20 (comparison_expression)]
-    LE        [reduce using rule 20 (comparison_expression)]
-    ADD       [reduce using rule 20 (comparison_expression)]
-    SUB       [reduce using rule 20 (comparison_expression)]
-    MUL       [reduce using rule 20 (comparison_expression)]
-    DIV       [reduce using rule 20 (comparison_expression)]
-    $default  reduce using rule 20 (comparison_expression)
-
-
-State 78
-
-   16 comparison_expression: expression . EQ expression
-   17                      | expression . NE expression
-   18                      | expression . GT expression
-   19                      | expression . GE expression
-   20                      | expression . LT expression
-   21                      | expression . LE expression
-   21                      | expression LE expression .
-   30 computation_expression: expression . ADD expression
-   31                       | expression . SUB expression
-   32                       | expression . MUL expression
-   33                       | expression . DIV expression
-
-    EQ   shift, and go to state 47
-    NE   shift, and go to state 48
-    GT   shift, and go to state 49
-    GE   shift, and go to state 50
-    LT   shift, and go to state 51
-    LE   shift, and go to state 52
-    ADD  shift, and go to state 53
-    SUB  shift, and go to state 54
-    MUL  shift, and go to state 55
-    DIV  shift, and go to state 56
-
-    EQ        [reduce using rule 21 (comparison_expression)]
-    NE        [reduce using rule 21 (comparison_expression)]
-    GT        [reduce using rule 21 (comparison_expression)]
-    GE        [reduce using rule 21 (comparison_expression)]
-    LT        [reduce using rule 21 (comparison_expression)]
-    LE        [reduce using rule 21 (comparison_expression)]
-    ADD       [reduce using rule 21 (comparison_expression)]
-    SUB       [reduce using rule 21 (comparison_expression)]
-    MUL       [reduce using rule 21 (comparison_expression)]
-    DIV       [reduce using rule 21 (comparison_expression)]
-    $default  reduce using rule 21 (comparison_expression)
-
-
-State 79
-
-   16 comparison_expression: expression . EQ expression
-   17                      | expression . NE expression
-   18                      | expression . GT expression
-   19                      | expression . GE expression
-   20                      | expression . LT expression
-   21                      | expression . LE expression
-   30 computation_expression: expression . ADD expression
-   30                       | expression ADD expression .
-   31                       | expression . SUB expression
-   32                       | expression . MUL expression
-   33                       | expression . DIV expression
-
-    EQ   shift, and go to state 47
-    NE   shift, and go to state 48
-    GT   shift, and go to state 49
-    GE   shift, and go to state 50
-    LT   shift, and go to state 51
-    LE   shift, and go to state 52
-    ADD  shift, and go to state 53
-    SUB  shift, and go to state 54
-    MUL  shift, and go to state 55
-    DIV  shift, and go to state 56
-
-    EQ        [reduce using rule 30 (computation_expression)]
-    NE        [reduce using rule 30 (computation_expression)]
-    GT        [reduce using rule 30 (computation_expression)]
-    GE        [reduce using rule 30 (computation_expression)]
-    LT        [reduce using rule 30 (computation_expression)]
-    LE        [reduce using rule 30 (computation_expression)]
-    ADD       [reduce using rule 30 (computation_expression)]
-    SUB       [reduce using rule 30 (computation_expression)]
-    MUL       [reduce using rule 30 (computation_expression)]
-    DIV       [reduce using rule 30 (computation_expression)]
-    $default  reduce using rule 30 (computation_expression)
-
-
-State 80
-
-   16 comparison_expression: expression . EQ expression
-   17                      | expression . NE expression
-   18                      | expression . GT expression
-   19                      | expression . GE expression
-   20                      | expression . LT expression
-   21                      | expression . LE expression
-   30 computation_expression: expression . ADD expression
-   31                       | expression . SUB expression
-   31                       | expression SUB expression .
-   32                       | expression . MUL expression
-   33                       | expression . DIV expression
-
-    EQ   shift, and go to state 47
-    NE   shift, and go to state 48
-    GT   shift, and go to state 49
-    GE   shift, and go to state 50
-    LT   shift, and go to state 51
-    LE   shift, and go to state 52
-    ADD  shift, and go to state 53
-    SUB  shift, and go to state 54
-    MUL  shift, and go to state 55
-    DIV  shift, and go to state 56
-
-    EQ        [reduce using rule 31 (computation_expression)]
-    NE        [reduce using rule 31 (computation_expression)]
-    GT        [reduce using rule 31 (computation_expression)]
-    GE        [reduce using rule 31 (computation_expression)]
-    LT        [reduce using rule 31 (computation_expression)]
-    LE        [reduce using rule 31 (computation_expression)]
-    ADD       [reduce using rule 31 (computation_expression)]
-    SUB       [reduce using rule 31 (computation_expression)]
-    MUL       [reduce using rule 31 (computation_expression)]
-    DIV       [reduce using rule 31 (computation_expression)]
-    $default  reduce using rule 31 (computation_expression)
-
-
-State 81
-
-   16 comparison_expression: expression . EQ expression
-   17                      | expression . NE expression
-   18                      | expression . GT expression
-   19                      | expression . GE expression
-   20                      | expression . LT expression
-   21                      | expression . LE expression
-   30 computation_expression: expression . ADD expression
-   31                       | expression . SUB expression
-   32                       | expression . MUL expression
-   32                       | expression MUL expression .
-   33                       | expression . DIV expression
-
-    EQ   shift, and go to state 47
-    NE   shift, and go to state 48
-    GT   shift, and go to state 49
-    GE   shift, and go to state 50
-    LT   shift, and go to state 51
-    LE   shift, and go to state 52
-    ADD  shift, and go to state 53
-    SUB  shift, and go to state 54
-    MUL  shift, and go to state 55
-    DIV  shift, and go to state 56
-
-    EQ        [reduce using rule 32 (computation_expression)]
-    NE        [reduce using rule 32 (computation_expression)]
-    GT        [reduce using rule 32 (computation_expression)]
-    GE        [reduce using rule 32 (computation_expression)]
-    LT        [reduce using rule 32 (computation_expression)]
-    LE        [reduce using rule 32 (computation_expression)]
-    ADD       [reduce using rule 32 (computation_expression)]
-    SUB       [reduce using rule 32 (computation_expression)]
-    MUL       [reduce using rule 32 (computation_expression)]
-    DIV       [reduce using rule 32 (computation_expression)]
-    $default  reduce using rule 32 (computation_expression)
-
-
-State 82
-
-   16 comparison_expression: expression . EQ expression
-   17                      | expression . NE expression
-   18                      | expression . GT expression
-   19                      | expression . GE expression
-   20                      | expression . LT expression
-   21                      | expression . LE expression
-   30 computation_expression: expression . ADD expression
-   31                       | expression . SUB expression
-   32                       | expression . MUL expression
-   33                       | expression . DIV expression
-   33                       | expression DIV expression .
-
-    EQ   shift, and go to state 47
-    NE   shift, and go to state 48
-    GT   shift, and go to state 49
-    GE   shift, and go to state 50
-    LT   shift, and go to state 51
-    LE   shift, and go to state 52
-    ADD  shift, and go to state 53
-    SUB  shift, and go to state 54
-    MUL  shift, and go to state 55
-    DIV  shift, and go to state 56
-
-    EQ        [reduce using rule 33 (computation_expression)]
-    NE        [reduce using rule 33 (computation_expression)]
-    GT        [reduce using rule 33 (computation_expression)]
-    GE        [reduce using rule 33 (computation_expression)]
-    LT        [reduce using rule 33 (computation_expression)]
-    LE        [reduce using rule 33 (computation_expression)]
-    ADD       [reduce using rule 33 (computation_expression)]
-    SUB       [reduce using rule 33 (computation_expression)]
-    MUL       [reduce using rule 33 (computation_expression)]
-    DIV       [reduce using rule 33 (computation_expression)]
-    $default  reduce using rule 33 (computation_expression)
-
-
-State 83
-
-   14 expression: IDENTIFIER LP actual_argument_list RP .
+   14 expression: primary_expression .
 
     $default  reduce using rule 14 (expression)
 
 
-State 84
+State 23
 
-   49 actual_argument_list: actual_argument_list COMMA . expression
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 38
-    DOUBLE_T        shift, and go to state 39
-    STRING_T        shift, and go to state 40
-    ARRAY_T         shift, and go to state 41
-
-    expression              go to state 97
-    comparison_expression   go to state 16
-    declaration_expression  go to state 17
-    computation_expression  go to state 18
-    assignment_expression   go to state 19
-    primary_expression      go to state 20
-
-
-State 85
-
-   51 formal_argument_list: INT_T IDENTIFIER .
-
-    $default  reduce using rule 51 (formal_argument_list)
-
-
-State 86
-
-   52 formal_argument_list: DOUBLE_T IDENTIFIER .
-
-    $default  reduce using rule 52 (formal_argument_list)
-
-
-State 87
-
-   53 formal_argument_list: STRING_T IDENTIFIER .
-
-    $default  reduce using rule 53 (formal_argument_list)
-
-
-State 88
-
-   54 formal_argument_list: ARRAY_T IDENTIFIER .
-
-    $default  reduce using rule 54 (formal_argument_list)
-
-
-State 89
-
-   40 function_definition_statement: INT_T LP formal_argument_list RP . block
-
-    LC  shift, and go to state 98
-
-    block  go to state 99
-
-
-State 90
-
-   55 formal_argument_list: formal_argument_list COMMA . INT_T IDENTIFIER
-   56                     | formal_argument_list COMMA . DOUBLE_T IDENTIFIER
-   57                     | formal_argument_list COMMA . STRING_T IDENTIFIER
-   58                     | formal_argument_list COMMA . ARRAY_T IDENTIFIER
-
-    INT_T     shift, and go to state 100
-    DOUBLE_T  shift, and go to state 101
-    STRING_T  shift, and go to state 102
-    ARRAY_T   shift, and go to state 103
-
-
-State 91
-
-   41 function_definition_statement: DOUBLE_T LP formal_argument_list RP . block
-
-    LC  shift, and go to state 98
-
-    block  go to state 104
-
-
-State 92
-
-   42 function_definition_statement: STRING_T LP formal_argument_list RP . block
-
-    LC  shift, and go to state 98
-
-    block  go to state 105
-
-
-State 93
-
-   43 function_definition_statement: ARRAY_T LP formal_argument_list RP . block
-
-    LC  shift, and go to state 98
-
-    block  go to state 106
-
-
-State 94
-
-    3 statement: IF LP expression RP . block
-
-    LC  shift, and go to state 98
-
-    block  go to state 107
-
-
-State 95
-
-    4 statement: FOR LP IDENTIFIER IN . expression RP block
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 38
-    DOUBLE_T        shift, and go to state 39
-    STRING_T        shift, and go to state 40
-    ARRAY_T         shift, and go to state 41
-
-    expression              go to state 108
-    comparison_expression   go to state 16
-    declaration_expression  go to state 17
-    computation_expression  go to state 18
-    assignment_expression   go to state 19
-    primary_expression      go to state 20
-
-
-State 96
-
-    5 statement: FOR LP expression_optional SEMICOLON . expression_optional SEMICOLON expression_optional RP block
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 38
-    DOUBLE_T        shift, and go to state 39
-    STRING_T        shift, and go to state 40
-    ARRAY_T         shift, and go to state 41
-
-    $default  reduce using rule 38 (expression_optional)
-
-    expression              go to state 70
-    comparison_expression   go to state 16
-    declaration_expression  go to state 17
-    computation_expression  go to state 18
-    assignment_expression   go to state 19
-    primary_expression      go to state 20
-    expression_optional     go to state 109
-
-
-State 97
-
-   16 comparison_expression: expression . EQ expression
-   17                      | expression . NE expression
-   18                      | expression . GT expression
-   19                      | expression . GE expression
-   20                      | expression . LT expression
-   21                      | expression . LE expression
-   30 computation_expression: expression . ADD expression
-   31                       | expression . SUB expression
-   32                       | expression . MUL expression
-   33                       | expression . DIV expression
-   49 actual_argument_list: actual_argument_list COMMA expression .
-
-    EQ   shift, and go to state 47
-    NE   shift, and go to state 48
-    GT   shift, and go to state 49
-    GE   shift, and go to state 50
-    LT   shift, and go to state 51
-    LE   shift, and go to state 52
-    ADD  shift, and go to state 53
-    SUB  shift, and go to state 54
-    MUL  shift, and go to state 55
-    DIV  shift, and go to state 56
-
-    $default  reduce using rule 49 (actual_argument_list)
-
-
-State 98
-
-   44 block: LC . statement_list RC
-   45      | LC . RC
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 5
-    DOUBLE_T        shift, and go to state 6
-    STRING_T        shift, and go to state 7
-    ARRAY_T         shift, and go to state 8
-    IF              shift, and go to state 9
-    FOR             shift, and go to state 10
-    RETURN          shift, and go to state 11
-    BREAK           shift, and go to state 12
-    CONTINUE        shift, and go to state 13
-    RC              shift, and go to state 110
-
-    statement                      go to state 111
-    expression                     go to state 15
-    comparison_expression          go to state 16
-    declaration_expression         go to state 17
-    computation_expression         go to state 18
-    assignment_expression          go to state 19
-    primary_expression             go to state 20
-    function_definition_statement  go to state 21
-    statement_list                 go to state 112
-
-
-State 99
-
-   40 function_definition_statement: INT_T LP formal_argument_list RP block .
-
-    $default  reduce using rule 40 (function_definition_statement)
-
-
-State 100
-
-   55 formal_argument_list: formal_argument_list COMMA INT_T . IDENTIFIER
-
-    IDENTIFIER  shift, and go to state 113
-
-
-State 101
-
-   56 formal_argument_list: formal_argument_list COMMA DOUBLE_T . IDENTIFIER
-
-    IDENTIFIER  shift, and go to state 114
-
-
-State 102
-
-   57 formal_argument_list: formal_argument_list COMMA STRING_T . IDENTIFIER
-
-    IDENTIFIER  shift, and go to state 115
-
-
-State 103
-
-   58 formal_argument_list: formal_argument_list COMMA ARRAY_T . IDENTIFIER
-
-    IDENTIFIER  shift, and go to state 116
-
-
-State 104
-
-   41 function_definition_statement: DOUBLE_T LP formal_argument_list RP block .
-
-    $default  reduce using rule 41 (function_definition_statement)
-
-
-State 105
-
-   42 function_definition_statement: STRING_T LP formal_argument_list RP block .
-
-    $default  reduce using rule 42 (function_definition_statement)
-
-
-State 106
-
-   43 function_definition_statement: ARRAY_T LP formal_argument_list RP block .
-
-    $default  reduce using rule 43 (function_definition_statement)
-
-
-State 107
-
-    3 statement: IF LP expression RP block .
-
-    $default  reduce using rule 3 (statement)
-
-
-State 108
-
-    4 statement: FOR LP IDENTIFIER IN expression . RP block
-   16 comparison_expression: expression . EQ expression
-   17                      | expression . NE expression
-   18                      | expression . GT expression
-   19                      | expression . GE expression
-   20                      | expression . LT expression
-   21                      | expression . LE expression
-   30 computation_expression: expression . ADD expression
-   31                       | expression . SUB expression
-   32                       | expression . MUL expression
-   33                       | expression . DIV expression
-
-    RP   shift, and go to state 117
-    EQ   shift, and go to state 47
-    NE   shift, and go to state 48
-    GT   shift, and go to state 49
-    GE   shift, and go to state 50
-    LT   shift, and go to state 51
-    LE   shift, and go to state 52
-    ADD  shift, and go to state 53
-    SUB  shift, and go to state 54
-    MUL  shift, and go to state 55
-    DIV  shift, and go to state 56
-
-
-State 109
-
-    5 statement: FOR LP expression_optional SEMICOLON expression_optional . SEMICOLON expression_optional RP block
-
-    SEMICOLON  shift, and go to state 118
-
-
-State 110
-
-   45 block: LC RC .
-
-    $default  reduce using rule 45 (block)
-
-
-State 111
-
-   46 statement_list: statement .
-
-    $default  reduce using rule 46 (statement_list)
-
-
-State 112
-
-   44 block: LC statement_list . RC
-   47 statement_list: statement_list . statement
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 5
-    DOUBLE_T        shift, and go to state 6
-    STRING_T        shift, and go to state 7
-    ARRAY_T         shift, and go to state 8
-    IF              shift, and go to state 9
-    FOR             shift, and go to state 10
-    RETURN          shift, and go to state 11
-    BREAK           shift, and go to state 12
-    CONTINUE        shift, and go to state 13
-    RC              shift, and go to state 119
-
-    statement                      go to state 120
-    expression                     go to state 15
-    comparison_expression          go to state 16
-    declaration_expression         go to state 17
-    computation_expression         go to state 18
-    assignment_expression          go to state 19
-    primary_expression             go to state 20
-    function_definition_statement  go to state 21
-
-
-State 113
-
-   55 formal_argument_list: formal_argument_list COMMA INT_T IDENTIFIER .
-
-    $default  reduce using rule 55 (formal_argument_list)
-
-
-State 114
-
-   56 formal_argument_list: formal_argument_list COMMA DOUBLE_T IDENTIFIER .
-
-    $default  reduce using rule 56 (formal_argument_list)
-
-
-State 115
-
-   57 formal_argument_list: formal_argument_list COMMA STRING_T IDENTIFIER .
-
-    $default  reduce using rule 57 (formal_argument_list)
-
-
-State 116
-
-   58 formal_argument_list: formal_argument_list COMMA ARRAY_T IDENTIFIER .
-
-    $default  reduce using rule 58 (formal_argument_list)
-
-
-State 117
-
-    4 statement: FOR LP IDENTIFIER IN expression RP . block
-
-    LC  shift, and go to state 98
-
-    block  go to state 121
-
-
-State 118
-
-    5 statement: FOR LP expression_optional SEMICOLON expression_optional SEMICOLON . expression_optional RP block
-
-    INT_LITERAL     shift, and go to state 1
-    STRING_LITERAL  shift, and go to state 2
-    DOUBLE_LITERAL  shift, and go to state 3
-    IDENTIFIER      shift, and go to state 4
-    INT_T           shift, and go to state 38
-    DOUBLE_T        shift, and go to state 39
-    STRING_T        shift, and go to state 40
-    ARRAY_T         shift, and go to state 41
-
-    $default  reduce using rule 38 (expression_optional)
-
-    expression              go to state 70
-    comparison_expression   go to state 16
-    declaration_expression  go to state 17
-    computation_expression  go to state 18
-    assignment_expression   go to state 19
-    primary_expression      go to state 20
-    expression_optional     go to state 122
-
-
-State 119
-
-   44 block: LC statement_list RC .
-
-    $default  reduce using rule 44 (block)
-
-
-State 120
-
-   47 statement_list: statement_list statement .
-
-    $default  reduce using rule 47 (statement_list)
-
-
-State 121
-
-    4 statement: FOR LP IDENTIFIER IN expression RP block .
+    4 statement: function_definition_statement .
 
     $default  reduce using rule 4 (statement)
 
 
+State 24
+
+   15 expression: IDENTIFIER LP . actual_argument_list RP
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
+
+    expression              转到状态 61
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
+    actual_argument_list    转到状态 62
+
+
+State 25
+
+   40 assignment_expression: IDENTIFIER ASSIGN_T . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
+
+    expression              转到状态 63
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
+
+
+State 26
+
+   27 declaration_expression: INT_T IDENTIFIER .
+   40 assignment_expression: IDENTIFIER . ASSIGN_T expression
+
+    ASSIGN_T  shift, and go to state 25
+
+    $default  reduce using rule 27 (declaration_expression)
+
+
+State 27
+
+   44 function_definition_statement: INT_T LP . formal_argument_list RP block
+
+    INT_T     shift, and go to state 64
+    DOUBLE_T  shift, and go to state 65
+    STRING_T  shift, and go to state 66
+    ARRAY_T   shift, and go to state 67
+
+    $default  reduce using rule 52 (formal_argument_list)
+
+    formal_argument_list  转到状态 68
+
+
+State 28
+
+   31 declaration_expression: INT_T assignment_expression .
+
+    $default  reduce using rule 31 (declaration_expression)
+
+
+State 29
+
+   28 declaration_expression: DOUBLE_T IDENTIFIER .
+   40 assignment_expression: IDENTIFIER . ASSIGN_T expression
+
+    ASSIGN_T  shift, and go to state 25
+
+    $default  reduce using rule 28 (declaration_expression)
+
+
+State 30
+
+   45 function_definition_statement: DOUBLE_T LP . formal_argument_list RP block
+
+    INT_T     shift, and go to state 64
+    DOUBLE_T  shift, and go to state 65
+    STRING_T  shift, and go to state 66
+    ARRAY_T   shift, and go to state 67
+
+    $default  reduce using rule 52 (formal_argument_list)
+
+    formal_argument_list  转到状态 69
+
+
+State 31
+
+   32 declaration_expression: DOUBLE_T assignment_expression .
+
+    $default  reduce using rule 32 (declaration_expression)
+
+
+State 32
+
+   29 declaration_expression: STRING_T IDENTIFIER .
+   40 assignment_expression: IDENTIFIER . ASSIGN_T expression
+
+    ASSIGN_T  shift, and go to state 25
+
+    $default  reduce using rule 29 (declaration_expression)
+
+
+State 33
+
+   46 function_definition_statement: STRING_T LP . formal_argument_list RP block
+
+    INT_T     shift, and go to state 64
+    DOUBLE_T  shift, and go to state 65
+    STRING_T  shift, and go to state 66
+    ARRAY_T   shift, and go to state 67
+
+    $default  reduce using rule 52 (formal_argument_list)
+
+    formal_argument_list  转到状态 70
+
+
+State 34
+
+   33 declaration_expression: STRING_T assignment_expression .
+
+    $default  reduce using rule 33 (declaration_expression)
+
+
+State 35
+
+   30 declaration_expression: ARRAY_T IDENTIFIER .
+   40 assignment_expression: IDENTIFIER . ASSIGN_T expression
+
+    ASSIGN_T  shift, and go to state 25
+
+    $default  reduce using rule 30 (declaration_expression)
+
+
+State 36
+
+   47 function_definition_statement: ARRAY_T LP . formal_argument_list RP block
+
+    INT_T     shift, and go to state 64
+    DOUBLE_T  shift, and go to state 65
+    STRING_T  shift, and go to state 66
+    ARRAY_T   shift, and go to state 67
+
+    $default  reduce using rule 52 (formal_argument_list)
+
+    formal_argument_list  转到状态 71
+
+
+State 37
+
+   34 declaration_expression: ARRAY_T assignment_expression .
+
+    $default  reduce using rule 34 (declaration_expression)
+
+
+State 38
+
+    5 statement: IF LP . expression RP block
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
+
+    expression              转到状态 72
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
+
+
+State 39
+
+    6 statement: FOR LP . IDENTIFIER IN expression RP block
+    7          | FOR LP . expression_optional SEMICOLON expression_optional SEMICOLON expression_optional RP block
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 73
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
+
+    $default  reduce using rule 17 (expression_optional)
+
+    expression              转到状态 74
+    expression_optional     转到状态 75
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
+
+
+State 40
+
+   27 declaration_expression: INT_T . IDENTIFIER
+   31                       | INT_T . assignment_expression
+
+    IDENTIFIER  shift, and go to state 26
+
+    assignment_expression  转到状态 28
+
+
+State 41
+
+   28 declaration_expression: DOUBLE_T . IDENTIFIER
+   32                       | DOUBLE_T . assignment_expression
+
+    IDENTIFIER  shift, and go to state 29
+
+    assignment_expression  转到状态 31
+
+
+State 42
+
+   29 declaration_expression: STRING_T . IDENTIFIER
+   33                       | STRING_T . assignment_expression
+
+    IDENTIFIER  shift, and go to state 32
+
+    assignment_expression  转到状态 34
+
+
+State 43
+
+   30 declaration_expression: ARRAY_T . IDENTIFIER
+   34                       | ARRAY_T . assignment_expression
+
+    IDENTIFIER  shift, and go to state 35
+
+    assignment_expression  转到状态 37
+
+
+State 44
+
+    8 statement: RETURN_T expression . SEMICOLON
+   21 comparison_expression: expression . EQ_T expression
+   22                      | expression . NE_T expression
+   23                      | expression . GT_T expression
+   24                      | expression . GE_T expression
+   25                      | expression . LT_T expression
+   26                      | expression . LE_T expression
+   35 computation_expression: expression . ADD_T expression
+   36                       | expression . SUB_T expression
+   37                       | expression . MUL_T expression
+   38                       | expression . DIV_T expression
+   39                       | expression . MOD_T expression
+
+    SEMICOLON  shift, and go to state 76
+    EQ_T       shift, and go to state 50
+    NE_T       shift, and go to state 51
+    GT_T       shift, and go to state 52
+    GE_T       shift, and go to state 53
+    LT_T       shift, and go to state 54
+    LE_T       shift, and go to state 55
+    ADD_T      shift, and go to state 56
+    SUB_T      shift, and go to state 57
+    MUL_T      shift, and go to state 58
+    DIV_T      shift, and go to state 59
+    MOD_T      shift, and go to state 60
+
+
+State 45
+
+   10 statement: BREAK SEMICOLON .
+
+    $default  reduce using rule 10 (statement)
+
+
+State 46
+
+    9 statement: CONTINUE SEMICOLON .
+
+    $default  reduce using rule 9 (statement)
+
+
+State 47
+
+    0 $accept: statement_list $end .
+
+    $default  接受
+
+
+State 48
+
+    2 statement_list: statement_list statement .
+
+    $default  reduce using rule 2 (statement_list)
+
+
+State 49
+
+    3 statement: expression SEMICOLON .
+
+    $default  reduce using rule 3 (statement)
+
+
+State 50
+
+   21 comparison_expression: expression EQ_T . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
+
+    expression              转到状态 77
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
+
+
+State 51
+
+   22 comparison_expression: expression NE_T . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
+
+    expression              转到状态 78
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
+
+
+State 52
+
+   23 comparison_expression: expression GT_T . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
+
+    expression              转到状态 79
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
+
+
+State 53
+
+   24 comparison_expression: expression GE_T . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
+
+    expression              转到状态 80
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
+
+
+State 54
+
+   25 comparison_expression: expression LT_T . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
+
+    expression              转到状态 81
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
+
+
+State 55
+
+   26 comparison_expression: expression LE_T . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
+
+    expression              转到状态 82
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
+
+
+State 56
+
+   35 computation_expression: expression ADD_T . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
+
+    expression              转到状态 83
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
+
+
+State 57
+
+   36 computation_expression: expression SUB_T . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
+
+    expression              转到状态 84
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
+
+
+State 58
+
+   37 computation_expression: expression MUL_T . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
+
+    expression              转到状态 85
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
+
+
+State 59
+
+   38 computation_expression: expression DIV_T . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
+
+    expression              转到状态 86
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
+
+
+State 60
+
+   39 computation_expression: expression MOD_T . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
+
+    expression              转到状态 87
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
+
+
+State 61
+
+   21 comparison_expression: expression . EQ_T expression
+   22                      | expression . NE_T expression
+   23                      | expression . GT_T expression
+   24                      | expression . GE_T expression
+   25                      | expression . LT_T expression
+   26                      | expression . LE_T expression
+   35 computation_expression: expression . ADD_T expression
+   36                       | expression . SUB_T expression
+   37                       | expression . MUL_T expression
+   38                       | expression . DIV_T expression
+   39                       | expression . MOD_T expression
+   50 actual_argument_list: expression .
+
+    EQ_T   shift, and go to state 50
+    NE_T   shift, and go to state 51
+    GT_T   shift, and go to state 52
+    GE_T   shift, and go to state 53
+    LT_T   shift, and go to state 54
+    LE_T   shift, and go to state 55
+    ADD_T  shift, and go to state 56
+    SUB_T  shift, and go to state 57
+    MUL_T  shift, and go to state 58
+    DIV_T  shift, and go to state 59
+    MOD_T  shift, and go to state 60
+
+    $default  reduce using rule 50 (actual_argument_list)
+
+
+State 62
+
+   15 expression: IDENTIFIER LP actual_argument_list . RP
+   51 actual_argument_list: actual_argument_list . COMMA expression
+
+    RP     shift, and go to state 88
+    COMMA  shift, and go to state 89
+
+
+State 63
+
+   21 comparison_expression: expression . EQ_T expression
+   22                      | expression . NE_T expression
+   23                      | expression . GT_T expression
+   24                      | expression . GE_T expression
+   25                      | expression . LT_T expression
+   26                      | expression . LE_T expression
+   35 computation_expression: expression . ADD_T expression
+   36                       | expression . SUB_T expression
+   37                       | expression . MUL_T expression
+   38                       | expression . DIV_T expression
+   39                       | expression . MOD_T expression
+   40 assignment_expression: IDENTIFIER ASSIGN_T expression .
+
+    EQ_T   shift, and go to state 50
+    NE_T   shift, and go to state 51
+    GT_T   shift, and go to state 52
+    GE_T   shift, and go to state 53
+    LT_T   shift, and go to state 54
+    LE_T   shift, and go to state 55
+    ADD_T  shift, and go to state 56
+    SUB_T  shift, and go to state 57
+    MUL_T  shift, and go to state 58
+    DIV_T  shift, and go to state 59
+    MOD_T  shift, and go to state 60
+
+    EQ_T      [reduce using rule 40 (assignment_expression)]
+    NE_T      [reduce using rule 40 (assignment_expression)]
+    GT_T      [reduce using rule 40 (assignment_expression)]
+    GE_T      [reduce using rule 40 (assignment_expression)]
+    LT_T      [reduce using rule 40 (assignment_expression)]
+    LE_T      [reduce using rule 40 (assignment_expression)]
+    ADD_T     [reduce using rule 40 (assignment_expression)]
+    SUB_T     [reduce using rule 40 (assignment_expression)]
+    MUL_T     [reduce using rule 40 (assignment_expression)]
+    DIV_T     [reduce using rule 40 (assignment_expression)]
+    MOD_T     [reduce using rule 40 (assignment_expression)]
+    $default  reduce using rule 40 (assignment_expression)
+
+
+State 64
+
+   53 formal_argument_list: INT_T . IDENTIFIER
+
+    IDENTIFIER  shift, and go to state 90
+
+
+State 65
+
+   54 formal_argument_list: DOUBLE_T . IDENTIFIER
+
+    IDENTIFIER  shift, and go to state 91
+
+
+State 66
+
+   55 formal_argument_list: STRING_T . IDENTIFIER
+
+    IDENTIFIER  shift, and go to state 92
+
+
+State 67
+
+   56 formal_argument_list: ARRAY_T . IDENTIFIER
+
+    IDENTIFIER  shift, and go to state 93
+
+
+State 68
+
+   44 function_definition_statement: INT_T LP formal_argument_list . RP block
+   57 formal_argument_list: formal_argument_list . COMMA INT_T IDENTIFIER
+   58                     | formal_argument_list . COMMA DOUBLE_T IDENTIFIER
+   59                     | formal_argument_list . COMMA STRING_T IDENTIFIER
+   60                     | formal_argument_list . COMMA ARRAY_T IDENTIFIER
+
+    RP     shift, and go to state 94
+    COMMA  shift, and go to state 95
+
+
+State 69
+
+   45 function_definition_statement: DOUBLE_T LP formal_argument_list . RP block
+   57 formal_argument_list: formal_argument_list . COMMA INT_T IDENTIFIER
+   58                     | formal_argument_list . COMMA DOUBLE_T IDENTIFIER
+   59                     | formal_argument_list . COMMA STRING_T IDENTIFIER
+   60                     | formal_argument_list . COMMA ARRAY_T IDENTIFIER
+
+    RP     shift, and go to state 96
+    COMMA  shift, and go to state 95
+
+
+State 70
+
+   46 function_definition_statement: STRING_T LP formal_argument_list . RP block
+   57 formal_argument_list: formal_argument_list . COMMA INT_T IDENTIFIER
+   58                     | formal_argument_list . COMMA DOUBLE_T IDENTIFIER
+   59                     | formal_argument_list . COMMA STRING_T IDENTIFIER
+   60                     | formal_argument_list . COMMA ARRAY_T IDENTIFIER
+
+    RP     shift, and go to state 97
+    COMMA  shift, and go to state 95
+
+
+State 71
+
+   47 function_definition_statement: ARRAY_T LP formal_argument_list . RP block
+   57 formal_argument_list: formal_argument_list . COMMA INT_T IDENTIFIER
+   58                     | formal_argument_list . COMMA DOUBLE_T IDENTIFIER
+   59                     | formal_argument_list . COMMA STRING_T IDENTIFIER
+   60                     | formal_argument_list . COMMA ARRAY_T IDENTIFIER
+
+    RP     shift, and go to state 98
+    COMMA  shift, and go to state 95
+
+
+State 72
+
+    5 statement: IF LP expression . RP block
+   21 comparison_expression: expression . EQ_T expression
+   22                      | expression . NE_T expression
+   23                      | expression . GT_T expression
+   24                      | expression . GE_T expression
+   25                      | expression . LT_T expression
+   26                      | expression . LE_T expression
+   35 computation_expression: expression . ADD_T expression
+   36                       | expression . SUB_T expression
+   37                       | expression . MUL_T expression
+   38                       | expression . DIV_T expression
+   39                       | expression . MOD_T expression
+
+    RP     shift, and go to state 99
+    EQ_T   shift, and go to state 50
+    NE_T   shift, and go to state 51
+    GT_T   shift, and go to state 52
+    GE_T   shift, and go to state 53
+    LT_T   shift, and go to state 54
+    LE_T   shift, and go to state 55
+    ADD_T  shift, and go to state 56
+    SUB_T  shift, and go to state 57
+    MUL_T  shift, and go to state 58
+    DIV_T  shift, and go to state 59
+    MOD_T  shift, and go to state 60
+
+
+State 73
+
+    6 statement: FOR LP IDENTIFIER . IN expression RP block
+   15 expression: IDENTIFIER . LP actual_argument_list RP
+   16           | IDENTIFIER .
+   40 assignment_expression: IDENTIFIER . ASSIGN_T expression
+
+    IN        shift, and go to state 100
+    LP        shift, and go to state 24
+    ASSIGN_T  shift, and go to state 25
+
+    $default  reduce using rule 16 (expression)
+
+
+State 74
+
+   18 expression_optional: expression .
+   21 comparison_expression: expression . EQ_T expression
+   22                      | expression . NE_T expression
+   23                      | expression . GT_T expression
+   24                      | expression . GE_T expression
+   25                      | expression . LT_T expression
+   26                      | expression . LE_T expression
+   35 computation_expression: expression . ADD_T expression
+   36                       | expression . SUB_T expression
+   37                       | expression . MUL_T expression
+   38                       | expression . DIV_T expression
+   39                       | expression . MOD_T expression
+
+    EQ_T   shift, and go to state 50
+    NE_T   shift, and go to state 51
+    GT_T   shift, and go to state 52
+    GE_T   shift, and go to state 53
+    LT_T   shift, and go to state 54
+    LE_T   shift, and go to state 55
+    ADD_T  shift, and go to state 56
+    SUB_T  shift, and go to state 57
+    MUL_T  shift, and go to state 58
+    DIV_T  shift, and go to state 59
+    MOD_T  shift, and go to state 60
+
+    $default  reduce using rule 18 (expression_optional)
+
+
+State 75
+
+    7 statement: FOR LP expression_optional . SEMICOLON expression_optional SEMICOLON expression_optional RP block
+
+    SEMICOLON  shift, and go to state 101
+
+
+State 76
+
+    8 statement: RETURN_T expression SEMICOLON .
+
+    $default  reduce using rule 8 (statement)
+
+
+State 77
+
+   21 comparison_expression: expression . EQ_T expression
+   21                      | expression EQ_T expression .
+   22                      | expression . NE_T expression
+   23                      | expression . GT_T expression
+   24                      | expression . GE_T expression
+   25                      | expression . LT_T expression
+   26                      | expression . LE_T expression
+   35 computation_expression: expression . ADD_T expression
+   36                       | expression . SUB_T expression
+   37                       | expression . MUL_T expression
+   38                       | expression . DIV_T expression
+   39                       | expression . MOD_T expression
+
+    EQ_T   shift, and go to state 50
+    NE_T   shift, and go to state 51
+    GT_T   shift, and go to state 52
+    GE_T   shift, and go to state 53
+    LT_T   shift, and go to state 54
+    LE_T   shift, and go to state 55
+    ADD_T  shift, and go to state 56
+    SUB_T  shift, and go to state 57
+    MUL_T  shift, and go to state 58
+    DIV_T  shift, and go to state 59
+    MOD_T  shift, and go to state 60
+
+    EQ_T      [reduce using rule 21 (comparison_expression)]
+    NE_T      [reduce using rule 21 (comparison_expression)]
+    GT_T      [reduce using rule 21 (comparison_expression)]
+    GE_T      [reduce using rule 21 (comparison_expression)]
+    LT_T      [reduce using rule 21 (comparison_expression)]
+    LE_T      [reduce using rule 21 (comparison_expression)]
+    ADD_T     [reduce using rule 21 (comparison_expression)]
+    SUB_T     [reduce using rule 21 (comparison_expression)]
+    MUL_T     [reduce using rule 21 (comparison_expression)]
+    DIV_T     [reduce using rule 21 (comparison_expression)]
+    MOD_T     [reduce using rule 21 (comparison_expression)]
+    $default  reduce using rule 21 (comparison_expression)
+
+
+State 78
+
+   21 comparison_expression: expression . EQ_T expression
+   22                      | expression . NE_T expression
+   22                      | expression NE_T expression .
+   23                      | expression . GT_T expression
+   24                      | expression . GE_T expression
+   25                      | expression . LT_T expression
+   26                      | expression . LE_T expression
+   35 computation_expression: expression . ADD_T expression
+   36                       | expression . SUB_T expression
+   37                       | expression . MUL_T expression
+   38                       | expression . DIV_T expression
+   39                       | expression . MOD_T expression
+
+    EQ_T   shift, and go to state 50
+    NE_T   shift, and go to state 51
+    GT_T   shift, and go to state 52
+    GE_T   shift, and go to state 53
+    LT_T   shift, and go to state 54
+    LE_T   shift, and go to state 55
+    ADD_T  shift, and go to state 56
+    SUB_T  shift, and go to state 57
+    MUL_T  shift, and go to state 58
+    DIV_T  shift, and go to state 59
+    MOD_T  shift, and go to state 60
+
+    EQ_T      [reduce using rule 22 (comparison_expression)]
+    NE_T      [reduce using rule 22 (comparison_expression)]
+    GT_T      [reduce using rule 22 (comparison_expression)]
+    GE_T      [reduce using rule 22 (comparison_expression)]
+    LT_T      [reduce using rule 22 (comparison_expression)]
+    LE_T      [reduce using rule 22 (comparison_expression)]
+    ADD_T     [reduce using rule 22 (comparison_expression)]
+    SUB_T     [reduce using rule 22 (comparison_expression)]
+    MUL_T     [reduce using rule 22 (comparison_expression)]
+    DIV_T     [reduce using rule 22 (comparison_expression)]
+    MOD_T     [reduce using rule 22 (comparison_expression)]
+    $default  reduce using rule 22 (comparison_expression)
+
+
+State 79
+
+   21 comparison_expression: expression . EQ_T expression
+   22                      | expression . NE_T expression
+   23                      | expression . GT_T expression
+   23                      | expression GT_T expression .
+   24                      | expression . GE_T expression
+   25                      | expression . LT_T expression
+   26                      | expression . LE_T expression
+   35 computation_expression: expression . ADD_T expression
+   36                       | expression . SUB_T expression
+   37                       | expression . MUL_T expression
+   38                       | expression . DIV_T expression
+   39                       | expression . MOD_T expression
+
+    EQ_T   shift, and go to state 50
+    NE_T   shift, and go to state 51
+    GT_T   shift, and go to state 52
+    GE_T   shift, and go to state 53
+    LT_T   shift, and go to state 54
+    LE_T   shift, and go to state 55
+    ADD_T  shift, and go to state 56
+    SUB_T  shift, and go to state 57
+    MUL_T  shift, and go to state 58
+    DIV_T  shift, and go to state 59
+    MOD_T  shift, and go to state 60
+
+    EQ_T      [reduce using rule 23 (comparison_expression)]
+    NE_T      [reduce using rule 23 (comparison_expression)]
+    GT_T      [reduce using rule 23 (comparison_expression)]
+    GE_T      [reduce using rule 23 (comparison_expression)]
+    LT_T      [reduce using rule 23 (comparison_expression)]
+    LE_T      [reduce using rule 23 (comparison_expression)]
+    ADD_T     [reduce using rule 23 (comparison_expression)]
+    SUB_T     [reduce using rule 23 (comparison_expression)]
+    MUL_T     [reduce using rule 23 (comparison_expression)]
+    DIV_T     [reduce using rule 23 (comparison_expression)]
+    MOD_T     [reduce using rule 23 (comparison_expression)]
+    $default  reduce using rule 23 (comparison_expression)
+
+
+State 80
+
+   21 comparison_expression: expression . EQ_T expression
+   22                      | expression . NE_T expression
+   23                      | expression . GT_T expression
+   24                      | expression . GE_T expression
+   24                      | expression GE_T expression .
+   25                      | expression . LT_T expression
+   26                      | expression . LE_T expression
+   35 computation_expression: expression . ADD_T expression
+   36                       | expression . SUB_T expression
+   37                       | expression . MUL_T expression
+   38                       | expression . DIV_T expression
+   39                       | expression . MOD_T expression
+
+    EQ_T   shift, and go to state 50
+    NE_T   shift, and go to state 51
+    GT_T   shift, and go to state 52
+    GE_T   shift, and go to state 53
+    LT_T   shift, and go to state 54
+    LE_T   shift, and go to state 55
+    ADD_T  shift, and go to state 56
+    SUB_T  shift, and go to state 57
+    MUL_T  shift, and go to state 58
+    DIV_T  shift, and go to state 59
+    MOD_T  shift, and go to state 60
+
+    EQ_T      [reduce using rule 24 (comparison_expression)]
+    NE_T      [reduce using rule 24 (comparison_expression)]
+    GT_T      [reduce using rule 24 (comparison_expression)]
+    GE_T      [reduce using rule 24 (comparison_expression)]
+    LT_T      [reduce using rule 24 (comparison_expression)]
+    LE_T      [reduce using rule 24 (comparison_expression)]
+    ADD_T     [reduce using rule 24 (comparison_expression)]
+    SUB_T     [reduce using rule 24 (comparison_expression)]
+    MUL_T     [reduce using rule 24 (comparison_expression)]
+    DIV_T     [reduce using rule 24 (comparison_expression)]
+    MOD_T     [reduce using rule 24 (comparison_expression)]
+    $default  reduce using rule 24 (comparison_expression)
+
+
+State 81
+
+   21 comparison_expression: expression . EQ_T expression
+   22                      | expression . NE_T expression
+   23                      | expression . GT_T expression
+   24                      | expression . GE_T expression
+   25                      | expression . LT_T expression
+   25                      | expression LT_T expression .
+   26                      | expression . LE_T expression
+   35 computation_expression: expression . ADD_T expression
+   36                       | expression . SUB_T expression
+   37                       | expression . MUL_T expression
+   38                       | expression . DIV_T expression
+   39                       | expression . MOD_T expression
+
+    EQ_T   shift, and go to state 50
+    NE_T   shift, and go to state 51
+    GT_T   shift, and go to state 52
+    GE_T   shift, and go to state 53
+    LT_T   shift, and go to state 54
+    LE_T   shift, and go to state 55
+    ADD_T  shift, and go to state 56
+    SUB_T  shift, and go to state 57
+    MUL_T  shift, and go to state 58
+    DIV_T  shift, and go to state 59
+    MOD_T  shift, and go to state 60
+
+    EQ_T      [reduce using rule 25 (comparison_expression)]
+    NE_T      [reduce using rule 25 (comparison_expression)]
+    GT_T      [reduce using rule 25 (comparison_expression)]
+    GE_T      [reduce using rule 25 (comparison_expression)]
+    LT_T      [reduce using rule 25 (comparison_expression)]
+    LE_T      [reduce using rule 25 (comparison_expression)]
+    ADD_T     [reduce using rule 25 (comparison_expression)]
+    SUB_T     [reduce using rule 25 (comparison_expression)]
+    MUL_T     [reduce using rule 25 (comparison_expression)]
+    DIV_T     [reduce using rule 25 (comparison_expression)]
+    MOD_T     [reduce using rule 25 (comparison_expression)]
+    $default  reduce using rule 25 (comparison_expression)
+
+
+State 82
+
+   21 comparison_expression: expression . EQ_T expression
+   22                      | expression . NE_T expression
+   23                      | expression . GT_T expression
+   24                      | expression . GE_T expression
+   25                      | expression . LT_T expression
+   26                      | expression . LE_T expression
+   26                      | expression LE_T expression .
+   35 computation_expression: expression . ADD_T expression
+   36                       | expression . SUB_T expression
+   37                       | expression . MUL_T expression
+   38                       | expression . DIV_T expression
+   39                       | expression . MOD_T expression
+
+    EQ_T   shift, and go to state 50
+    NE_T   shift, and go to state 51
+    GT_T   shift, and go to state 52
+    GE_T   shift, and go to state 53
+    LT_T   shift, and go to state 54
+    LE_T   shift, and go to state 55
+    ADD_T  shift, and go to state 56
+    SUB_T  shift, and go to state 57
+    MUL_T  shift, and go to state 58
+    DIV_T  shift, and go to state 59
+    MOD_T  shift, and go to state 60
+
+    EQ_T      [reduce using rule 26 (comparison_expression)]
+    NE_T      [reduce using rule 26 (comparison_expression)]
+    GT_T      [reduce using rule 26 (comparison_expression)]
+    GE_T      [reduce using rule 26 (comparison_expression)]
+    LT_T      [reduce using rule 26 (comparison_expression)]
+    LE_T      [reduce using rule 26 (comparison_expression)]
+    ADD_T     [reduce using rule 26 (comparison_expression)]
+    SUB_T     [reduce using rule 26 (comparison_expression)]
+    MUL_T     [reduce using rule 26 (comparison_expression)]
+    DIV_T     [reduce using rule 26 (comparison_expression)]
+    MOD_T     [reduce using rule 26 (comparison_expression)]
+    $default  reduce using rule 26 (comparison_expression)
+
+
+State 83
+
+   21 comparison_expression: expression . EQ_T expression
+   22                      | expression . NE_T expression
+   23                      | expression . GT_T expression
+   24                      | expression . GE_T expression
+   25                      | expression . LT_T expression
+   26                      | expression . LE_T expression
+   35 computation_expression: expression . ADD_T expression
+   35                       | expression ADD_T expression .
+   36                       | expression . SUB_T expression
+   37                       | expression . MUL_T expression
+   38                       | expression . DIV_T expression
+   39                       | expression . MOD_T expression
+
+    EQ_T   shift, and go to state 50
+    NE_T   shift, and go to state 51
+    GT_T   shift, and go to state 52
+    GE_T   shift, and go to state 53
+    LT_T   shift, and go to state 54
+    LE_T   shift, and go to state 55
+    ADD_T  shift, and go to state 56
+    SUB_T  shift, and go to state 57
+    MUL_T  shift, and go to state 58
+    DIV_T  shift, and go to state 59
+    MOD_T  shift, and go to state 60
+
+    EQ_T      [reduce using rule 35 (computation_expression)]
+    NE_T      [reduce using rule 35 (computation_expression)]
+    GT_T      [reduce using rule 35 (computation_expression)]
+    GE_T      [reduce using rule 35 (computation_expression)]
+    LT_T      [reduce using rule 35 (computation_expression)]
+    LE_T      [reduce using rule 35 (computation_expression)]
+    ADD_T     [reduce using rule 35 (computation_expression)]
+    SUB_T     [reduce using rule 35 (computation_expression)]
+    MUL_T     [reduce using rule 35 (computation_expression)]
+    DIV_T     [reduce using rule 35 (computation_expression)]
+    MOD_T     [reduce using rule 35 (computation_expression)]
+    $default  reduce using rule 35 (computation_expression)
+
+
+State 84
+
+   21 comparison_expression: expression . EQ_T expression
+   22                      | expression . NE_T expression
+   23                      | expression . GT_T expression
+   24                      | expression . GE_T expression
+   25                      | expression . LT_T expression
+   26                      | expression . LE_T expression
+   35 computation_expression: expression . ADD_T expression
+   36                       | expression . SUB_T expression
+   36                       | expression SUB_T expression .
+   37                       | expression . MUL_T expression
+   38                       | expression . DIV_T expression
+   39                       | expression . MOD_T expression
+
+    EQ_T   shift, and go to state 50
+    NE_T   shift, and go to state 51
+    GT_T   shift, and go to state 52
+    GE_T   shift, and go to state 53
+    LT_T   shift, and go to state 54
+    LE_T   shift, and go to state 55
+    ADD_T  shift, and go to state 56
+    SUB_T  shift, and go to state 57
+    MUL_T  shift, and go to state 58
+    DIV_T  shift, and go to state 59
+    MOD_T  shift, and go to state 60
+
+    EQ_T      [reduce using rule 36 (computation_expression)]
+    NE_T      [reduce using rule 36 (computation_expression)]
+    GT_T      [reduce using rule 36 (computation_expression)]
+    GE_T      [reduce using rule 36 (computation_expression)]
+    LT_T      [reduce using rule 36 (computation_expression)]
+    LE_T      [reduce using rule 36 (computation_expression)]
+    ADD_T     [reduce using rule 36 (computation_expression)]
+    SUB_T     [reduce using rule 36 (computation_expression)]
+    MUL_T     [reduce using rule 36 (computation_expression)]
+    DIV_T     [reduce using rule 36 (computation_expression)]
+    MOD_T     [reduce using rule 36 (computation_expression)]
+    $default  reduce using rule 36 (computation_expression)
+
+
+State 85
+
+   21 comparison_expression: expression . EQ_T expression
+   22                      | expression . NE_T expression
+   23                      | expression . GT_T expression
+   24                      | expression . GE_T expression
+   25                      | expression . LT_T expression
+   26                      | expression . LE_T expression
+   35 computation_expression: expression . ADD_T expression
+   36                       | expression . SUB_T expression
+   37                       | expression . MUL_T expression
+   37                       | expression MUL_T expression .
+   38                       | expression . DIV_T expression
+   39                       | expression . MOD_T expression
+
+    EQ_T   shift, and go to state 50
+    NE_T   shift, and go to state 51
+    GT_T   shift, and go to state 52
+    GE_T   shift, and go to state 53
+    LT_T   shift, and go to state 54
+    LE_T   shift, and go to state 55
+    ADD_T  shift, and go to state 56
+    SUB_T  shift, and go to state 57
+    MUL_T  shift, and go to state 58
+    DIV_T  shift, and go to state 59
+    MOD_T  shift, and go to state 60
+
+    EQ_T      [reduce using rule 37 (computation_expression)]
+    NE_T      [reduce using rule 37 (computation_expression)]
+    GT_T      [reduce using rule 37 (computation_expression)]
+    GE_T      [reduce using rule 37 (computation_expression)]
+    LT_T      [reduce using rule 37 (computation_expression)]
+    LE_T      [reduce using rule 37 (computation_expression)]
+    ADD_T     [reduce using rule 37 (computation_expression)]
+    SUB_T     [reduce using rule 37 (computation_expression)]
+    MUL_T     [reduce using rule 37 (computation_expression)]
+    DIV_T     [reduce using rule 37 (computation_expression)]
+    MOD_T     [reduce using rule 37 (computation_expression)]
+    $default  reduce using rule 37 (computation_expression)
+
+
+State 86
+
+   21 comparison_expression: expression . EQ_T expression
+   22                      | expression . NE_T expression
+   23                      | expression . GT_T expression
+   24                      | expression . GE_T expression
+   25                      | expression . LT_T expression
+   26                      | expression . LE_T expression
+   35 computation_expression: expression . ADD_T expression
+   36                       | expression . SUB_T expression
+   37                       | expression . MUL_T expression
+   38                       | expression . DIV_T expression
+   38                       | expression DIV_T expression .
+   39                       | expression . MOD_T expression
+
+    EQ_T   shift, and go to state 50
+    NE_T   shift, and go to state 51
+    GT_T   shift, and go to state 52
+    GE_T   shift, and go to state 53
+    LT_T   shift, and go to state 54
+    LE_T   shift, and go to state 55
+    ADD_T  shift, and go to state 56
+    SUB_T  shift, and go to state 57
+    MUL_T  shift, and go to state 58
+    DIV_T  shift, and go to state 59
+    MOD_T  shift, and go to state 60
+
+    EQ_T      [reduce using rule 38 (computation_expression)]
+    NE_T      [reduce using rule 38 (computation_expression)]
+    GT_T      [reduce using rule 38 (computation_expression)]
+    GE_T      [reduce using rule 38 (computation_expression)]
+    LT_T      [reduce using rule 38 (computation_expression)]
+    LE_T      [reduce using rule 38 (computation_expression)]
+    ADD_T     [reduce using rule 38 (computation_expression)]
+    SUB_T     [reduce using rule 38 (computation_expression)]
+    MUL_T     [reduce using rule 38 (computation_expression)]
+    DIV_T     [reduce using rule 38 (computation_expression)]
+    MOD_T     [reduce using rule 38 (computation_expression)]
+    $default  reduce using rule 38 (computation_expression)
+
+
+State 87
+
+   21 comparison_expression: expression . EQ_T expression
+   22                      | expression . NE_T expression
+   23                      | expression . GT_T expression
+   24                      | expression . GE_T expression
+   25                      | expression . LT_T expression
+   26                      | expression . LE_T expression
+   35 computation_expression: expression . ADD_T expression
+   36                       | expression . SUB_T expression
+   37                       | expression . MUL_T expression
+   38                       | expression . DIV_T expression
+   39                       | expression . MOD_T expression
+   39                       | expression MOD_T expression .
+
+    EQ_T   shift, and go to state 50
+    NE_T   shift, and go to state 51
+    GT_T   shift, and go to state 52
+    GE_T   shift, and go to state 53
+    LT_T   shift, and go to state 54
+    LE_T   shift, and go to state 55
+    ADD_T  shift, and go to state 56
+    SUB_T  shift, and go to state 57
+    MUL_T  shift, and go to state 58
+    DIV_T  shift, and go to state 59
+    MOD_T  shift, and go to state 60
+
+    EQ_T      [reduce using rule 39 (computation_expression)]
+    NE_T      [reduce using rule 39 (computation_expression)]
+    GT_T      [reduce using rule 39 (computation_expression)]
+    GE_T      [reduce using rule 39 (computation_expression)]
+    LT_T      [reduce using rule 39 (computation_expression)]
+    LE_T      [reduce using rule 39 (computation_expression)]
+    ADD_T     [reduce using rule 39 (computation_expression)]
+    SUB_T     [reduce using rule 39 (computation_expression)]
+    MUL_T     [reduce using rule 39 (computation_expression)]
+    DIV_T     [reduce using rule 39 (computation_expression)]
+    MOD_T     [reduce using rule 39 (computation_expression)]
+    $default  reduce using rule 39 (computation_expression)
+
+
+State 88
+
+   15 expression: IDENTIFIER LP actual_argument_list RP .
+
+    $default  reduce using rule 15 (expression)
+
+
+State 89
+
+   51 actual_argument_list: actual_argument_list COMMA . expression
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
+
+    expression              转到状态 102
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
+
+
+State 90
+
+   53 formal_argument_list: INT_T IDENTIFIER .
+
+    $default  reduce using rule 53 (formal_argument_list)
+
+
+State 91
+
+   54 formal_argument_list: DOUBLE_T IDENTIFIER .
+
+    $default  reduce using rule 54 (formal_argument_list)
+
+
+State 92
+
+   55 formal_argument_list: STRING_T IDENTIFIER .
+
+    $default  reduce using rule 55 (formal_argument_list)
+
+
+State 93
+
+   56 formal_argument_list: ARRAY_T IDENTIFIER .
+
+    $default  reduce using rule 56 (formal_argument_list)
+
+
+State 94
+
+   44 function_definition_statement: INT_T LP formal_argument_list RP . block
+
+    LC  shift, and go to state 103
+
+    block  转到状态 104
+
+
+State 95
+
+   57 formal_argument_list: formal_argument_list COMMA . INT_T IDENTIFIER
+   58                     | formal_argument_list COMMA . DOUBLE_T IDENTIFIER
+   59                     | formal_argument_list COMMA . STRING_T IDENTIFIER
+   60                     | formal_argument_list COMMA . ARRAY_T IDENTIFIER
+
+    INT_T     shift, and go to state 105
+    DOUBLE_T  shift, and go to state 106
+    STRING_T  shift, and go to state 107
+    ARRAY_T   shift, and go to state 108
+
+
+State 96
+
+   45 function_definition_statement: DOUBLE_T LP formal_argument_list RP . block
+
+    LC  shift, and go to state 103
+
+    block  转到状态 109
+
+
+State 97
+
+   46 function_definition_statement: STRING_T LP formal_argument_list RP . block
+
+    LC  shift, and go to state 103
+
+    block  转到状态 110
+
+
+State 98
+
+   47 function_definition_statement: ARRAY_T LP formal_argument_list RP . block
+
+    LC  shift, and go to state 103
+
+    block  转到状态 111
+
+
+State 99
+
+    5 statement: IF LP expression RP . block
+
+    LC  shift, and go to state 103
+
+    block  转到状态 112
+
+
+State 100
+
+    6 statement: FOR LP IDENTIFIER IN . expression RP block
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
+
+    expression              转到状态 113
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
+
+
+State 101
+
+    7 statement: FOR LP expression_optional SEMICOLON . expression_optional SEMICOLON expression_optional RP block
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
+
+    $default  reduce using rule 17 (expression_optional)
+
+    expression              转到状态 74
+    expression_optional     转到状态 114
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
+
+
+State 102
+
+   21 comparison_expression: expression . EQ_T expression
+   22                      | expression . NE_T expression
+   23                      | expression . GT_T expression
+   24                      | expression . GE_T expression
+   25                      | expression . LT_T expression
+   26                      | expression . LE_T expression
+   35 computation_expression: expression . ADD_T expression
+   36                       | expression . SUB_T expression
+   37                       | expression . MUL_T expression
+   38                       | expression . DIV_T expression
+   39                       | expression . MOD_T expression
+   51 actual_argument_list: actual_argument_list COMMA expression .
+
+    EQ_T   shift, and go to state 50
+    NE_T   shift, and go to state 51
+    GT_T   shift, and go to state 52
+    GE_T   shift, and go to state 53
+    LT_T   shift, and go to state 54
+    LE_T   shift, and go to state 55
+    ADD_T  shift, and go to state 56
+    SUB_T  shift, and go to state 57
+    MUL_T  shift, and go to state 58
+    DIV_T  shift, and go to state 59
+    MOD_T  shift, and go to state 60
+
+    $default  reduce using rule 51 (actual_argument_list)
+
+
+State 103
+
+   48 block: LC . statement_list RC
+   49      | LC . RC
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 5
+    DOUBLE_T        shift, and go to state 6
+    STRING_T        shift, and go to state 7
+    ARRAY_T         shift, and go to state 8
+    IF              shift, and go to state 9
+    FOR             shift, and go to state 10
+    RETURN_T        shift, and go to state 11
+    BREAK           shift, and go to state 12
+    CONTINUE        shift, and go to state 13
+    RC              shift, and go to state 115
+
+    statement_list                 转到状态 116
+    statement                      转到状态 15
+    expression                     转到状态 16
+    binary_expression              转到状态 17
+    comparison_expression          转到状态 18
+    declaration_expression         转到状态 19
+    computation_expression         转到状态 20
+    assignment_expression          转到状态 21
+    primary_expression             转到状态 22
+    function_definition_statement  转到状态 23
+
+
+State 104
+
+   44 function_definition_statement: INT_T LP formal_argument_list RP block .
+
+    $default  reduce using rule 44 (function_definition_statement)
+
+
+State 105
+
+   57 formal_argument_list: formal_argument_list COMMA INT_T . IDENTIFIER
+
+    IDENTIFIER  shift, and go to state 117
+
+
+State 106
+
+   58 formal_argument_list: formal_argument_list COMMA DOUBLE_T . IDENTIFIER
+
+    IDENTIFIER  shift, and go to state 118
+
+
+State 107
+
+   59 formal_argument_list: formal_argument_list COMMA STRING_T . IDENTIFIER
+
+    IDENTIFIER  shift, and go to state 119
+
+
+State 108
+
+   60 formal_argument_list: formal_argument_list COMMA ARRAY_T . IDENTIFIER
+
+    IDENTIFIER  shift, and go to state 120
+
+
+State 109
+
+   45 function_definition_statement: DOUBLE_T LP formal_argument_list RP block .
+
+    $default  reduce using rule 45 (function_definition_statement)
+
+
+State 110
+
+   46 function_definition_statement: STRING_T LP formal_argument_list RP block .
+
+    $default  reduce using rule 46 (function_definition_statement)
+
+
+State 111
+
+   47 function_definition_statement: ARRAY_T LP formal_argument_list RP block .
+
+    $default  reduce using rule 47 (function_definition_statement)
+
+
+State 112
+
+    5 statement: IF LP expression RP block .
+
+    $default  reduce using rule 5 (statement)
+
+
+State 113
+
+    6 statement: FOR LP IDENTIFIER IN expression . RP block
+   21 comparison_expression: expression . EQ_T expression
+   22                      | expression . NE_T expression
+   23                      | expression . GT_T expression
+   24                      | expression . GE_T expression
+   25                      | expression . LT_T expression
+   26                      | expression . LE_T expression
+   35 computation_expression: expression . ADD_T expression
+   36                       | expression . SUB_T expression
+   37                       | expression . MUL_T expression
+   38                       | expression . DIV_T expression
+   39                       | expression . MOD_T expression
+
+    RP     shift, and go to state 121
+    EQ_T   shift, and go to state 50
+    NE_T   shift, and go to state 51
+    GT_T   shift, and go to state 52
+    GE_T   shift, and go to state 53
+    LT_T   shift, and go to state 54
+    LE_T   shift, and go to state 55
+    ADD_T  shift, and go to state 56
+    SUB_T  shift, and go to state 57
+    MUL_T  shift, and go to state 58
+    DIV_T  shift, and go to state 59
+    MOD_T  shift, and go to state 60
+
+
+State 114
+
+    7 statement: FOR LP expression_optional SEMICOLON expression_optional . SEMICOLON expression_optional RP block
+
+    SEMICOLON  shift, and go to state 122
+
+
+State 115
+
+   49 block: LC RC .
+
+    $default  reduce using rule 49 (block)
+
+
+State 116
+
+    2 statement_list: statement_list . statement
+   48 block: LC statement_list . RC
+
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 5
+    DOUBLE_T        shift, and go to state 6
+    STRING_T        shift, and go to state 7
+    ARRAY_T         shift, and go to state 8
+    IF              shift, and go to state 9
+    FOR             shift, and go to state 10
+    RETURN_T        shift, and go to state 11
+    BREAK           shift, and go to state 12
+    CONTINUE        shift, and go to state 13
+    RC              shift, and go to state 123
+
+    statement                      转到状态 48
+    expression                     转到状态 16
+    binary_expression              转到状态 17
+    comparison_expression          转到状态 18
+    declaration_expression         转到状态 19
+    computation_expression         转到状态 20
+    assignment_expression          转到状态 21
+    primary_expression             转到状态 22
+    function_definition_statement  转到状态 23
+
+
+State 117
+
+   57 formal_argument_list: formal_argument_list COMMA INT_T IDENTIFIER .
+
+    $default  reduce using rule 57 (formal_argument_list)
+
+
+State 118
+
+   58 formal_argument_list: formal_argument_list COMMA DOUBLE_T IDENTIFIER .
+
+    $default  reduce using rule 58 (formal_argument_list)
+
+
+State 119
+
+   59 formal_argument_list: formal_argument_list COMMA STRING_T IDENTIFIER .
+
+    $default  reduce using rule 59 (formal_argument_list)
+
+
+State 120
+
+   60 formal_argument_list: formal_argument_list COMMA ARRAY_T IDENTIFIER .
+
+    $default  reduce using rule 60 (formal_argument_list)
+
+
+State 121
+
+    6 statement: FOR LP IDENTIFIER IN expression RP . block
+
+    LC  shift, and go to state 103
+
+    block  转到状态 124
+
+
 State 122
 
-    5 statement: FOR LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional . RP block
+    7 statement: FOR LP expression_optional SEMICOLON expression_optional SEMICOLON . expression_optional RP block
 
-    RP  shift, and go to state 123
+    INT_LITERAL     shift, and go to state 1
+    STRING_LITERAL  shift, and go to state 2
+    DOUBLE_LITERAL  shift, and go to state 3
+    IDENTIFIER      shift, and go to state 4
+    INT_T           shift, and go to state 40
+    DOUBLE_T        shift, and go to state 41
+    STRING_T        shift, and go to state 42
+    ARRAY_T         shift, and go to state 43
+
+    $default  reduce using rule 17 (expression_optional)
+
+    expression              转到状态 74
+    expression_optional     转到状态 125
+    binary_expression       转到状态 17
+    comparison_expression   转到状态 18
+    declaration_expression  转到状态 19
+    computation_expression  转到状态 20
+    assignment_expression   转到状态 21
+    primary_expression      转到状态 22
 
 
 State 123
 
-    5 statement: FOR LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional RP . block
+   48 block: LC statement_list RC .
 
-    LC  shift, and go to state 98
-
-    block  go to state 124
+    $default  reduce using rule 48 (block)
 
 
 State 124
 
-    5 statement: FOR LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional RP block .
+    6 statement: FOR LP IDENTIFIER IN expression RP block .
 
-    $default  reduce using rule 5 (statement)
+    $default  reduce using rule 6 (statement)
+
+
+State 125
+
+    7 statement: FOR LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional . RP block
+
+    RP  shift, and go to state 126
+
+
+State 126
+
+    7 statement: FOR LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional RP . block
+
+    LC  shift, and go to state 103
+
+    block  转到状态 127
+
+
+State 127
+
+    7 statement: FOR LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional RP block .
+
+    $default  reduce using rule 7 (statement)
