@@ -16,6 +16,7 @@
         "cstdbool": "c",
         "c++config.h": "c",
         "tgmath.h": "c",
-        "pcre2.h": "c"
+        "pcre2.h": "c",
+        "limits.h": "c"
     },
 }

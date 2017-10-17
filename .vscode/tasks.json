@@ -26,6 +26,8 @@
                 "y.tab.c",
                 "lex.yy.c",
                 "compile.c",
+                "evaluate.c",
+                "interpreter.c",
                 "-ll"
             ]
         }

@@ -1,4 +1,5 @@
-int a;
+integer a = 123;
 double n = 50;
-// int b = a + n;
+int b = a + n;
 string str = "asdasd";
+boolean c = true;

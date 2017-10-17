@@ -2,7 +2,6 @@
 
 #define new_expression() (Expression*)calloc(1, sizeof(Expression))
 
-extern NB_Interpreter *inter;
 
 // void record_ptr(void* ptr)
 // {
@@ -27,25 +26,31 @@ Expression *nb_create_literal_expression(NB_ValueType type, char *text)
 {
     Expression *expression = new_expression();
     expression->type = LITERAL_EXPRESSION;
-    expression->content.literal.type = type;
+    expression->content.literal_expression.type = type;
     switch(type)
     {
         case INT:
         {
             int i = atoi(text);
-            expression->content.literal.value.int_value = i;
+            expression->content.literal_expression.value.int_value = i;
             break;
         }
         case DOUBLE:
         {
             double d = atof(text);
-            expression->content.literal.value.double_value = d;
+            expression->content.literal_expression.value.double_value = d;
+            break;
+        }
+        case BOOL:
+        {
+            char b = (int)text;
+            expression->content.literal_expression.value.bool_value = b;
             break;
         }
         case STRING:
         {
             UTF32_String *str = utf32_string_new_wrap_utf8(text);
-            expression->content.literal.value.string_value = str;
+            expression->content.literal_expression.value.string_value = str;
             break;
         }
     }
@@ -65,6 +70,7 @@ Expression *nb_create_declaration_expression(NB_ValueType type, UTF8_String *ide
 {
     Expression *expression = new_expression();
     expression->type = DECLARATION_EXPRESSION;
+    expression->content.declaration_expression.type = type;
     if (assignment_expression)
         expression->content.declaration_expression.exp = assignment_expression;
     else
@@ -86,7 +92,7 @@ Expression *nb_create_identifier_expression(UTF8_String *identifier)
 {
     Expression *expression = new_expression();
     expression->type = IDENTIFIER_EXPRESSION;
-    expression->content.identifier = identifier;
+    expression->content.identifier_expression = identifier;
     return expression; 
 }
 
@@ -107,6 +113,6 @@ Statement *nb_create_expression_statement(Expression *exp)
     Statement *statement = (Statement*)malloc(sizeof(Statement));
     statement->type = EXPRESSION;
     statement->content.expression = exp;
-    statement->line_number = inter->current_line;
+    statement->line_number = get_interpreter()->current_line;
     return statement;
 }

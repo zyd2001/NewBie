@@ -16,6 +16,7 @@ typedef enum ValueType_tag
 {
     INT,
     DOUBLE,
+    BOOL,
     STRING,
     ARRAY
 } ValueType;
@@ -27,6 +28,7 @@ typedef struct Value_tag
     {
         int int_value;
         double double_value;
+        int bool_value;
         UTF32_String *string_value;
         Array *array_value;
     } value;
@@ -71,6 +73,7 @@ int utf8_string_get_length(UTF8_String *str);
 // void *wide_string_delete(Wide_String *str);
 /* Deprecated */
 
+char *utf32_to_utf8(UTF32_String *str);
 UTF32_String *utf8_to_utf32(char *str);
 UTF32_String *utf32_string_new();
 // UTF32_String *utf32_string_new_wrap(char *str, size_t new_size);
@@ -100,7 +103,8 @@ size_t utf32_string_get_length(UTF32_String *str);
 void *utf32_string_delete_func(UTF32_String **str, ...);
 #define utf32_string_delete(...) utf32_string_delete_func(__VA_ARGS__, NULL)
 
-Value *value_new(ValueType type);
+#define value_new() (Value*)malloc(sizeof(Value))
+Value *value_new_type(ValueType type);
 void *value_delete_func(Value **val, ...);
 #define value_delete(...) value_delete_func(__VA_ARGS__, NULL)
 Value *value_copy(Value *destination, Value *source);

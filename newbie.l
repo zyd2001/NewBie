@@ -4,7 +4,6 @@
 
 UTF8_String *string_buffer;
 
-extern NB_Interpreter *inter;
 char *heredoc_tag;
 int yywarp(void)
 {
@@ -12,13 +11,16 @@ int yywarp(void)
 }
 void increase_line_number()
 {
-    inter->current_line++;
+    get_interpreter()->current_line++;
 }
 %}
 %start LINE_COMMENT BLOCK_COMMENT STRING_LITERAL_STATE HEREDOC
 %%
 <INITIAL>"int"          return INT_T;
+<INITIAL>"integer"          return INT_T;
 <INITIAL>"double"       return DOUBLE_T;
+<INITIAL>"bool"         return BOOL_T;
+<INITIAL>"boolean"      return BOOL_T;
 <INITIAL>"array"        return ARRAY_T;
 <INITIAL>"string"       return STRING_T;
 <INITIAL>"if"           return IF;
@@ -63,6 +65,14 @@ void increase_line_number()
 <INITIAL>"--"           return DECREMENT;
 <INITIAL>"!"            return EXCLAMATION;
 <INITIAL>"."            return DOT;
+<INITIAL>"true" {       
+    yylval.expression = nb_create_literal_expression(BOOL, (char*)1);
+    return BOOL_LITERAL;
+}
+<INITIAL>"false" {       
+    yylval.expression = nb_create_literal_expression(BOOL, (char*)0);
+    return BOOL_LITERAL;
+}
 <INITIAL>[ \t] ;
 <INITIAL>\n increase_line_number();
 <INITIAL>[A-Za-z_][A-Za-z_0-9]* {

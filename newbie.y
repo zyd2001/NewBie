@@ -3,7 +3,6 @@
 #include "newbie.h"
 
 extern int yylex(void);
-extern NB_Interpreter *inter;
 void yyerror (char const *s)
 {
     fprintf (stderr, "%s\n", s);
@@ -18,9 +17,9 @@ void yyerror (char const *s)
     StatementList       *statement_list;
 }
 %expect 132
-%token <expression>     INT_LITERAL STRING_LITERAL DOUBLE_LITERAL
+%token <expression>     INT_LITERAL STRING_LITERAL DOUBLE_LITERAL BOOL_LITERAL
 %token <identifier>     IDENTIFIER
-%token INT_T DOUBLE_T STRING_T ARRAY_T IF ELSE ELSEIF FOR IN CLASS RETURN_T BREAK CONTINUE
+%token INT_T DOUBLE_T BOOL_T STRING_T ARRAY_T IF ELSE ELSEIF FOR IN CLASS RETURN_T BREAK CONTINUE
         LP RP LC RC LB RB SEMICOLON COMMA ASSIGN_T LOGICAL_AND LOGICAL_OR
         EQ_T NE_T GT_T GE_T LT_T LE_T ADD_T SUB_T MUL_T DIV_T MOD_T EXCLAMATION DOT
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
@@ -30,6 +29,7 @@ void yyerror (char const *s)
 %%
     statement_list: statement
         {
+            NB_Interpreter *inter = get_interpreter();            
             inter->global_list = (StatementList*)malloc(sizeof(StatementList));
             inter->global_list->prev = NULL;
             inter->global_list->next = NULL;
@@ -37,6 +37,7 @@ void yyerror (char const *s)
         }
         | statement_list statement
         {
+            NB_Interpreter *inter = get_interpreter();                        
             inter->global_list->next = (StatementList*)malloc(sizeof(StatementList));
             inter->global_list->next->prev = inter->global_list;
             inter->global_list = inter->global_list->next;
@@ -105,6 +106,10 @@ void yyerror (char const *s)
         {
             $$ = nb_create_declaration_expression(DOUBLE, $2, NULL);
         }
+        | BOOL_T IDENTIFIER
+        {
+            $$ = nb_create_declaration_expression(BOOL, $2, NULL);
+        }
         | STRING_T IDENTIFIER
         {
             $$ = nb_create_declaration_expression(STRING, $2, NULL);
@@ -120,6 +125,10 @@ void yyerror (char const *s)
         | DOUBLE_T assignment_expression 
         {
             $$ = nb_create_declaration_expression(DOUBLE, NULL, $2);
+        }
+        | BOOL_T assignment_expression 
+        {
+            $$ = nb_create_declaration_expression(BOOL, NULL, $2);
         }
         | STRING_T assignment_expression 
         {
@@ -159,9 +168,11 @@ void yyerror (char const *s)
     primary_expression: INT_LITERAL
         | DOUBLE_LITERAL
         | STRING_LITERAL
+        | BOOL_LITERAL
         ;
     function_definition_statement: INT_T LP parameter_list RP block;
         | DOUBLE_T LP parameter_list RP block;
+        | BOOL_T LP parameter_list RP block;
         | STRING_T LP parameter_list RP block;
         | ARRAY_T LP parameter_list RP block;
     block: LC statement_list RC
@@ -173,10 +184,12 @@ void yyerror (char const *s)
     parameter_list: /* empty */
         | INT_T IDENTIFIER
         | DOUBLE_T IDENTIFIER
+        | BOOL_T IDENTIFIER
         | STRING_T IDENTIFIER
         | ARRAY_T IDENTIFIER
         | parameter_list COMMA INT_T IDENTIFIER
         | parameter_list COMMA DOUBLE_T IDENTIFIER
+        | parameter_list COMMA BOOL_T IDENTIFIER
         | parameter_list COMMA STRING_T IDENTIFIER
         | parameter_list COMMA ARRAY_T IDENTIFIER
         ;

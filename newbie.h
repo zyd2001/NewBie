@@ -64,6 +64,7 @@ typedef struct AssignmentExpression_tag
 
 typedef struct DeclarationExpression_tag
 {
+    NB_ValueType type;
     UTF8_String *identifier;
     Expression *exp;
 } DeclarationExpression;
@@ -89,8 +90,8 @@ typedef struct Expression_tag
         // int int_literal;
         // double double_literal;
         // char* string_literal;
-        NB_Value literal;
-        UTF8_String *identifier;
+        NB_Value literal_expression;
+        UTF8_String *identifier_expression;
         AssignmentExpression assignment_expression;
         DeclarationExpression declaration_expression;
         BinaryExpression binary_expression;
@@ -118,6 +119,7 @@ typedef struct StatementList_tag
 typedef struct NB_Interpreter_tag
 {
     int current_line;
+    int level;
     // struct ptrs_list_tag
     // {
     //     void *ptr;
@@ -128,7 +130,8 @@ typedef struct NB_Interpreter_tag
     struct variables_list_tag
     {
         UTF8_String *identifier;
-        NB_Value value;
+        NB_Value *value;
+        int level;
         struct variables_list_tag *prev;
         struct variables_list_tag *next;
     } *variables_list;
@@ -142,4 +145,11 @@ Expression *nb_create_identifier_expression(UTF8_String *identifier);
 
 Statement *nb_create_expression_statement(Expression *exp);
 
+void nb_interpret();
+NB_Value *eval(Expression *exp);
+NB_Interpreter *get_interpreter();
+NB_Interpreter *interpreter_new();
+int interpreter_init(NB_Interpreter *inter);
+void nb_clean();
+void nb_error(char *str);
 #endif

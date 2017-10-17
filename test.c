@@ -3,11 +3,13 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <limits.h>
 #include "utility.h"
 
 int main(void)
 {
-    int *a = (int*)malloc(50 * sizeof(int));
-    void *b = (void*)a;
-    free(b);
+    {
+        int a = 0;
+    }
+    int b = a;
 }

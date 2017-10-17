@@ -344,6 +344,15 @@ int utf8_string_get_length(UTF8_String *str)
 //     return NULL;
 // }
 
+char *utf32_to_utf8(UTF32_String *str)
+{
+    size_t utf32_size = str->size;
+    size_t utf8_size = utf32_size;
+    char *utf8 = (char*)malloc(utf8_size * sizeof(char));
+    int size = encoding_convert(str->value, utf32_size, utf8, utf8_size, "utf-8", "utf-32le");
+    return utf8;
+}
+
 UTF32_String *utf8_to_utf32(char *str)
 {
     size_t utf8_len = utf8_strlen(str);
@@ -573,7 +582,7 @@ void *utf32_string_delete_func(UTF32_String **str, ...)
     return NULL;
 }
 
-Value *value_new(ValueType type)
+Value *value_new_type(ValueType type)
 {
     Value *new = (Value*)malloc(sizeof(Value));
     new->type = type;
@@ -620,8 +629,9 @@ void *value_delete_func(Value **val, ...)
 Value *value_copy(Value *destination, Value *source)
 {
     if (destination == NULL)
-        destination = value_new(source->type);
-    switch(destination->type)
+        destination = value_new_type(source->type);
+    destination->type = source->type;
+    switch(source->type)
     {
         case INT:
             destination->value.int_value = source->value.int_value;
@@ -629,6 +639,9 @@ Value *value_copy(Value *destination, Value *source)
         case DOUBLE:
             destination->value.double_value = source->value.double_value;
             break;
+        case BOOL:
+            destination->value.bool_value = source->value.bool_value;
+            break;    
         case STRING:
             destination->value.string_value = utf32_string_copy(NULL, source->value.string_value);
             break;
@@ -938,4 +951,48 @@ int linked_list_delete_func(Linked_List **list, struct delete_func_struct_tag *d
     }
     *list = NULL;
     return 1;
+}
+
+UTF8_String *itoa(int i)
+{
+    UTF8_String *str = utf8_string_new();
+    int temp = -1;
+    for (; i != 0; i /= 10)
+    {
+        temp = i % 10;
+        switch (temp)
+        {
+            case 0:
+                utf8_string_append_char(str, '0');
+                break;
+            case 1:
+                utf8_string_append_char(str, '1');
+                break;
+            case 2:
+                utf8_string_append_char(str, '2');
+                break;
+            case 3:
+                utf8_string_append_char(str, '3');
+                break;
+            case 4:
+                utf8_string_append_char(str, '4');
+                break;
+            case 5:
+                utf8_string_append_char(str, '5');
+                break;
+            case 6:
+                utf8_string_append_char(str, '6');
+                break;
+            case 7:
+                utf8_string_append_char(str, '7');
+                break;
+            case 8:
+                utf8_string_append_char(str, '8');
+                break;
+            case 9:
+                utf8_string_append_char(str, '9');
+                break;
+        }
+    }
+    return str;
 }

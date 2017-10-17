@@ -1,6 +1,6 @@
 #include "newbie.h"
 
-NB_Interpreter *inter;
+extern int yylex_destroy(void);
 
 int main(int argc, char **argv)
 {
@@ -10,9 +10,11 @@ int main(int argc, char **argv)
     extern FILE *yyin;
     yyin = fp;
 
-    inter = (NB_Interpreter*)calloc(1, sizeof(NB_Interpreter));
-    // inter->ptrs_list = NULL;
-    inter->current_line = 1;
+    interpreter_init(interpreter_new());
     yyparse();
-    nb_interpret(inter);
+    yylex_destroy();
+    fclose(fp);
+    
+    nb_interpret();
+    nb_clean();
 }
