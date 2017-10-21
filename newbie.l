@@ -11,13 +11,14 @@ int yywarp(void)
 }
 void increase_line_number()
 {
-    get_interpreter()->current_line++;
+    nb_get_interpreter()->current_line++;
 }
+#define yylex lex
 %}
 %start LINE_COMMENT BLOCK_COMMENT STRING_LITERAL_STATE HEREDOC
 %%
 <INITIAL>"int"          return INT_T;
-<INITIAL>"integer"          return INT_T;
+<INITIAL>"integer"      return INT_T;
 <INITIAL>"double"       return DOUBLE_T;
 <INITIAL>"bool"         return BOOL_T;
 <INITIAL>"boolean"      return BOOL_T;
@@ -26,6 +27,9 @@ void increase_line_number()
 <INITIAL>"if"           return IF;
 <INITIAL>"else"         return ELSE;
 <INITIAL>"elseif"       return ELSEIF;
+<INITIAL>"else if"      return ELSEIF;
+<INITIAL>"elif"         return ELSEIF;
+<INITIAL>"elsif"        return ELSEIF;
 <INITIAL>"for"          return FOR;
 <INITIAL>"in"           return IN;
 <INITIAL>"break"        return BREAK;
@@ -70,7 +74,7 @@ void increase_line_number()
     return BOOL_LITERAL;
 }
 <INITIAL>"false" {       
-    yylval.expression = nb_create_literal_expression(BOOL, (char*)0);
+    yylval.expression = nb_create_literal_expression(BOOL, NULL);
     return BOOL_LITERAL;
 }
 <INITIAL>[ \t] ;
@@ -93,6 +97,7 @@ void increase_line_number()
 }
 <INITIAL>"/*" {BEGIN BLOCK_COMMENT;}
 <INITIAL>"//" {BEGIN LINE_COMMENT;}
+<INITIAL>"#" {BEGIN LINE_COMMENT;}
 <INITIAL>"<<<"[A-Za-z_]+[\r\n]+ {
     heredoc_tag = (char*)malloc(32 * sizeof(char));
     for (int i = strlen(yytext) - 1; i > 0; i--)
@@ -137,7 +142,7 @@ void increase_line_number()
     utf8_string_append(string_buffer, yytext);
 }
 <LINE_COMMENT>. ;
-<LINE_COMMENT>\n {BEGIN INITIAL;}
+<LINE_COMMENT>\n {increase_line_number(); BEGIN INITIAL;}
 <BLOCK_COMMENT>\n increase_line_number();
 <BLOCK_COMMENT>. ;
 <BLOCK_COMMENT>"*/" {BEGIN INITIAL;}

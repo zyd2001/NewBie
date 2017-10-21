@@ -8,8 +8,18 @@
 
 int main(void)
 {
+    int count = 0;
+    
+    for (int i = 0; i < 10; i++)
     {
-        int a = 0;
+        if (count == 5)
+        {
+            count = 10;
+        }
+        else if (count == 4)
+        {
+            count = 20;
+        }
+        count++;
     }
-    int b = a;
 }

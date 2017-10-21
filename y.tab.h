@@ -61,7 +61,7 @@ extern int yydebug;
     FOR = 271,
     IN = 272,
     CLASS = 273,
-    RETURN_T = 274,
+    RETURN = 274,
     BREAK = 275,
     CONTINUE = 276,
     LP = 277,
@@ -114,7 +114,7 @@ extern int yydebug;
 #define FOR 271
 #define IN 272
 #define CLASS 273
-#define RETURN_T 274
+#define RETURN 274
 #define BREAK 275
 #define CONTINUE 276
 #define LP 277
@@ -154,14 +154,16 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 13 "newbie.y" /* yacc.c:1909  */
+#line 27 "newbie.y" /* yacc.c:1909  */
 
     UTF8_String         *identifier;
     Expression          *expression;
     Statement           *statement;
     StatementList       *statement_list;
+    ParameterList       *parameter_list;
+    ArgumentList        *argument_list;
 
-#line 165 "y.tab.h" /* yacc.c:1909  */
+#line 167 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

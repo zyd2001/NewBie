@@ -10,11 +10,12 @@ int main(int argc, char **argv)
     extern FILE *yyin;
     yyin = fp;
 
-    interpreter_init(interpreter_new());
+    nb_interpreter_set(nb_interpreter_new());
     yyparse();
     yylex_destroy();
     fclose(fp);
     
+    nb_interpreter_init();
     nb_interpret();
     nb_clean();
 }

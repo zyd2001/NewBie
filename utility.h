@@ -12,6 +12,8 @@ typedef struct UTF8_String_tag UTF8_String;
 
 typedef struct UTF32_String_tag UTF32_String;
 
+// typedef int stack_type;
+
 typedef enum ValueType_tag
 {
     INT,
@@ -28,13 +30,19 @@ typedef struct Value_tag
     {
         int int_value;
         double double_value;
-        int bool_value;
         UTF32_String *string_value;
         Array *array_value;
     } value;
 } Value;
 
 typedef struct Linked_List_tag Linked_List;
+
+// typedef struct stack_tag
+// {
+//     stack_type *item;
+//     struct stack_tag *prev;
+//     struct stack_tag *next;
+// } Stack;
 
 unsigned int BKDRHash(char *str);
 size_t encoding_convert(char *instr, int inlen, char *outstr, int outlen, const char *to, const char *from);
@@ -50,7 +58,9 @@ void *utf8_string_delete_func(UTF8_String **str, ...);
 #define utf8_string_delete(...) utf8_string_delete_func(__VA_ARGS__, NULL) // UTF8_STRING **str
 int utf8_string_compare(UTF8_String *first, UTF8_String *second);
 UTF8_String *utf8_string_reassign(UTF8_String *str, char *new);
-UTF8_String *utf8_string_copy(UTF8_String *destination, UTF8_String *source);
+UTF8_String *utf8_string_copy_func(UTF8_String **destination, UTF8_String *source);
+UTF8_String *utf8_string_copy_new(UTF8_String *source);
+#define utf8_string_copy(destination, source) utf8_string_copy_func(&destination, source)
 UTF8_String *utf8_string_substring(UTF8_String *str, int start, int end);
 #define utf8_string_substr(str, start, length) utf8_string_substring(str, start, start + length); // UTF8_STRING **str
 char utf8_string_get_char_ascii(UTF8_String *str, int index);
@@ -90,7 +100,9 @@ UTF32_String *utf32_string_append_free(UTF32_String *str, UTF32_String *new);
 UTF32_String *utf32_string_reassign_utf8(UTF32_String *str, char *new);
 int utf32_string_compare(char *first, size_t size1, char *second, size_t size2);
 int utf32_string_compare_utf32(UTF32_String *first, UTF32_String *second);
-UTF32_String *utf32_string_copy(UTF32_String *destination, UTF32_String *source);
+UTF32_String *utf32_string_copy_func(UTF32_String **destination, UTF32_String *source);
+UTF32_String *utf32_string_copy_new(UTF32_String *source);
+#define utf32_string_copy(destination, source) utf32_string_copy_func(&destination, source)
 UTF32_String *utf32_string_substring(UTF32_String *str, int start, int end);
 #define utf32_string_substring(str, start, end) utf32_string_substr(str, start, end - start) // UTF32_String *str, int start, int end
 UTF32_String *utf32_string_substr(UTF32_String *str, int start, int length);
@@ -105,9 +117,19 @@ void *utf32_string_delete_func(UTF32_String **str, ...);
 
 #define value_new() (Value*)malloc(sizeof(Value))
 Value *value_new_type(ValueType type);
+Value *value_copy_func(Value **destination, Value *source);
+Value *value_copy_new(Value *source);
+#define value_copy(destination, source) value_copy_func(&destination, source)
+Value *value_to_int(Value **val);
+Value *value_to_double(Value **val);
+Value *value_to_bool(Value **val);
+Value *value_to_string(Value **val);
+int get_int_value(Value *val);
+double get_double_value(Value *val);
+int get_bool_value(Value *val);
+UTF32_String *get_string_value(Value *val);
 void *value_delete_func(Value **val, ...);
 #define value_delete(...) value_delete_func(__VA_ARGS__, NULL)
-Value *value_copy(Value *destination, Value *source);
 
 Array *array_new();
 void *array_delete_func(Array **arr, ...);
@@ -117,7 +139,9 @@ Value *array_get(Array *arr, int index);
 Array *array_insert(Array *arr, Value *val, int index);
 Value *array_remove(Array *arr, int index);
 Value *array_pop(Array *arr);
-Array *array_copy(Array *destination, Array *source);
+Array *array_copy_func(Array **destination, Array *source);
+Array *array_copy_new(Array *source);
+#define array_copy(destination, source) array_copy_func(&destination, source)
 
 struct delete_func_struct_tag 
 {
@@ -148,5 +172,6 @@ void name(void *ptr) \
     type *p = (type*)ptr; \
     func(p, NULL); \
 }
+
 
 #endif

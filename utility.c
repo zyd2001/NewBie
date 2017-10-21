@@ -165,16 +165,22 @@ int utf8_string_compare(UTF8_String *first, UTF8_String *second)
     return strcmp(first->value, second->value);
 }
 
-UTF8_String *utf8_string_copy(UTF8_String *destination, UTF8_String *source)
+UTF8_String *utf8_string_copy_func(UTF8_String **destination, UTF8_String *source)
 {
-    if(destination == NULL)
-        destination = utf8_string_new();
-    destination->size = source->size;
-    destination->length = source->length;
-    destination->limit = source->limit;
-    destination->value = (char*)realloc(destination->value, source->limit * sizeof(char));
-    strcpy(destination->value, source->value);
-    return destination;
+    if ((*destination) == NULL)
+        (*destination) = utf8_string_new();
+    (*destination)->size = source->size;
+    (*destination)->length = source->length;
+    (*destination)->limit = source->limit;
+    (*destination)->value = (char*)realloc((*destination)->value, source->limit * sizeof(char));
+    strcpy((*destination)->value, source->value);
+    return (*destination);
+}
+
+UTF8_String *utf8_string_copy_new(UTF8_String *source)
+{
+    UTF8_String *i = NULL;
+    return utf8_string_copy_func(&i, source);
 }
 
 void *utf8_string_delete_func(UTF8_String **str, ...)
@@ -283,7 +289,7 @@ int utf8_string_get_length(UTF8_String *str)
 // wchar_t *utf8_to_wcs(char *str)
 // {
 //     int length = utf8_strlen(str);
-//     wchar_t *new = (wchar_t*)calloc(length + 1, sizeof(wchar_t));
+//     wchar_t *new = (wchar_t*)malloc(length + 1, sizeof(wchar_t));
 //     mbstowcs(new, str, length);
 //     return new;
 // }
@@ -495,16 +501,22 @@ int utf32_string_compare(char *first, size_t size1, char *second, size_t size2)
     }
 }
 
-UTF32_String *utf32_string_copy(UTF32_String *destination, UTF32_String *source)
+UTF32_String *utf32_string_copy_func(UTF32_String **destination, UTF32_String *source)
 {
-    if (destination == NULL)
-        destination = utf32_string_new();
-    destination->size = source->size;
-    destination->limit = source->limit;
-    destination->length = source->length;
-    destination->value = (char*)realloc(destination->value, source->size);
-    memcpy(destination->value, source->value, source->size);
-    return destination;
+    if ((*destination) == NULL)
+        (*destination) = utf32_string_new();
+    (*destination)->size = source->size;
+    (*destination)->limit = source->limit;
+    (*destination)->length = source->length;
+    (*destination)->value = (char*)realloc((*destination)->value, source->size);
+    memcpy((*destination)->value, source->value, source->size);
+    return (*destination);
+}
+
+UTF32_String *utf32_string_copy_new(UTF32_String *source)
+{
+    UTF32_String *i = NULL;
+    return utf32_string_copy_func(&i, source);
 }
 
 // UTF32_String *utf32_string_substring(UTF32_String *str, int start, int end)
@@ -589,6 +601,7 @@ Value *value_new_type(ValueType type)
     switch(type)
     {
         case INT:
+        case BOOL:
             new->value.int_value = 0;
             break;
         case DOUBLE:
@@ -602,6 +615,192 @@ Value *value_new_type(ValueType type)
             break;
     }
     return new;
+}
+
+// Value *value_reassign(Value *old, Value *new)
+// {
+//     switch (old->type)
+//     {
+//         case STRING:
+//             utf32_string_delete(&(old->value.string_value));
+//             break;
+//         case ARRAY:
+//             array_delete(&(old->value.array_value));
+//             break;
+//     }
+//     switch (new->type)
+//     {
+//         case INT:
+//         case BOOL:
+//             old->value.int_value = new->value.int_value;
+//             break;
+//         case DOUBLE:
+//             old->value.double_value = new->value.double_value;
+//             break;  
+//         case STRING:
+//             old->value.string_value = utf32_string_copy_new(new->value.string_value);
+//             break;
+//         case ARRAY:
+//             old->value.array_value = array_copy_new(new->value.array_value);
+//             break;
+//     }
+//     old->type = new->type;
+//     return old;
+// }
+
+Value *value_copy_func(Value **destination, Value *source)
+{
+    if ((*destination) == NULL)
+        (*destination) = value_new_type(source->type);
+    (*destination)->type = source->type;
+    switch(source->type)
+    {
+        case INT:
+        case BOOL:
+            (*destination)->value.int_value = source->value.int_value;
+            break;
+        case DOUBLE:
+            (*destination)->value.double_value = source->value.double_value;
+            break;
+        case STRING:
+            (*destination)->value.string_value = utf32_string_copy_new(source->value.string_value);
+            break;
+        case ARRAY:
+            (*destination)->value.array_value = array_copy_new(source->value.array_value);
+            break;
+    }
+    return (*destination);
+}
+
+Value *value_copy_new(Value *source)
+{
+    Value *i = NULL;
+    return value_copy_func(&i, source);
+}
+
+Value *value_to_int(Value **val)
+{
+    int i = get_int_value(*val);
+    (*val)->type = INT;
+    (*val)->value.int_value = i;
+    return *val;
+}
+
+Value *value_to_double(Value **val)
+{
+    double d = get_double_value(*val);
+    (*val)->type = DOUBLE;
+    (*val)->value.double_value = d;
+    return *val;
+}
+
+Value *value_to_bool(Value **val)
+{
+    int d = get_bool_value(*val);
+    (*val)->type = BOOL;
+    (*val)->value.int_value = d;
+    return *val;
+}
+
+Value *value_to_string(Value **val)
+{
+    UTF32_String *converted = get_string_value(*val);
+    utf32_string_delete(&((*val)->value.string_value));
+    (*val)->type = STRING;
+    (*val)->value.string_value = converted;
+    return *val;
+}
+
+int get_int_value(Value *val)
+{
+    int i;
+    switch (val->type)   
+    {
+        case INT:
+        case BOOL:
+            i = val->value.int_value;
+            break;
+        case DOUBLE:
+            i = val->value.double_value;
+            break;
+        case STRING:
+            break;
+        case ARRAY:
+            break;
+    }
+}
+
+double get_double_value(Value *val)
+{
+    double d;
+    switch (val->type)
+    {
+        case INT:
+        case BOOL:
+            d = val->value.int_value;
+            break;
+        case DOUBLE:
+            d = val->value.double_value;
+            break;
+        case STRING:
+            break;
+        case ARRAY:
+            break;
+    }
+    return d;
+}
+
+int get_bool_value(Value *val)
+{
+    int b;
+    switch (val->type)
+    {
+        case INT:
+        case BOOL:
+            b = val->value.int_value != 0 ? 1 : 0;
+            break;
+        case DOUBLE:
+            b = val->value.double_value != 0 ? 1 : 0;
+            break;
+        case STRING:
+            b = val->value.string_value->length > 0 ? 1 : 0;
+            break;
+        case ARRAY:
+            break;
+    }
+}
+
+UTF32_String *get_string_value(Value *val)
+{
+    UTF32_String *str = utf32_string_new();
+    switch (val->type)
+    {
+        case INT:
+        case BOOL:
+        {
+            char *out = (char*)malloc(50 * sizeof(char));
+            sprintf(out, "%d", val->value.int_value);
+            utf32_string_append_utf8(str, out);
+            __free(out);
+            break;
+        }
+        case DOUBLE:
+        {
+            char *out = (char*)malloc(50 * sizeof(char));
+            sprintf(out, "%f", val->value.double_value);
+            utf32_string_append_utf8(str, out);
+            __free(out);
+            break;
+        }
+        case STRING:
+        {
+            utf32_string_copy(str, val->value.string_value);
+            break;
+        }
+        case ARRAY:
+            break;
+    }
+    return str;
 }
 
 void *value_delete_func(Value **val, ...)
@@ -624,32 +823,6 @@ void *value_delete_func(Value **val, ...)
     }
     va_end(args);
     return NULL;
-}
-
-Value *value_copy(Value *destination, Value *source)
-{
-    if (destination == NULL)
-        destination = value_new_type(source->type);
-    destination->type = source->type;
-    switch(source->type)
-    {
-        case INT:
-            destination->value.int_value = source->value.int_value;
-            break;
-        case DOUBLE:
-            destination->value.double_value = source->value.double_value;
-            break;
-        case BOOL:
-            destination->value.bool_value = source->value.bool_value;
-            break;    
-        case STRING:
-            destination->value.string_value = utf32_string_copy(NULL, source->value.string_value);
-            break;
-        case ARRAY:
-            destination->value.array_value = array_copy(NULL, source->value.array_value);
-            break;
-    }
-    return destination;
 }
 
 Array *array_new()
@@ -695,7 +868,7 @@ Value *array_get(Array *arr, int index)
         fprintf(stderr, "OutOfBoundary");
         exit(1);
     }
-    return value_copy(NULL, arr->value + index);
+    return value_copy_new(arr->value + index);
 }
 
 Array *array_insert(Array *arr, Value *val, int index)
@@ -715,7 +888,7 @@ Array *array_insert(Array *arr, Value *val, int index)
 
 Value *array_remove(Array *arr, int index)
 {
-    Value *val = value_copy(NULL, arr->value + index);
+    Value *val = value_copy_new(arr->value + index);
     Array *new = array_new();
     new->limit = arr->limit - 1;
     new->size = arr->size - 1;
@@ -732,17 +905,23 @@ Value *array_pop(Array *arr)
     return array_remove(arr, arr->size - 1);
 }
 
-Array *array_copy(Array *destination, Array *source)
+Array *array_copy_func(Array **destination, Array *source)
 {
-    if (destination == NULL)
-        destination = array_new();
-    destination->limit = source->limit;
-    destination->size = source->size;
-    destination->value = (Value*)realloc(destination->value, destination->size * sizeof(Value));
-    destination->index = (char**)realloc(destination->index, destination->size * sizeof(char*));
-    memcpy(destination->value, source->value, destination->size * sizeof(Value));
-    memcpy(destination->index, source->index, sizeof(char*));
-    return destination;
+    if ((*destination) == NULL)
+        (*destination) = array_new();
+    (*destination)->limit = source->limit;
+    (*destination)->size = source->size;
+    (*destination)->value = (Value*)realloc((*destination)->value, (*destination)->size * sizeof(Value));
+    (*destination)->index = (char**)realloc((*destination)->index, (*destination)->size * sizeof(char*));
+    memcpy((*destination)->value, source->value, (*destination)->size * sizeof(Value));
+    memcpy((*destination)->index, source->index, sizeof(char*));
+    return (*destination);
+}
+
+Array *array_copy_new(Array *source)
+{
+    Array *i = NULL;
+    return array_copy_func(&i, source);
 }
 
 #define move_to(list, index) \
@@ -952,6 +1131,41 @@ int linked_list_delete_func(Linked_List **list, struct delete_func_struct_tag *d
     *list = NULL;
     return 1;
 }
+
+// Stack *stack_init()
+// {
+//     return NULL;
+// }
+
+// Stack *stack_push(Stack *stack, stack_type item)
+// {
+//     if (stack)
+//     {
+//         stack->next = (Stack*)malloc(sizeof(Stack));
+//         stack = stack->next;
+//         stack->next = NULL;   
+//         stack->item = item;
+//     }
+//     else
+//     {
+//         stack = (Stack*)malloc(sizeof(Stack));
+//         stack->next = NULL;
+//         stack->item = item;        
+//     }
+//     return stack;
+// }
+
+// void stack_pop(Stack *stack)
+// {
+//     for (;stack->next != NULL; stack = stack->next);
+//     __free(stack);
+// }
+
+// stack_type stack_top(Stack *stack)
+// {
+//     for (;stack->next != NULL; stack = stack->next);
+//     return stack->item;
+// }
 
 UTF8_String *itoa(int i)
 {

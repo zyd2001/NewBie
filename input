@@ -1,5 +1,18 @@
-integer a = 123;
-double n = 50;
-int b = a + n;
-string str = "asdasd";
-boolean c = true;
+int count = 0;
+
+for (int i = 0; i < 10; i++)
+{
+    if (count == 5)
+    {
+        count = 10;
+    }
+    else if (count == 4)
+    {
+        count = 20;
+    }
+//    else
+//   {
+//        count = 30;
+//   }
+    count++;
+}
