@@ -45,109 +45,111 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    INT_LITERAL = 258,
-    STRING_LITERAL = 259,
-    DOUBLE_LITERAL = 260,
-    BOOL_LITERAL = 261,
-    IDENTIFIER = 262,
-    INT_T = 263,
-    DOUBLE_T = 264,
-    BOOL_T = 265,
-    STRING_T = 266,
-    ARRAY_T = 267,
-    IF = 268,
-    ELSE = 269,
-    ELSEIF = 270,
-    FOR = 271,
-    IN = 272,
-    CLASS = 273,
-    RETURN = 274,
-    BREAK = 275,
-    CONTINUE = 276,
-    LP = 277,
-    RP = 278,
-    LC = 279,
-    RC = 280,
-    LB = 281,
-    RB = 282,
-    SEMICOLON = 283,
-    COMMA = 284,
-    ASSIGN_T = 285,
-    LOGICAL_AND = 286,
-    LOGICAL_OR = 287,
-    EQ_T = 288,
-    NE_T = 289,
-    GT_T = 290,
-    GE_T = 291,
-    LT_T = 292,
-    LE_T = 293,
-    ADD_T = 294,
-    SUB_T = 295,
-    MUL_T = 296,
-    DIV_T = 297,
-    MOD_T = 298,
-    EXCLAMATION = 299,
-    DOT = 300,
-    ADD_ASSIGN = 301,
-    SUB_ASSIGN = 302,
-    MUL_ASSIGN = 303,
-    DIV_ASSIGN = 304,
-    MOD_ASSIGN = 305,
-    INCREMENT = 306,
-    DECREMENT = 307
+    LOGICAL_AND = 258,
+    LOGICAL_OR = 259,
+    EQ_T = 260,
+    NE_T = 261,
+    GT_T = 262,
+    GE_T = 263,
+    LT_T = 264,
+    LE_T = 265,
+    ADD_T = 266,
+    SUB_T = 267,
+    MUL_T = 268,
+    DIV_T = 269,
+    MOD_T = 270,
+    UMINUS = 271,
+    INT_LITERAL = 272,
+    STRING_LITERAL = 273,
+    DOUBLE_LITERAL = 274,
+    BOOL_LITERAL = 275,
+    IDENTIFIER = 276,
+    INT_T = 277,
+    DOUBLE_T = 278,
+    BOOL_T = 279,
+    STRING_T = 280,
+    ARRAY_T = 281,
+    IF = 282,
+    ELSE = 283,
+    ELSEIF = 284,
+    FOR = 285,
+    IN = 286,
+    CLASS = 287,
+    RETURN = 288,
+    BREAK = 289,
+    CONTINUE = 290,
+    LP = 291,
+    RP = 292,
+    LC = 293,
+    RC = 294,
+    LB = 295,
+    RB = 296,
+    SEMICOLON = 297,
+    COMMA = 298,
+    ASSIGN_T = 299,
+    EXCLAMATION = 300,
+    DOT = 301,
+    ADD_ASSIGN = 302,
+    SUB_ASSIGN = 303,
+    MUL_ASSIGN = 304,
+    DIV_ASSIGN = 305,
+    MOD_ASSIGN = 306,
+    INCREMENT_T = 307,
+    DECREMENT_T = 308
   };
 #endif
 /* Tokens.  */
-#define INT_LITERAL 258
-#define STRING_LITERAL 259
-#define DOUBLE_LITERAL 260
-#define BOOL_LITERAL 261
-#define IDENTIFIER 262
-#define INT_T 263
-#define DOUBLE_T 264
-#define BOOL_T 265
-#define STRING_T 266
-#define ARRAY_T 267
-#define IF 268
-#define ELSE 269
-#define ELSEIF 270
-#define FOR 271
-#define IN 272
-#define CLASS 273
-#define RETURN 274
-#define BREAK 275
-#define CONTINUE 276
-#define LP 277
-#define RP 278
-#define LC 279
-#define RC 280
-#define LB 281
-#define RB 282
-#define SEMICOLON 283
-#define COMMA 284
-#define ASSIGN_T 285
-#define LOGICAL_AND 286
-#define LOGICAL_OR 287
-#define EQ_T 288
-#define NE_T 289
-#define GT_T 290
-#define GE_T 291
-#define LT_T 292
-#define LE_T 293
-#define ADD_T 294
-#define SUB_T 295
-#define MUL_T 296
-#define DIV_T 297
-#define MOD_T 298
-#define EXCLAMATION 299
-#define DOT 300
-#define ADD_ASSIGN 301
-#define SUB_ASSIGN 302
-#define MUL_ASSIGN 303
-#define DIV_ASSIGN 304
-#define MOD_ASSIGN 305
-#define INCREMENT 306
-#define DECREMENT 307
+#define LOGICAL_AND 258
+#define LOGICAL_OR 259
+#define EQ_T 260
+#define NE_T 261
+#define GT_T 262
+#define GE_T 263
+#define LT_T 264
+#define LE_T 265
+#define ADD_T 266
+#define SUB_T 267
+#define MUL_T 268
+#define DIV_T 269
+#define MOD_T 270
+#define UMINUS 271
+#define INT_LITERAL 272
+#define STRING_LITERAL 273
+#define DOUBLE_LITERAL 274
+#define BOOL_LITERAL 275
+#define IDENTIFIER 276
+#define INT_T 277
+#define DOUBLE_T 278
+#define BOOL_T 279
+#define STRING_T 280
+#define ARRAY_T 281
+#define IF 282
+#define ELSE 283
+#define ELSEIF 284
+#define FOR 285
+#define IN 286
+#define CLASS 287
+#define RETURN 288
+#define BREAK 289
+#define CONTINUE 290
+#define LP 291
+#define RP 292
+#define LC 293
+#define RC 294
+#define LB 295
+#define RB 296
+#define SEMICOLON 297
+#define COMMA 298
+#define ASSIGN_T 299
+#define EXCLAMATION 300
+#define DOT 301
+#define ADD_ASSIGN 302
+#define SUB_ASSIGN 303
+#define MUL_ASSIGN 304
+#define DIV_ASSIGN 305
+#define MOD_ASSIGN 306
+#define INCREMENT_T 307
+#define DECREMENT_T 308
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -163,7 +165,7 @@ union YYSTYPE
     ParameterList       *parameter_list;
     ArgumentList        *argument_list;
 
-#line 167 "y.tab.h" /* yacc.c:1909  */
+#line 169 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

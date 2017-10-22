@@ -32,15 +32,19 @@ void yyerror (char const *s)
     ParameterList       *parameter_list;
     ArgumentList        *argument_list;
 }
-%expect 187
+%expect 78
+%left LOGICAL_AND LOGICAL_OR
+%left EQ_T NE_T GT_T GE_T LT_T LE_T
+%left ADD_T SUB_T
+%left MUL_T DIV_T MOD_T
+%nonassoc UMINUS
 %token <expression>     INT_LITERAL STRING_LITERAL DOUBLE_LITERAL BOOL_LITERAL
 %token <identifier>     IDENTIFIER
 %token INT_T DOUBLE_T BOOL_T STRING_T ARRAY_T IF ELSE ELSEIF FOR IN CLASS RETURN BREAK CONTINUE
-        LP RP LC RC LB RB SEMICOLON COMMA ASSIGN_T LOGICAL_AND LOGICAL_OR
-        EQ_T NE_T GT_T GE_T LT_T LE_T ADD_T SUB_T MUL_T DIV_T MOD_T EXCLAMATION DOT
+        LP RP LC RC LB RB SEMICOLON COMMA ASSIGN_T EXCLAMATION DOT
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
-        INCREMENT DECREMENT
-%type<expression> expression function_call_expression declaration_expression primary_expression assignment_expression expression_optional binary_expression
+        INCREMENT_T DECREMENT_T
+%type<expression> expression function_call_expression declaration_expression primary_expression assignment_expression expression_optional binary_expression unary_expression
 %type<statement> statement block function_definition_statement
 %type<statement_list> statement_list
 %type<argument_list> argument_list
@@ -97,8 +101,13 @@ void yyerror (char const *s)
     expression: assignment_expression
         | declaration_expression
         | binary_expression
+        | unary_expression
         | primary_expression
         | function_call_expression
+        | LP expression RP
+        {
+            $$ = $2;
+        }
         | IDENTIFIER
         {
             $$ = nb_create_identifier_expression($1);
@@ -153,6 +162,31 @@ void yyerror (char const *s)
         | expression LE_T expression
         {
             $$ = nb_create_binary_expression(LE, $1, $3);
+        }
+        | expression LOGICAL_AND expression
+        {
+            $$ = nb_create_binary_expression(AND, $1, $3);
+        }
+        | expression LOGICAL_OR expression
+        {
+            $$ = nb_create_binary_expression(OR, $1, $3);
+        }
+        ;
+    unary_expression: SUB_T expression %prec UMINUS
+        {
+            $$ = nb_create_unary_expression(MINUS, $2);
+        }
+        | EXCLAMATION expression %prec UMINUS
+        {
+            $$ = nb_create_unary_expression(NOT, $2);
+        }
+        | IDENTIFIER INCREMENT_T
+        {
+            $$ = nb_create_change_expression(INCREMENT, $1);
+        }
+        | IDENTIFIER DECREMENT_T
+        {
+            $$ = nb_create_change_expression(DECREMENT, $1);
         }
         ;
     function_call_expression: IDENTIFIER LP argument_list RP
@@ -224,14 +258,6 @@ void yyerror (char const *s)
         | IDENTIFIER MOD_ASSIGN expression
         {
             $$ = nb_create_assignment_expression($1, nb_create_binary_expression(MOD, nb_create_identifier_expression($1), $3));
-        }
-        | IDENTIFIER INCREMENT
-        {
-            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(ADD, nb_create_identifier_expression($1), nb_create_literal_expression(INT, "1")));            
-        }
-        | IDENTIFIER DECREMENT
-        {
-            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(SUB, nb_create_identifier_expression($1), nb_create_literal_expression(INT, "1")));            
         }
         ;
     primary_expression: INT_LITERAL

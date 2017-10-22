@@ -51,7 +51,7 @@ NB_Value *eval(Expression *exp)
     {
         case LITERAL_EXPRESSION:
         {
-            value_copy(ret, &exp->content.literal_expression);
+            value_copy(ret, &(exp->content.literal_expression));
             break;
         }
         case IDENTIFIER_EXPRESSION:
@@ -225,9 +225,116 @@ NB_Value *eval(Expression *exp)
                 case LE:
                     bool_check(<=);
                     break;
+                case AND:
+                {
+                    value_to_bool(&first);
+                    value_to_bool(&second);
+                    ret->type = BOOL;
+                    ret->value.int_value = first->value.int_value && second->value.int_value;
+                    break;
+                }
+                case OR:
+                {
+                    value_to_bool(&first);
+                    value_to_bool(&second);
+                    ret->type = BOOL;
+                    ret->value.int_value = first->value.int_value || second->value.int_value;
+                    break;
+                }
             }
             value_delete(&first, &second);
             break;
+        }
+        case UNARY_EXPRESSION:
+        {
+            switch (exp->content.unary_expression.type)
+            {
+                case MINUS:
+                {
+                    NB_Value *val = eval(exp->content.unary_expression.exp);
+                    value_copy(ret, val);
+                    switch (val->type)
+                    {
+                        case INT:
+                        {
+                            ret->value.int_value = -(ret->value.int_value);
+                            break;
+                        }
+                        case DOUBLE:
+                        {
+                            ret->value.double_value = -(ret->value.double_value);
+                            break;
+                        }
+                        case BOOL:
+                        case STRING:
+                        case ARRAY:
+                        {
+                            nb_error("Type Error!");
+                            exit(1);
+                        }
+                    }
+                    value_delete(&val);
+                    break;
+                }
+                case NOT:
+                {
+                    NB_Value *val = eval(exp->content.unary_expression.exp);                    
+                    value_copy(ret, val);
+                    switch (val->type)      
+                    {
+                        case BOOL:
+                        {
+                            ret->value.int_value = !(ret->value.int_value);
+                            break;
+                        }
+                        default:
+                        {
+                            nb_error("Type Error!");
+                            exit(1);
+                        }
+                    }
+                    value_delete(&val);
+                    break;
+                }
+                case INCREMENT:
+                {
+                    VariablesList *found = find_in_list(inter->variables_list, exp->content.unary_expression.identifier);
+                    switch (found->value->type)
+                    {
+                        case INT:
+                            found->value->value.int_value++;
+                            break;
+                        case DOUBLE:
+                            found->value->value.double_value++;
+                            break;
+                        default:
+                        {
+                            nb_error("Type Error!");
+                            exit(1);
+                        }
+                    }
+                    break;
+                }
+                case DECREMENT:
+                {
+                    VariablesList *found = find_in_list(inter->variables_list, exp->content.unary_expression.identifier);
+                    switch (found->value->type)
+                    {
+                        case INT:
+                            found->value->value.int_value--;
+                            break;
+                        case DOUBLE:
+                            found->value->value.double_value--;
+                            break;
+                        default:
+                        {
+                            nb_error("Type Error!");
+                            exit(1);
+                        }
+                    }
+                    break;
+                }
+            }
         }
         case FUNCTION_CALL_EXPRESSION:
             break;

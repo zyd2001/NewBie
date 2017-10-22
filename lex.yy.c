@@ -1118,12 +1118,12 @@ return MOD_ASSIGN;
 case 49:
 YY_RULE_SETUP
 #line 68 "newbie.l"
-return INCREMENT;
+return INCREMENT_T;
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
 #line 69 "newbie.l"
-return DECREMENT;
+return DECREMENT_T;
 	YY_BREAK
 case 51:
 YY_RULE_SETUP

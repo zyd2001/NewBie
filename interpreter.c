@@ -44,32 +44,45 @@ StatementResult nb_interpret_once()
             }
             case FOR_STATEMENT:
             {
+                #define for_body(num) \
+                { \
+                    inter->global_list = this_slist; \
+                    r.type = NULL_RESULT; \
+                    do { \
+                        if (r.type == EXPRESSION_STATEMENT) \
+                            value_delete(&(r.value)); \
+                        if (r.type == BREAK_STATEMENT) \
+                            goto break_tag##num; \
+                        if (r.type == CONTINUE_STATEMENT) \
+                            goto continue_tag##num; \
+                        r = nb_interpret_once(); \
+                    } while(r.type != NULL_RESULT); \
+                    continue; \
+                    break_tag##num: \
+                        break; \
+                    continue_tag##num: \
+                        continue; \
+                }
                 result.type = FOR_STATEMENT;
                 StatementList *stored = inter->global_list, *this_slist = inter->global_list->s->content.for_statement.block->content.block_statement.slist;
                 for (;this_slist->prev != NULL; this_slist = this_slist->prev);
                 Statement *s = inter->global_list->s;
                 level_increase();
-                eval(s->content.for_statement.exp1);
+                if (s->content.for_statement.exp1 != NULL)
+                    eval(s->content.for_statement.exp1);
                 StatementResult r;
-                for (;value_to_bool(&(NB_Value*){eval(s->content.for_statement.exp2)})->value.int_value;eval(s->content.for_statement.exp3))
-                {
-                    inter->global_list = this_slist;
-                    r.type = NULL_RESULT;
-                    do {
-                        if (r.type == EXPRESSION_STATEMENT)
-                            value_delete(&(r.value));
-                        if (r.type == BREAK_STATEMENT)
-                            goto break_tag;
-                        if (r.type == CONTINUE_STATEMENT)
-                            goto continue_tag;
-                        r = nb_interpret_once();
-                    } while(r.type != NULL_RESULT);
-                    continue;
-                    break_tag:
-                        break;
-                    continue_tag:
-                        continue;
-                }
+                if (s->content.for_statement.exp2 != NULL && s->content.for_statement.exp3 != NULL)
+                    for (;value_to_bool(&(NB_Value*){eval(s->content.for_statement.exp2)})->value.int_value;eval(s->content.for_statement.exp3))
+                    for_body(0)
+                else if (s->content.for_statement.exp2 == NULL)
+                    for (;;eval(s->content.for_statement.exp3))
+                    for_body(1)
+                else if (s->content.for_statement.exp3 == NULL)
+                    for (;value_to_bool(&(NB_Value*){eval(s->content.for_statement.exp2)})->value.int_value;)
+                    for_body(2)
+                else
+                    for (;;)
+                    for_body(3)
                 level_decrease();
                 inter->global_list = stored;
                 break;

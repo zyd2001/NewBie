@@ -1,6 +1,6 @@
 int count = 0;
 
-for (int i = 0; i < 10; i++)
+for (int i = 0; ; i++)
 {
     if (count == 5)
     {
@@ -14,5 +14,11 @@ for (int i = 0; i < 10; i++)
 //   {
 //        count = 30;
 //   }
+    if (count == 100 || i == 100)
+    {
+        break;
+    }
     count++;
 }
+
+count = -count;

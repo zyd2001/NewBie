@@ -17,8 +17,18 @@ typedef enum
     GT,
     GE,
     LT,
-    LE
+    LE,
+    AND,
+    OR
 } BinaryType;
+
+typedef enum
+{
+    MINUS,
+    NOT,
+    INCREMENT,
+    DECREMENT
+} UnaryType;
 
 typedef enum 
 {
@@ -27,6 +37,7 @@ typedef enum
     ASSIGNMENT_EXPRESSION,
     DECLARATION_EXPRESSION,
     BINARY_EXPRESSION,
+    UNARY_EXPRESSION,
     FUNCTION_CALL_EXPRESSION  
 } ExpressionType;
 
@@ -89,6 +100,13 @@ typedef struct BinaryExpression_tag
     Expression *second;
 } BinaryExpression;
 
+typedef struct UnaryExpression_tag
+{
+    UnaryType type;
+    Expression *exp;
+    UTF8_String *identifier;
+} UnaryExpression;
+
 typedef struct FunctionCallExpression_tag
 {
     UTF8_String *identifier;
@@ -108,6 +126,7 @@ typedef struct Expression_tag
         AssignmentExpression assignment_expression;
         DeclarationExpression declaration_expression;
         BinaryExpression binary_expression;
+        UnaryExpression unary_expression;
         FunctionCallExpression function_call_expression;
     } content;
 } Expression;
@@ -207,6 +226,8 @@ typedef struct StatementResult_tag
 Expression *nb_create_literal_expression(NB_ValueType type, char *text);
 Expression *nb_create_assignment_expression(UTF8_String *identifier, Expression *exp);
 Expression *nb_create_binary_expression(BinaryType type, Expression *left, Expression *right);
+Expression *nb_create_unary_expression(UnaryType type, Expression *exp);
+Expression *nb_create_change_expression(UnaryType type, UTF8_String *identifier);
 Expression *nb_create_declaration_expression(NB_ValueType type, UTF8_String *identifier, Expression *assignment_expression);
 Expression *nb_create_identifier_expression(UTF8_String *identifier);
 Expression *nb_create_function_call_expression(UTF8_String *identifier, ArgumentList *alist);

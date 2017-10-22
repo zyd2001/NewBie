@@ -65,8 +65,8 @@ void increase_line_number()
 <INITIAL>"*="           return MUL_ASSIGN;
 <INITIAL>"/="           return DIV_ASSIGN;
 <INITIAL>"%="           return MOD_ASSIGN;
-<INITIAL>"++"           return INCREMENT;
-<INITIAL>"--"           return DECREMENT;
+<INITIAL>"++"           return INCREMENT_T;
+<INITIAL>"--"           return DECREMENT_T;
 <INITIAL>"!"            return EXCLAMATION;
 <INITIAL>"."            return DOT;
 <INITIAL>"true" {       

@@ -78,6 +78,26 @@ Expression *nb_create_binary_expression(BinaryType type, Expression *left, Expre
     return expression;    
 }
 
+Expression *nb_create_unary_expression(UnaryType type, Expression *exp)
+{
+    Expression *expression = new_expression();
+    expression->type = UNARY_EXPRESSION;
+    expression->content.unary_expression.type = type;
+    expression->content.unary_expression.identifier = NULL;
+    expression->content.unary_expression.exp = exp;
+    return expression;
+}
+
+Expression *nb_create_change_expression(UnaryType type, UTF8_String *identifier)
+{
+    Expression *expression = new_expression();
+    expression->type = UNARY_EXPRESSION;
+    expression->content.unary_expression.type = type;
+    expression->content.unary_expression.identifier = identifier;
+    expression->content.unary_expression.exp = NULL;
+    return expression;
+}
+
 Expression *nb_create_identifier_expression(UTF8_String *identifier)
 {
     Expression *expression = new_expression();
