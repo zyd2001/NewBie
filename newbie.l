@@ -18,12 +18,14 @@ void increase_line_number()
 %start LINE_COMMENT BLOCK_COMMENT STRING_LITERAL_STATE HEREDOC
 %%
 <INITIAL>"int"          return INT_T;
-<INITIAL>"integer"      return INT_T;
 <INITIAL>"double"       return DOUBLE_T;
 <INITIAL>"bool"         return BOOL_T;
 <INITIAL>"boolean"      return BOOL_T;
 <INITIAL>"array"        return ARRAY_T;
 <INITIAL>"string"       return STRING_T;
+<INITIAL>"var"          return VAR_T;
+<INITIAL>"function"     return FUNC_T;
+<INITIAL>"func"         return FUNC_T;
 <INITIAL>"if"           return IF;
 <INITIAL>"else"         return ELSE;
 <INITIAL>"elseif"       return ELSEIF;

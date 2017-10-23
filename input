@@ -1,24 +1,12 @@
-int count = 0;
-
-for (int i = 0; ; i++)
+for (int i = 0; i < 10; i++)
 {
-    if (count == 5)
+    if (i == 9)
     {
-        count = 10;
+        i++;
     }
-    else if (count == 4)
-    {
-        count = 20;
-    }
-//    else
-//   {
-//        count = 30;
-//   }
-    if (count == 100 || i == 100)
-    {
-        break;
-    }
-    count++;
 }
 
-count = -count;
+func crash()
+{
+    int a = "asd";
+}

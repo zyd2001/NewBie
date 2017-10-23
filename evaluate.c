@@ -40,10 +40,46 @@ do { \
     } \
 } while(0)
 
+#define nb_value_change_type(value, t) \
+do { \
+    switch (t)\
+    { \
+        case INT: \
+            if (value->type == STRING) \
+            { \
+                nb_error("Type Cast Error!"); \
+                exit(1); \
+            } \
+            value_to_int(&value); \
+            break; \
+        case DOUBLE: \
+            if (value->type == STRING) \
+            { \
+                nb_error("Type Cast Error!"); \
+                exit(1); \
+            } \
+            value_to_double(&value); \
+            break; \
+        case BOOL: \
+            if (value->type == STRING) \
+            { \
+                nb_error("Type Cast Error!"); \
+                exit(1); \
+            } \
+            value_to_bool(&value); \
+            break; \
+        case STRING: \
+            value_to_string(&value); \
+            break; \
+        case ARRAY: \
+            break; \
+    } \
+} while(0)
+
 VariablesList *find_in_list(VariablesList *vlist, UTF8_String *str);
 VariablesList *find_in_list_func(VariablesList *vlist, UTF8_String *str);
 
-NB_Value *eval(Expression *exp)
+NB_Value *eval(Expression *exp, VariablesList **vlist)
 {
     NB_Value *ret = value_new();
     NB_Interpreter *inter = nb_get_interpreter();
@@ -56,7 +92,7 @@ NB_Value *eval(Expression *exp)
         }
         case IDENTIFIER_EXPRESSION:
         {
-            NB_Value *val = find_in_list(inter->variables_list, exp->content.identifier_expression)->value;
+            NB_Value *val = find_in_list((*vlist), exp->content.identifier_expression)->value;
             if (val)
                 value_copy(ret, val);
             else
@@ -68,43 +104,10 @@ NB_Value *eval(Expression *exp)
         }
         case ASSIGNMENT_EXPRESSION:
         {
-            NB_Value *val = eval(exp->content.assignment_expression.exp);
-            VariablesList *found = find_in_list(inter->variables_list, exp->content.assignment_expression.identifier);
-            if (found->value->type != val->type)
-            {
-                switch (found->value->type)
-                {
-                    case INT:
-                        if (val->type == STRING)
-                        {
-                            nb_error("Type Cast Error!");
-                            exit(1);
-                        }
-                        value_to_int(&val);
-                        break;
-                    case BOOL:
-                        if (val->type == STRING)
-                        {
-                            nb_error("Type Cast Error!");
-                            exit(1);
-                        }
-                        value_to_bool(&val);
-                        break;
-                    case DOUBLE:
-                        if (val->type == STRING)
-                        {
-                            nb_error("Type Cast Error!");
-                            exit(1);
-                        }
-                        value_to_double(&val);
-                        break;
-                    case STRING:
-                        value_to_string(&val);
-                        break;
-                    case ARRAY:
-                        break;
-                }
-            }
+            NB_Value *val = eval(exp->content.assignment_expression.exp, vlist);
+            VariablesList *found = find_in_list((*vlist), exp->content.assignment_expression.identifier);
+            if (found->value->type != val->type && !found->value->various)
+                nb_value_change_type(val, found->value->type);
             value_copy(found->value, val);
             value_copy(ret, val);
             value_delete(&val);
@@ -117,41 +120,43 @@ NB_Value *eval(Expression *exp)
             UTF8_String *identifier = exp->content.declaration_expression.identifier ? exp->content. \
                 declaration_expression.identifier : exp->content.declaration_expression.exp-> \
                 content.assignment_expression.identifier;
-            VariablesList *found = find_in_list_func(inter->variables_list, identifier);
+            VariablesList *found = find_in_list_func((*vlist), identifier);
             if (found)
             {
                 nb_error("Duplicated Declaration!");
                 exit(1);
             }
-            if (inter->variables_list)
+            if ((*vlist))
             { 
-                inter->variables_list->next = (VariablesList*)malloc(sizeof(VariablesList));
-                inter->variables_list->next->prev = inter->variables_list;
-                inter->variables_list = inter->variables_list->next;
-                inter->variables_list->next = NULL;
-                inter->variables_list->level = inter->level;
-                inter->variables_list->identifier = utf8_string_copy_new(identifier);
-                inter->variables_list->value = value_new_type(exp->content.declaration_expression.type);
+                (*vlist)->next = (VariablesList*)malloc(sizeof(VariablesList));
+                (*vlist)->next->prev = (*vlist);
+                (*vlist) = (*vlist)->next;
+                (*vlist)->next = NULL;
+                (*vlist)->level = inter->level;
+                (*vlist)->identifier = utf8_string_copy_new(identifier);
+                (*vlist)->value = value_new_type(exp->content.declaration_expression.type);
+                (*vlist)->value->various = (*vlist)->value->type == VARIOUS ? 1 : 0;
                 if (exp->content.declaration_expression.exp)
-                    eval(exp->content.declaration_expression.exp);
+                    eval_no_ret(exp->content.declaration_expression.exp, vlist);
             }
             else
             {
-                inter->variables_list = (VariablesList*)malloc(sizeof(VariablesList));
-                inter->variables_list->prev = NULL;
-                inter->variables_list->next = NULL;
-                inter->variables_list->level = inter->level;
-                inter->variables_list->identifier = utf8_string_copy_new(identifier);
-                inter->variables_list->value = value_new_type(exp->content.declaration_expression.type);
+                (*vlist) = (VariablesList*)malloc(sizeof(VariablesList));
+                (*vlist)->prev = NULL;
+                (*vlist)->next = NULL;
+                (*vlist)->level = inter->level;
+                (*vlist)->identifier = utf8_string_copy_new(identifier);
+                (*vlist)->value = value_new_type(exp->content.declaration_expression.type);
+                (*vlist)->value->various = (*vlist)->value->type == VARIOUS ? 1 : 0;
                 if (exp->content.declaration_expression.exp)
-                    eval(exp->content.declaration_expression.exp);
+                    eval_no_ret(exp->content.declaration_expression.exp, vlist);
             }
             break;
         }
         case BINARY_EXPRESSION:
         {
-            NB_Value *first = eval(exp->content.binary_expression.first);
-            NB_Value *second = eval(exp->content.binary_expression.second);
+            NB_Value *first = eval(exp->content.binary_expression.first, vlist);
+            NB_Value *second = eval(exp->content.binary_expression.second, vlist);
             switch (exp->content.binary_expression.type)
             {
                 case ADD:
@@ -251,7 +256,7 @@ NB_Value *eval(Expression *exp)
             {
                 case MINUS:
                 {
-                    NB_Value *val = eval(exp->content.unary_expression.exp);
+                    NB_Value *val = eval(exp->content.unary_expression.exp, vlist);
                     value_copy(ret, val);
                     switch (val->type)
                     {
@@ -278,7 +283,7 @@ NB_Value *eval(Expression *exp)
                 }
                 case NOT:
                 {
-                    NB_Value *val = eval(exp->content.unary_expression.exp);                    
+                    NB_Value *val = eval(exp->content.unary_expression.exp, vlist);                    
                     value_copy(ret, val);
                     switch (val->type)      
                     {
@@ -298,7 +303,7 @@ NB_Value *eval(Expression *exp)
                 }
                 case INCREMENT:
                 {
-                    VariablesList *found = find_in_list(inter->variables_list, exp->content.unary_expression.identifier);
+                    VariablesList *found = find_in_list((*vlist), exp->content.unary_expression.identifier);
                     switch (found->value->type)
                     {
                         case INT:
@@ -317,7 +322,7 @@ NB_Value *eval(Expression *exp)
                 }
                 case DECREMENT:
                 {
-                    VariablesList *found = find_in_list(inter->variables_list, exp->content.unary_expression.identifier);
+                    VariablesList *found = find_in_list((*vlist), exp->content.unary_expression.identifier);
                     switch (found->value->type)
                     {
                         case INT:
@@ -335,22 +340,126 @@ NB_Value *eval(Expression *exp)
                     break;
                 }
             }
+            break;
         }
         case FUNCTION_CALL_EXPRESSION:
+        {
+            FunctionList *func = NULL;
+            for (FunctionList *temp = inter->func_list; temp != NULL; temp = temp->prev)
+            {
+                if (!utf8_string_compare(exp->content.function_call_expression.identifier, temp->identifier))
+                    func = temp;
+            }
+            if (!func)
+            {
+                nb_error("Undefined Function!");
+                exit(1);    
+            }
+            int count = 1;
+            if (exp->content.function_call_expression.alist == NULL)
+                count = 0;
+            else
+                for (;exp->content.function_call_expression.alist->prev != NULL; exp->content.function_call_expression.alist = exp->content.function_call_expression.alist->prev)
+                    count++;
+            if (count > func->pnum)
+            {
+                nb_error("Argument Number Doesn't Match!");
+                exit(1);
+            }
+            if (!func->builtin)
+            {
+                level_increase();
+                StatementsList *saved_slist = inter->statements_list;
+                VariablesList *saved_vlist = (*vlist);
+                VariablesList *modified_vlist = (*vlist);
+                int change_flag = 1;
+                for (;modified_vlist != NULL; modified_vlist = modified_vlist->prev) // go to the global env
+                {
+                    if (modified_vlist->level != 0)
+                        continue;
+                    else
+                    {
+                        change_flag = 0;
+                        modified_vlist->next = NULL;
+                        break;
+                    }
+                }
+                if (change_flag)
+                    modified_vlist = NULL;
+                for (ParametersList *plist_temp = func->plist; plist_temp != NULL; plist_temp = plist_temp->next) // initialize local variables // do not modifiy the original list beacuse we may use it more than once
+                {
+                    if (exp->content.function_call_expression.alist != NULL && plist_temp->exp->content.declaration_expression.exp != NULL)
+                    {
+                        eval_no_ret(plist_temp->exp, &modified_vlist);
+                        NB_Value *t = eval(exp->content.function_call_expression.alist->exp, vlist);
+                        Expression *exp_temp = nb_create_assignment_expression(plist_temp->exp->content.declaration_expression.exp->content.assignment_expression.identifier, &(Expression){LITERAL_EXPRESSION, *t});
+                        eval_no_ret(exp_temp, &modified_vlist);
+                        value_delete(&t);
+                        __free(exp_temp);
+                    }
+                    else if (plist_temp->exp->content.declaration_expression.exp != NULL)
+                        eval_no_ret(plist_temp->exp, &modified_vlist);
+                    else if (exp->content.function_call_expression.alist != NULL)
+                    {
+                        eval_no_ret(plist_temp->exp, &modified_vlist);
+                        NB_Value *t = eval(exp->content.function_call_expression.alist->exp, vlist);
+                        Expression *exp_temp = nb_create_assignment_expression(plist_temp->exp->content.declaration_expression.identifier, &(Expression){LITERAL_EXPRESSION, *t});
+                        eval_no_ret(exp_temp, &modified_vlist);
+                        value_delete(&t);
+                        __free(exp_temp);
+                    }
+                    else
+                    {
+                        nb_error("Argument Number Doesn't Match!");
+                        exit(1);
+                    }
+                    if (exp->content.function_call_expression.alist != NULL) // directly modifiy the arguments list because we use it only one time
+                        exp->content.function_call_expression.alist = exp->content.function_call_expression.alist->next;
+                }
+                (*vlist) = modified_vlist;
+                inter->statements_list = func->block->content.block_statement.slist;
+                if (inter->statements_list != NULL)
+                    for (;inter->statements_list->prev != NULL; inter->statements_list = inter->statements_list->prev);
+                StatementResult r;
+                r.type = NULL_RESULT;
+                do {
+                    if (r.type == EXPRESSION_STATEMENT)
+                        value_delete(&(r.value));
+                    if (r.type == RETURN_STATEMENT)
+                    {
+                        value_copy(ret, r.value);
+                        value_delete(&(r.value));
+                        if (func->type != VARIOUS)
+                            nb_value_change_type(ret, func->type);
+                        break;
+                    }
+                    r = nb_interpret_once();
+                } while(r.type != NULL_RESULT);
+                inter->statements_list = saved_slist;
+                level_decrease();
+                (*vlist) = saved_vlist;
+            }
             break;
+        }
     }
     return ret;
 }
 
+void eval_no_ret(Expression *exp, VariablesList **vlist)
+{
+    NB_Value *val = eval(exp, vlist);
+    value_delete(&val);
+}
+
 VariablesList *find_in_list_func(VariablesList *vlist, UTF8_String *str)
 {
-    // VariablesList *stored = vlist;
+    // VariablesList *saved = vlist;
     for (;vlist != NULL; vlist = vlist->prev)
     {
         if (!utf8_string_compare(str, vlist->identifier))
             return vlist;
     }
-    // vlist = stored;
+    // vlist = saved;
     // for (;vlist != NULL; vlist = vlist->next)
     // {
     //     if (!utf8_string_compare(str, vlist->identifier))

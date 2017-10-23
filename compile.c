@@ -106,7 +106,7 @@ Expression *nb_create_identifier_expression(UTF8_String *identifier)
     return expression; 
 }
 
-Expression *nb_create_function_call_expression(UTF8_String *identifier, ArgumentList *alist)
+Expression *nb_create_function_call_expression(UTF8_String *identifier, ArgumentsList *alist)
 {
     Expression *expression = new_expression();
     expression->type = FUNCTION_CALL_EXPRESSION;
@@ -115,15 +115,23 @@ Expression *nb_create_function_call_expression(UTF8_String *identifier, Argument
     return expression;
 }
 
-Statement *nb_create_function_definition_statement(NB_ValueType type, UTF8_String *identifier, ParameterList *plist, Statement *block)
+Statement *nb_create_function_definition_statement(NB_ValueType type, UTF8_String *identifier, ParametersList *plist, Statement *block)
 {
     NB_Interpreter *inter = nb_get_interpreter();
+    int count = 1;
+    if (plist == NULL)
+        count = 0;
+    else
+        for (;plist->prev != NULL; plist = plist->prev)
+            count++;
     if (inter->func_list == NULL)
     {
         inter->func_list = (FunctionList*)malloc(sizeof(FunctionList));
         inter->func_list->prev = NULL;
         inter->func_list->next = NULL;
-        inter->func_list->identifier = utf8_string_copy_new(identifier);
+        inter->func_list->pnum = count;
+        inter->func_list->builtin = 0;
+        inter->func_list->identifier = identifier;
         inter->func_list->type = type;
         inter->func_list->plist = plist;
         inter->func_list->block = block;
@@ -134,7 +142,9 @@ Statement *nb_create_function_definition_statement(NB_ValueType type, UTF8_Strin
         inter->func_list->next->prev = inter->func_list;
         inter->func_list = inter->func_list->next;
         inter->func_list->next = NULL;
-        inter->func_list->identifier = utf8_string_copy_new(identifier);
+        inter->func_list->pnum = count;
+        inter->func_list->builtin = 0;
+        inter->func_list->identifier = identifier;
         inter->func_list->type = type;
         inter->func_list->plist = plist;
         inter->func_list->block = block;
@@ -154,7 +164,7 @@ Statement *nb_create_expression_statement(Expression *exp)
     return statement;
 }
 
-Statement *nb_create_block_statement(StatementList *slist)
+Statement *nb_create_block_statement(StatementsList *slist)
 {
     Statement *statement = new_statement();
     statement->type = BLOCK_STATEMENT;
@@ -274,23 +284,23 @@ Statement *nb_cat_elseif_statement(Expression *exp, Statement *block)
     return s;
 }
 
-StatementList *nb_create_statement_list(Statement *s)
+StatementsList *nb_create_statement_list(Statement *s)
 {
-    StatementList *slist = (StatementList*)malloc(sizeof(StatementList));
+    StatementsList *slist = (StatementsList*)malloc(sizeof(StatementsList));
     slist->s = s;
     slist->prev = NULL;
     slist->next = NULL;
     if (state == 0)
     {
-        nb_get_interpreter()->global_list = slist;
+        nb_get_interpreter()->statements_list = slist;
         state++;
     }
     return slist;
 }
 
-StatementList *nb_cat_statement_list(StatementList *slist, Statement *s)
+StatementsList *nb_cat_statement_list(StatementsList *slist, Statement *s)
 {
-    slist->next = (StatementList*)malloc(sizeof(StatementList));
+    slist->next = (StatementsList*)malloc(sizeof(StatementsList));
     slist->next->prev = slist;
     slist = slist->next;
     slist->next = NULL;
@@ -298,18 +308,18 @@ StatementList *nb_cat_statement_list(StatementList *slist, Statement *s)
     return slist;
 }
 
-ArgumentList *nb_create_argument_list(Expression *exp)
+ArgumentsList *nb_create_argument_list(Expression *exp)
 {
-    ArgumentList *alist = (ArgumentList*)malloc(sizeof(ArgumentList));
+    ArgumentsList *alist = (ArgumentsList*)malloc(sizeof(ArgumentsList));
     alist->prev = NULL;
     alist->next = NULL;
     alist->exp = exp;
     return alist;
 }
 
-ArgumentList *nb_cat_argument_list(ArgumentList *alist, Expression *exp)
+ArgumentsList *nb_cat_argument_list(ArgumentsList *alist, Expression *exp)
 {
-    alist->next = (ArgumentList*)malloc(sizeof(ArgumentList));
+    alist->next = (ArgumentsList*)malloc(sizeof(ArgumentsList));
     alist->next->prev = alist;
     alist = alist->next;
     alist->next = NULL;
@@ -317,38 +327,21 @@ ArgumentList *nb_cat_argument_list(ArgumentList *alist, Expression *exp)
     return alist;
 }
 
-ParameterList *nb_create_parameter_list(NB_ValueType type, Expression *exp)
+ParametersList *nb_create_parameter_list(Expression *exp)
 {
-    ParameterList *plist = (ParameterList*)malloc(sizeof(ParameterList));
+    ParametersList *plist = (ParametersList*)malloc(sizeof(ParametersList));
     plist->prev = NULL;
     plist->next = NULL;
-    plist->aexp = exp;
-    plist->type = type;
+    plist->exp = exp;
     return plist;
 }
 
-ParameterList *nb_cat_parameter_list(NB_ValueType type, ParameterList *plist, Expression *exp)
+ParametersList *nb_cat_parameter_list(ParametersList *plist, Expression *exp)
 {
-    plist->next = (ParameterList*)malloc(sizeof(ParameterList));
+    plist->next = (ParametersList*)malloc(sizeof(ParametersList));
     plist->next->prev = plist;
     plist = plist->next;
     plist->next = NULL;
-    plist->aexp = exp;
-    plist->type = type;
+    plist->exp = exp;
     return plist;
 }
-
-// StatementList *statement(Statement *s)
-// {
-//     NB_Interpreter *inter = nb_get_interpreter();            
-//     inter->temp_slist[inter->count] = nb_create_statement_list(s);
-//     inter->count++;
-//     return inter->temp_slist[inter->count - 1];
-// }
-
-// StatementList *statementl(StatementList *slist, Statement *s)
-// {
-//     NB_Interpreter *inter = nb_get_interpreter();                        
-//     inter->temp_slist[inter->count] = nb_cat_statement_list(slist, s);
-//     return inter->temp_slist[inter->count];
-// }

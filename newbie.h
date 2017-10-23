@@ -61,24 +61,22 @@ typedef ValueType NB_ValueType;
 typedef Value NB_Value;
 
 typedef struct Expression_tag Expression;
-
 typedef struct Statement_tag Statement;
-typedef struct StatementList_tag StatementList;
+typedef struct StatementsList_tag StatementsList;
 
-typedef struct ArgumentList_tag
+typedef struct ArgumentsList_tag
 {
     Expression *exp;
-    struct ArgumentList_tag *prev;
-    struct ArgumentList_tag *next;
-} ArgumentList;
+    struct ArgumentsList_tag *prev;
+    struct ArgumentsList_tag *next;
+} ArgumentsList;
 
-typedef struct ParameterList_tag
+typedef struct ParametersList_tag
 {
-    NB_ValueType type;
-    Expression *aexp;
-    struct ParameterList_tag *prev;
-    struct ParameterList_tag *next;
-} ParameterList;
+    Expression *exp;
+    struct ParametersList_tag *prev;
+    struct ParametersList_tag *next;
+} ParametersList;
 
 typedef struct AssignmentExpression_tag
 {
@@ -110,7 +108,7 @@ typedef struct UnaryExpression_tag
 typedef struct FunctionCallExpression_tag
 {
     UTF8_String *identifier;
-    ArgumentList *alist;
+    ArgumentsList *alist;
 } FunctionCallExpression;
 
 typedef struct Expression_tag 
@@ -133,7 +131,7 @@ typedef struct Expression_tag
 
 typedef struct Block_tag
 {
-    StatementList *slist;
+    StatementsList *slist;
 } Block;
 
 typedef struct ElseIf_tag
@@ -181,11 +179,11 @@ struct Statement_tag
     } content;
 };
 
-struct StatementList_tag
+struct StatementsList_tag
 {
     Statement *s;
-    struct StatementList_tag *prev;
-    struct StatementList_tag *next;
+    struct StatementsList_tag *prev;
+    struct StatementsList_tag *next;
 };
 
 typedef struct VariablesList_tag
@@ -199,10 +197,13 @@ typedef struct VariablesList_tag
 
 typedef struct FunctionList_tag
 {
-    ParameterList *plist;
+    ParametersList *plist;
+    int pnum;
+    char builtin;
     NB_ValueType type;
     UTF8_String *identifier;
     Statement *block;
+    // (NB_Value*)() builtin_ptr;
     struct FunctionList_tag *prev;
     struct FunctionList_tag *next;
 } FunctionList;
@@ -211,8 +212,8 @@ typedef struct NB_Interpreter_tag
 {
     int current_line;
     int level;
-    StatementList *global_list;
-    // StatementList **temp_slist;
+    StatementsList *statements_list;
+    StatementsList *global_slist;
     VariablesList *variables_list;
     FunctionList *func_list;
 } NB_Interpreter;
@@ -230,31 +231,35 @@ Expression *nb_create_unary_expression(UnaryType type, Expression *exp);
 Expression *nb_create_change_expression(UnaryType type, UTF8_String *identifier);
 Expression *nb_create_declaration_expression(NB_ValueType type, UTF8_String *identifier, Expression *assignment_expression);
 Expression *nb_create_identifier_expression(UTF8_String *identifier);
-Expression *nb_create_function_call_expression(UTF8_String *identifier, ArgumentList *alist);
+Expression *nb_create_function_call_expression(UTF8_String *identifier, ArgumentsList *alist);
 
 Statement *nb_create_expression_statement(Expression *exp);
-Statement *nb_create_block_statement(StatementList *slist);
+Statement *nb_create_block_statement(StatementsList *slist);
 Statement *nb_create_if_statement(Expression *exp, Statement *block);
 Statement *nb_create_foreach_statement(UTF8_String *identifier, Expression *exp, Statement *block);
 Statement *nb_create_for_statement(Expression *exp1, Expression *exp2, Expression *exp3, Statement *block);
 Statement *nb_create_return_statement(Expression *exp);
 Statement *nb_create_continue_statement();
 Statement *nb_create_break_statement();
-Statement *nb_create_function_definition_statement(NB_ValueType type, UTF8_String *identifier, ParameterList *plist, Statement *block);
+Statement *nb_create_function_definition_statement(NB_ValueType type, UTF8_String *identifier, ParametersList *plist, Statement *block);
 Statement *nb_cat_else_statement(Statement *block);
 Statement *nb_cat_elseif_statement(Expression *exp, Statement *block);
 
-StatementList *nb_create_statement_list(Statement *s);
-StatementList *nb_cat_statement_list(StatementList *slist, Statement *s);
+StatementsList *nb_create_statement_list(Statement *s);
+StatementsList *nb_cat_statement_list(StatementsList *slist, Statement *s);
 
-ArgumentList *nb_create_argument_list(Expression *exp);
-ArgumentList *nb_cat_argument_list(ArgumentList *alist, Expression *exp);
+ArgumentsList *nb_create_argument_list(Expression *exp);
+ArgumentsList *nb_cat_argument_list(ArgumentsList *alist, Expression *exp);
 
-ParameterList *nb_create_parameter_list(NB_ValueType type, Expression *exp);
-ParameterList *nb_cat_parameter_list(NB_ValueType type, ParameterList *plist, Expression *exp);
+ParametersList *nb_create_parameter_list(Expression *exp);
+ParametersList *nb_cat_parameter_list(ParametersList *plist, Expression *exp);
 
 void nb_interpret();
-NB_Value *eval(Expression *exp);
+StatementResult nb_interpret_once();
+void level_increase();
+void level_decrease();
+NB_Value *eval(Expression *exp, VariablesList **vlist);
+void eval_no_ret(Expression *exp, VariablesList **vlist);
 NB_Interpreter *nb_get_interpreter();
 NB_Interpreter *nb_interpreter_new();
 int nb_interpreter_set(NB_Interpreter *inter);
@@ -263,6 +268,4 @@ void nb_clean();
 void nb_error(char *str);
 void nb_warning(char *str);
 
-StatementList *statement(Statement *s);
-StatementList *statementl(StatementList *slist, Statement *s);
 #endif

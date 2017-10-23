@@ -8,6 +8,5 @@
 
 int main(void)
 {
-    double i = 1.1;
-    i++;
+    size_t a = sizeof(bool);
 }

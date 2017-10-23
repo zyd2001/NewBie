@@ -20,12 +20,14 @@ typedef enum ValueType_tag
     DOUBLE,
     BOOL,
     STRING,
-    ARRAY
+    ARRAY,
+    VARIOUS
 } ValueType;
 
 typedef struct Value_tag 
 {
     ValueType type;
+    char various;
     union 
     {
         int int_value;
@@ -115,7 +117,7 @@ size_t utf32_string_get_length(UTF32_String *str);
 void *utf32_string_delete_func(UTF32_String **str, ...);
 #define utf32_string_delete(...) utf32_string_delete_func(__VA_ARGS__, NULL)
 
-#define value_new() (Value*)malloc(sizeof(Value))
+#define value_new() (Value*)calloc(1, sizeof(Value))
 Value *value_new_type(ValueType type);
 Value *value_copy_func(Value **destination, Value *source);
 Value *value_copy_new(Value *source);

@@ -69,33 +69,35 @@ extern int yydebug;
     BOOL_T = 279,
     STRING_T = 280,
     ARRAY_T = 281,
-    IF = 282,
-    ELSE = 283,
-    ELSEIF = 284,
-    FOR = 285,
-    IN = 286,
-    CLASS = 287,
-    RETURN = 288,
-    BREAK = 289,
-    CONTINUE = 290,
-    LP = 291,
-    RP = 292,
-    LC = 293,
-    RC = 294,
-    LB = 295,
-    RB = 296,
-    SEMICOLON = 297,
-    COMMA = 298,
-    ASSIGN_T = 299,
-    EXCLAMATION = 300,
-    DOT = 301,
-    ADD_ASSIGN = 302,
-    SUB_ASSIGN = 303,
-    MUL_ASSIGN = 304,
-    DIV_ASSIGN = 305,
-    MOD_ASSIGN = 306,
-    INCREMENT_T = 307,
-    DECREMENT_T = 308
+    VAR_T = 282,
+    FUNC_T = 283,
+    IF = 284,
+    ELSE = 285,
+    ELSEIF = 286,
+    FOR = 287,
+    IN = 288,
+    CLASS = 289,
+    RETURN = 290,
+    BREAK = 291,
+    CONTINUE = 292,
+    LP = 293,
+    RP = 294,
+    LC = 295,
+    RC = 296,
+    LB = 297,
+    RB = 298,
+    SEMICOLON = 299,
+    COMMA = 300,
+    ASSIGN_T = 301,
+    EXCLAMATION = 302,
+    DOT = 303,
+    ADD_ASSIGN = 304,
+    SUB_ASSIGN = 305,
+    MUL_ASSIGN = 306,
+    DIV_ASSIGN = 307,
+    MOD_ASSIGN = 308,
+    INCREMENT_T = 309,
+    DECREMENT_T = 310
   };
 #endif
 /* Tokens.  */
@@ -123,33 +125,35 @@ extern int yydebug;
 #define BOOL_T 279
 #define STRING_T 280
 #define ARRAY_T 281
-#define IF 282
-#define ELSE 283
-#define ELSEIF 284
-#define FOR 285
-#define IN 286
-#define CLASS 287
-#define RETURN 288
-#define BREAK 289
-#define CONTINUE 290
-#define LP 291
-#define RP 292
-#define LC 293
-#define RC 294
-#define LB 295
-#define RB 296
-#define SEMICOLON 297
-#define COMMA 298
-#define ASSIGN_T 299
-#define EXCLAMATION 300
-#define DOT 301
-#define ADD_ASSIGN 302
-#define SUB_ASSIGN 303
-#define MUL_ASSIGN 304
-#define DIV_ASSIGN 305
-#define MOD_ASSIGN 306
-#define INCREMENT_T 307
-#define DECREMENT_T 308
+#define VAR_T 282
+#define FUNC_T 283
+#define IF 284
+#define ELSE 285
+#define ELSEIF 286
+#define FOR 287
+#define IN 288
+#define CLASS 289
+#define RETURN 290
+#define BREAK 291
+#define CONTINUE 292
+#define LP 293
+#define RP 294
+#define LC 295
+#define RC 296
+#define LB 297
+#define RB 298
+#define SEMICOLON 299
+#define COMMA 300
+#define ASSIGN_T 301
+#define EXCLAMATION 302
+#define DOT 303
+#define ADD_ASSIGN 304
+#define SUB_ASSIGN 305
+#define MUL_ASSIGN 306
+#define DIV_ASSIGN 307
+#define MOD_ASSIGN 308
+#define INCREMENT_T 309
+#define DECREMENT_T 310
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -161,11 +165,11 @@ union YYSTYPE
     UTF8_String         *identifier;
     Expression          *expression;
     Statement           *statement;
-    StatementList       *statement_list;
-    ParameterList       *parameter_list;
-    ArgumentList        *argument_list;
+    StatementsList       *statement_list;
+    ParametersList       *parameter_list;
+    ArgumentsList        *argument_list;
 
-#line 169 "y.tab.h" /* yacc.c:1909  */
+#line 173 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

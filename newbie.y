@@ -28,9 +28,9 @@ void yyerror (char const *s)
     UTF8_String         *identifier;
     Expression          *expression;
     Statement           *statement;
-    StatementList       *statement_list;
-    ParameterList       *parameter_list;
-    ArgumentList        *argument_list;
+    StatementsList       *statement_list;
+    ParametersList       *parameter_list;
+    ArgumentsList        *argument_list;
 }
 %expect 78
 %left LOGICAL_AND LOGICAL_OR
@@ -40,7 +40,7 @@ void yyerror (char const *s)
 %nonassoc UMINUS
 %token <expression>     INT_LITERAL STRING_LITERAL DOUBLE_LITERAL BOOL_LITERAL
 %token <identifier>     IDENTIFIER
-%token INT_T DOUBLE_T BOOL_T STRING_T ARRAY_T IF ELSE ELSEIF FOR IN CLASS RETURN BREAK CONTINUE
+%token INT_T DOUBLE_T BOOL_T STRING_T ARRAY_T VAR_T FUNC_T IF ELSE ELSEIF FOR IN CLASS RETURN BREAK CONTINUE
         LP RP LC RC LB RB SEMICOLON COMMA ASSIGN_T EXCLAMATION DOT
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
         INCREMENT_T DECREMENT_T
@@ -214,6 +214,10 @@ void yyerror (char const *s)
         {
             $$ = nb_create_declaration_expression(ARRAY, $2, NULL);
         }
+        | VAR_T IDENTIFIER
+        {
+            $$ = nb_create_declaration_expression(VARIOUS, $2, NULL);
+        }
         | INT_T assignment_expression 
         {
             $$ = nb_create_declaration_expression(INT, NULL, $2);
@@ -233,6 +237,10 @@ void yyerror (char const *s)
         | ARRAY_T assignment_expression 
         {
             $$ = nb_create_declaration_expression(ARRAY, NULL, $2);
+        }
+        | VAR_T assignment_expression 
+        {
+            $$ = nb_create_declaration_expression(VARIOUS, NULL, $2);
         }
         ;
     assignment_expression: IDENTIFIER ASSIGN_T expression
@@ -285,6 +293,10 @@ void yyerror (char const *s)
         {
             $$ = nb_create_function_definition_statement(ARRAY, $2, $4, $6);
         }
+        | FUNC_T IDENTIFIER LP parameter_list RP block
+        {
+            $$ = nb_create_function_definition_statement(VARIOUS, $2, $4, $6);
+        }
         ;
     block: LC statement_list RC
         {
@@ -295,7 +307,11 @@ void yyerror (char const *s)
             $$ = nb_create_block_statement(NULL);
         }
         ;
-    argument_list: expression
+    argument_list: /* empty */
+        {
+            $$ = NULL;
+        }
+        | expression
         {
             $$ = nb_create_argument_list($1);
         }
@@ -306,47 +322,15 @@ void yyerror (char const *s)
         ;
     parameter_list: /* empty */
         {
-            $$ = nb_create_parameter_list(INT, NULL);
+            $$ = NULL;
         }
-        | INT_T expression
+        | declaration_expression
         {
-            $$ = nb_create_parameter_list(INT, $2);
+            $$ = nb_create_parameter_list($1);
         }
-        | DOUBLE_T expression
+        | parameter_list COMMA declaration_expression
         {
-            $$ = nb_create_parameter_list(DOUBLE, $2);
-        }
-        | BOOL_T expression
-        {
-            $$ = nb_create_parameter_list(BOOL, $2);
-        }
-        | STRING_T expression
-        {
-            $$ = nb_create_parameter_list(STRING, $2);
-        }
-        | ARRAY_T expression
-        {
-            $$ = nb_create_parameter_list(ARRAY, $2);
-        }
-        | parameter_list COMMA INT_T expression
-        {
-            $$ = nb_cat_parameter_list(INT, $1, $4);
-        }
-        | parameter_list COMMA DOUBLE_T expression
-        {
-            $$ = nb_cat_parameter_list(DOUBLE, $1, $4);
-        }
-        | parameter_list COMMA BOOL_T expression
-        {
-            $$ = nb_cat_parameter_list(BOOL, $1, $4);
-        }
-        | parameter_list COMMA STRING_T expression
-        {
-            $$ = nb_cat_parameter_list(STRING, $1, $4);
-        }
-        | parameter_list COMMA ARRAY_T expression
-        {
-            $$ = nb_cat_parameter_list(ARRAY, $1, $4);
+            $$ = nb_cat_parameter_list($1, $3);
         }
         ;
 %%
