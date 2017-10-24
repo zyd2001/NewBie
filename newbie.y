@@ -95,6 +95,10 @@ void yyerror (char const *s)
         {
             $$ = nb_create_break_statement();
         }
+        | CLASS block
+        {
+            $$ = nb_create_class_definition_statement($2);
+        }
         | block
         | function_definition_statement
         ;
@@ -249,23 +253,23 @@ void yyerror (char const *s)
         }
         | IDENTIFIER ADD_ASSIGN expression
         {
-            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(ADD, nb_create_identifier_expression($1), $3));
+            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(ADD, nb_create_identifier_expression(utf8_string_copy_new($1)), $3));
         }
         | IDENTIFIER SUB_ASSIGN expression
         {
-            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(SUB, nb_create_identifier_expression($1), $3));
+            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(SUB, nb_create_identifier_expression(utf8_string_copy_new($1)), $3));
         }
         | IDENTIFIER MUL_ASSIGN expression
         {
-            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(MUL, nb_create_identifier_expression($1), $3));
+            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(MUL, nb_create_identifier_expression(utf8_string_copy_new($1)), $3));
         }
         | IDENTIFIER DIV_ASSIGN expression
         {
-            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(DIV, nb_create_identifier_expression($1), $3));
+            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(DIV, nb_create_identifier_expression(utf8_string_copy_new($1)), $3));
         }
         | IDENTIFIER MOD_ASSIGN expression
         {
-            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(MOD, nb_create_identifier_expression($1), $3));
+            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(MOD, nb_create_identifier_expression(utf8_string_copy_new($1)), $3));
         }
         ;
     primary_expression: INT_LITERAL

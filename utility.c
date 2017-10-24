@@ -508,7 +508,7 @@ UTF32_String *utf32_string_copy_func(UTF32_String **destination, UTF32_String *s
     (*destination)->size = source->size;
     (*destination)->limit = source->limit;
     (*destination)->length = source->length;
-    (*destination)->value = (char*)realloc((*destination)->value, source->size);
+    (*destination)->value = (char*)realloc((*destination)->value, source->limit);
     memcpy((*destination)->value, source->value, source->size);
     return (*destination);
 }
@@ -705,7 +705,8 @@ Value *value_to_bool(Value **val)
 Value *value_to_string(Value **val)
 {
     UTF32_String *converted = get_string_value(*val);
-    utf32_string_delete(&((*val)->value.string_value));
+    if ((*val)->type == STRING)
+        utf32_string_delete(&((*val)->value.string_value));
     (*val)->type = STRING;
     (*val)->value.string_value = converted;
     return *val;

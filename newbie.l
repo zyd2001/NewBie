@@ -37,11 +37,11 @@ void increase_line_number()
 <INITIAL>"break"        return BREAK;
 <INITIAL>"continue"     return CONTINUE;
 <INITIAL>"return"       return RETURN;
-<INITIAL>"class"        return CLASS;
+<INITIAL>"class"        {nb_get_interpreter()->block_state--;return CLASS;}
 <INITIAL>"("            return LP;
 <INITIAL>")"            return RP;
-<INITIAL>"{"            return LC;
-<INITIAL>"}"            return RC;
+<INITIAL>"{"            {nb_get_interpreter()->block_state++;return LC;}
+<INITIAL>"}"            {nb_get_interpreter()->block_state--;return RC;}
 <INITIAL>"["            return LB;
 <INITIAL>"]"            return RB;
 <INITIAL>";"            return SEMICOLON;
@@ -150,7 +150,7 @@ void increase_line_number()
 <BLOCK_COMMENT>"*/" {BEGIN INITIAL;}
 <STRING_LITERAL_STATE>\n increase_line_number();
 <STRING_LITERAL_STATE>\\n {
-    utf8_string_append(string_buffer, "\\n");
+    utf8_string_append(string_buffer, "\n");
 }
 <STRING_LITERAL_STATE>\\\" {
     utf8_string_append(string_buffer, "\"");

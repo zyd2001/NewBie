@@ -1,12 +1,13 @@
-for (int i = 0; i < 10; i++)
 {
-    if (i == 9)
-    {
-        i++;
-    }
+    var str = <<<ASD
+    asd\n"";
+            haha;
+    asd
+>>>ASD;
+    println(str + "asd");
 }
 
-func crash()
+function println(string str)
 {
-    int a = "asd";
+    print(str + "\n");
 }

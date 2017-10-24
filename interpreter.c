@@ -2,10 +2,6 @@
 
 static NB_Interpreter *inter;
 
-StatementResult nb_interpret_once();
-void level_increase();
-void level_decrease();
-
 int get_bool_value_free(NB_Value *val)
 {
     value_to_bool(&val);
@@ -21,7 +17,7 @@ void nb_interpret()
     result.type = NULL_RESULT;
     do {
         if (result.type == EXPRESSION_STATEMENT)
-            value_delete(&result.value);
+            value_delete(&(result.content.value));
         result = nb_interpret_once();
     } while(result.type != NULL_RESULT);
     inter->statements_list = saved;
@@ -37,7 +33,7 @@ StatementResult nb_interpret_once()
             case EXPRESSION_STATEMENT:
             {
                 result.type = EXPRESSION_STATEMENT;
-                result.value = eval(inter->statements_list->s->content.expression, &(inter->variables_list));
+                result.content.value = eval(inter->statements_list->s->content.expression, &(inter->variables_list));
                 break;
             }
             case BLOCK_STATEMENT:
@@ -61,15 +57,15 @@ StatementResult nb_interpret_once()
                     r.type = NULL_RESULT; \
                     do { \
                         if (r.type == EXPRESSION_STATEMENT) \
-                            value_delete(&(r.value)); \
-                        if (r.type == BREAK_STATEMENT) \
+                            value_delete(&(r.content.value)); \
+                        else if (r.type == BREAK_STATEMENT) \
                             goto break_tag##num; \
-                        if (r.type == CONTINUE_STATEMENT) \
+                        else if (r.type == CONTINUE_STATEMENT) \
                             goto continue_tag##num; \
-                        if (r.type == RETURN_STATEMENT) \
+                        else if (r.type == RETURN_STATEMENT) \
                         { \
                             result.type = RETURN_STATEMENT; \
-                            result.value = r.value; \
+                            result.content.value = r.content.value; \
                             level_decrease(); \
                             return result; \
                         } \
@@ -118,23 +114,23 @@ StatementResult nb_interpret_once()
                 r.type = NULL_RESULT; \
                 do { \
                     if (r.type == EXPRESSION_STATEMENT) \
-                        value_delete(&(r.value)); \
-                    if (r.type == BREAK_STATEMENT) \
+                        value_delete(&(r.content.value)); \
+                    else if (r.type == BREAK_STATEMENT) \
                     { \
                         result.type = BREAK_STATEMENT; \
                         level_decrease(); \
                         return result; \
                     } \
-                    if (r.type == CONTINUE_STATEMENT) \
+                    else if (r.type == CONTINUE_STATEMENT) \
                     { \
                         result.type = CONTINUE_STATEMENT; \
                         level_decrease(); \
                         return result; \
                     } \
-                    if (r.type == RETURN_STATEMENT) \
+                    else if (r.type == RETURN_STATEMENT) \
                     { \
                         result.type = RETURN_STATEMENT; \
-                        result.value = r.value;  \
+                        result.content.value = r.content.value;  \
                         level_decrease(); \
                         return result; \
                     }       \
@@ -196,7 +192,7 @@ StatementResult nb_interpret_once()
             case RETURN_STATEMENT:
             {
                 result.type = RETURN_STATEMENT;
-                result.value = eval(inter->statements_list->s->content.expression, &(inter->variables_list));
+                result.content.value = eval(inter->statements_list->s->content.expression, &(inter->variables_list));
                 break;
             }
         }
@@ -246,6 +242,15 @@ void level_decrease()
     inter->level--;
 }
 
+/* temporary, only add a print builtin function */
+NB_Value *print(NB_Value *val, ...)
+{
+    value_to_string(&val);
+    utf32_string_print(val->value.string_value);
+    return NULL;
+}
+
+
 void nb_interpreter_init()
 {
     StatementsList *saved = inter->statements_list->next;
@@ -262,6 +267,37 @@ void nb_interpreter_init()
         fprintf(stderr, "No Any Statement!");
         exit(1);
     }
+    
+    /* temporary, only add a print builtin function */
+
+    if (inter->func_list == NULL)
+    {
+        inter->func_list = (FunctionList*)malloc(sizeof(FunctionList));
+        inter->func_list->prev = NULL;
+        inter->func_list->next = NULL;
+        inter->func_list->pnum = 1;
+        inter->func_list->builtin = 1;
+        inter->func_list->identifier = utf8_string_new_wrap("print");
+        inter->func_list->type = VARIOUS;
+        inter->func_list->plist = nb_create_parameter_list(nb_create_declaration_expression(VARIOUS, utf8_string_new_wrap("__p1"), NULL));
+        inter->func_list->block = NULL;
+        inter->func_list->builtin_ptr = print;
+    }
+    else
+    {
+        inter->func_list->next = (FunctionList*)malloc(sizeof(FunctionList));
+        inter->func_list->next->prev = inter->func_list;
+        inter->func_list = inter->func_list->next;
+        inter->func_list->next = NULL;
+        inter->func_list->pnum = 1;
+        inter->func_list->builtin = 1;
+        inter->func_list->identifier = utf8_string_new_wrap("print");
+        inter->func_list->type = VARIOUS;
+        inter->func_list->plist = nb_create_parameter_list(nb_create_declaration_expression(VARIOUS, utf8_string_new_wrap("__p1"), NULL));
+        inter->func_list->block = NULL;
+        inter->func_list->builtin_ptr = print;
+    }
+
     inter->global_slist = inter->statements_list;
 }
 
@@ -270,6 +306,7 @@ NB_Interpreter *nb_interpreter_new()
     NB_Interpreter *inter = (NB_Interpreter*)malloc(sizeof(NB_Interpreter));
     inter->current_line = 1;
     inter->level = 0;
+    inter->block_state = 0;
     inter->variables_list = NULL;
     inter->func_list = NULL;
 }
@@ -307,12 +344,23 @@ void nb_clean()
     FunctionList *saved;    
     while (inter->func_list != NULL)
     {
-        saved = inter->func_list->prev;
-        free_statement(inter->func_list->block);
-        free_parameters_list(inter->func_list->plist);
-        utf8_string_delete(&(inter->func_list->identifier));
-        __free(inter->func_list);
-        inter->func_list = saved;
+        if (!(inter->func_list->builtin))
+        {
+            saved = inter->func_list->prev;
+            free_statement(inter->func_list->block);
+            free_parameters_list(inter->func_list->plist);
+            utf8_string_delete(&(inter->func_list->identifier));
+            __free(inter->func_list);
+            inter->func_list = saved;
+        }
+        else
+        {
+            saved = inter->func_list->prev;
+            free_parameters_list(inter->func_list->plist);
+            utf8_string_delete(&(inter->func_list->identifier));
+            __free(inter->func_list);
+            inter->func_list = saved;
+        }
     }
 
     __free(inter);
@@ -327,12 +375,6 @@ void nb_error(char *str)
 void nb_warning(char *str)
 {
     fprintf(stderr, "%s\n", str);
-}
-
-NB_Value *print(NB_Value *val)
-{
-    value_to_string(&val);
-    utf32_string_print(val->value.string_value);
 }
 
 void free_expression_func(Expression *exp)
@@ -400,9 +442,15 @@ void free_statement_func(Statement *s)
             break;
         case FOR_STATEMENT:
             free_statement(s->content.for_statement.block);
-            free_expression(s->content.for_statement.exp1);
-            free_expression(s->content.for_statement.exp2);
-            free_expression(s->content.for_statement.exp3);
+            if (s->content.for_statement.exp1 != NULL)
+                free_expression(s->content.for_statement.exp1);
+            if (s->content.for_statement.exp2 != NULL)
+                free_expression(s->content.for_statement.exp2);
+            if (s->content.for_statement.exp3 != NULL)
+                free_expression(s->content.for_statement.exp3);
+            break;
+        case RETURN_STATEMENT:
+            free_expression(s->content.expression);
             break;
     }
     __free(s);

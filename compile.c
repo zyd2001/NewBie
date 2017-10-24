@@ -118,6 +118,8 @@ Expression *nb_create_function_call_expression(UTF8_String *identifier, Argument
 Statement *nb_create_function_definition_statement(NB_ValueType type, UTF8_String *identifier, ParametersList *plist, Statement *block)
 {
     NB_Interpreter *inter = nb_get_interpreter();
+    if (inter->block_state > 0)
+        fprintf(stderr, "Don't Define Function inside a Block!");
     int count = 1;
     if (plist == NULL)
         count = 0;
@@ -162,6 +164,11 @@ Statement *nb_create_expression_statement(Expression *exp)
     statement->content.expression = exp;
     statement->line_number = nb_get_interpreter()->current_line;
     return statement;
+}
+
+Statement *nb_create_class_definition_statement(Statement *block)
+{
+
 }
 
 Statement *nb_create_block_statement(StatementsList *slist)

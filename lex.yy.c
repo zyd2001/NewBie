@@ -979,7 +979,7 @@ return RETURN;
 case 21:
 YY_RULE_SETUP
 #line 40 "newbie.l"
-return CLASS;
+{nb_get_interpreter()->block_state--;return CLASS;}
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
@@ -994,12 +994,12 @@ return RP;
 case 24:
 YY_RULE_SETUP
 #line 43 "newbie.l"
-return LC;
+{nb_get_interpreter()->block_state++;return LC;}
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
 #line 44 "newbie.l"
-return RC;
+{nb_get_interpreter()->block_state--;return RC;}
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
@@ -1321,7 +1321,7 @@ case 76:
 YY_RULE_SETUP
 #line 152 "newbie.l"
 {
-    utf8_string_append(string_buffer, "\\n");
+    utf8_string_append(string_buffer, "\n");
 }
 	YY_BREAK
 case 77:

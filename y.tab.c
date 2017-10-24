@@ -1880,7 +1880,7 @@ yyreduce:
   case 56:
 #line 251 "newbie.y" /* yacc.c:1646  */
     {
-            (yyval.expression) = nb_create_assignment_expression((yyvsp[-2].identifier), nb_create_binary_expression(ADD, nb_create_identifier_expression((yyvsp[-2].identifier)), (yyvsp[0].expression)));
+            (yyval.expression) = nb_create_assignment_expression((yyvsp[-2].identifier), nb_create_binary_expression(ADD, nb_create_identifier_expression(utf8_string_copy_new((yyvsp[-2].identifier))), (yyvsp[0].expression)));
         }
 #line 1886 "y.tab.c" /* yacc.c:1646  */
     break;
@@ -1888,7 +1888,7 @@ yyreduce:
   case 57:
 #line 255 "newbie.y" /* yacc.c:1646  */
     {
-            (yyval.expression) = nb_create_assignment_expression((yyvsp[-2].identifier), nb_create_binary_expression(SUB, nb_create_identifier_expression((yyvsp[-2].identifier)), (yyvsp[0].expression)));
+            (yyval.expression) = nb_create_assignment_expression((yyvsp[-2].identifier), nb_create_binary_expression(SUB, nb_create_identifier_expression(utf8_string_copy_new((yyvsp[-2].identifier))), (yyvsp[0].expression)));
         }
 #line 1894 "y.tab.c" /* yacc.c:1646  */
     break;
@@ -1896,7 +1896,7 @@ yyreduce:
   case 58:
 #line 259 "newbie.y" /* yacc.c:1646  */
     {
-            (yyval.expression) = nb_create_assignment_expression((yyvsp[-2].identifier), nb_create_binary_expression(MUL, nb_create_identifier_expression((yyvsp[-2].identifier)), (yyvsp[0].expression)));
+            (yyval.expression) = nb_create_assignment_expression((yyvsp[-2].identifier), nb_create_binary_expression(MUL, nb_create_identifier_expression(utf8_string_copy_new((yyvsp[-2].identifier))), (yyvsp[0].expression)));
         }
 #line 1902 "y.tab.c" /* yacc.c:1646  */
     break;
@@ -1904,7 +1904,7 @@ yyreduce:
   case 59:
 #line 263 "newbie.y" /* yacc.c:1646  */
     {
-            (yyval.expression) = nb_create_assignment_expression((yyvsp[-2].identifier), nb_create_binary_expression(DIV, nb_create_identifier_expression((yyvsp[-2].identifier)), (yyvsp[0].expression)));
+            (yyval.expression) = nb_create_assignment_expression((yyvsp[-2].identifier), nb_create_binary_expression(DIV, nb_create_identifier_expression(utf8_string_copy_new((yyvsp[-2].identifier))), (yyvsp[0].expression)));
         }
 #line 1910 "y.tab.c" /* yacc.c:1646  */
     break;
@@ -1912,7 +1912,7 @@ yyreduce:
   case 60:
 #line 267 "newbie.y" /* yacc.c:1646  */
     {
-            (yyval.expression) = nb_create_assignment_expression((yyvsp[-2].identifier), nb_create_binary_expression(MOD, nb_create_identifier_expression((yyvsp[-2].identifier)), (yyvsp[0].expression)));
+            (yyval.expression) = nb_create_assignment_expression((yyvsp[-2].identifier), nb_create_binary_expression(MOD, nb_create_identifier_expression(utf8_string_copy_new((yyvsp[-2].identifier))), (yyvsp[0].expression)));
         }
 #line 1918 "y.tab.c" /* yacc.c:1646  */
     break;

@@ -21,13 +21,13 @@
             "command": "gcc",
             "args": [
                 "-g",
-                "main.c",
                 "utility.c",
                 "y.tab.c",
                 "lex.yy.c",
                 "compile.c",
                 "evaluate.c",
                 "interpreter.c",
+                "main.c",
                 "-ll"
             ]
         }

@@ -47,6 +47,7 @@ do { \
         case INT: \
             if (value->type == STRING) \
             { \
+                value_delete(&value, &ret); \
                 nb_error("Type Cast Error!"); \
                 exit(1); \
             } \
@@ -55,6 +56,7 @@ do { \
         case DOUBLE: \
             if (value->type == STRING) \
             { \
+                value_delete(&value, &ret); \
                 nb_error("Type Cast Error!"); \
                 exit(1); \
             } \
@@ -63,6 +65,7 @@ do { \
         case BOOL: \
             if (value->type == STRING) \
             { \
+                value_delete(&value, &ret); \
                 nb_error("Type Cast Error!"); \
                 exit(1); \
             } \
@@ -97,6 +100,7 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
                 value_copy(ret, val);
             else
             {
+                value_delete(&ret);
                 nb_error("Undefined Variable!");
                 exit(1);
             }
@@ -123,6 +127,7 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
             VariablesList *found = find_in_list_func((*vlist), identifier);
             if (found)
             {
+                value_delete(&ret);
                 nb_error("Duplicated Declaration!");
                 exit(1);
             }
@@ -274,6 +279,7 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
                         case STRING:
                         case ARRAY:
                         {
+                            value_delete(&val, &ret); 
                             nb_error("Type Error!");
                             exit(1);
                         }
@@ -294,6 +300,7 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
                         }
                         default:
                         {
+                            value_delete(&val, &ret);
                             nb_error("Type Error!");
                             exit(1);
                         }
@@ -314,6 +321,7 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
                             break;
                         default:
                         {
+                            value_delete(&ret);
                             nb_error("Type Error!");
                             exit(1);
                         }
@@ -333,6 +341,7 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
                             break;
                         default:
                         {
+                            value_delete(&ret);
                             nb_error("Type Error!");
                             exit(1);
                         }
@@ -352,6 +361,7 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
             }
             if (!func)
             {
+                value_delete(&ret);
                 nb_error("Undefined Function!");
                 exit(1);    
             }
@@ -363,60 +373,66 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
                     count++;
             if (count > func->pnum)
             {
+                value_delete(&ret);
                 nb_error("Argument Number Doesn't Match!");
                 exit(1);
             }
+
+            level_increase();
+            StatementsList *saved_slist = inter->statements_list;
+            VariablesList *saved_vlist = NULL;
+            VariablesList *modified_vlist = (*vlist);
+            int change_flag = 1;
+            for (;modified_vlist != NULL; modified_vlist = modified_vlist->prev) // go to the global env
+            {
+                if (modified_vlist->level != 0)
+                    continue;
+                else
+                {
+                    change_flag = 0;
+                    saved_vlist = modified_vlist->next;
+                    modified_vlist->next = NULL;
+                    break;
+                }
+            }
+            if (change_flag)
+                modified_vlist = NULL;
+            ArgumentsList *alist_temp = exp->content.function_call_expression.alist;
+            for (ParametersList *plist_temp = func->plist; plist_temp != NULL; plist_temp = plist_temp->next) // initialize local variables // do not modifiy the original list beacuse we may use it more than once
+            {
+                if (alist_temp != NULL && plist_temp->exp->content.declaration_expression.exp != NULL)
+                {
+                    eval_no_ret(plist_temp->exp, &modified_vlist);
+                    NB_Value *t = eval(alist_temp->exp, vlist);
+                    Expression *exp_temp = nb_create_assignment_expression(plist_temp->exp->content.declaration_expression.exp->content.assignment_expression.identifier, &(Expression){LITERAL_EXPRESSION, *t});
+                    eval_no_ret(exp_temp, &modified_vlist);
+                    value_delete(&t);
+                    __free(exp_temp);
+                }
+                else if (plist_temp->exp->content.declaration_expression.exp != NULL)
+                    eval_no_ret(plist_temp->exp, &modified_vlist);
+                else if (alist_temp != NULL)
+                {
+                    eval_no_ret(plist_temp->exp, &modified_vlist);
+                    NB_Value *t = eval(alist_temp->exp, vlist);
+                    Expression *exp_temp = nb_create_assignment_expression(plist_temp->exp->content.declaration_expression.identifier, &(Expression){LITERAL_EXPRESSION, *t});
+                    eval_no_ret(exp_temp, &modified_vlist);
+                    value_delete(&t);
+                    __free(exp_temp);
+                }
+                else
+                {
+                    value_delete(&ret);
+                    nb_error("Argument Number Doesn't Match!");
+                    exit(1);
+                }
+                if (alist_temp != NULL) 
+                    alist_temp = alist_temp->next;
+            }
+            (*vlist) = modified_vlist;            
+
             if (!func->builtin)
             {
-                level_increase();
-                StatementsList *saved_slist = inter->statements_list;
-                VariablesList *saved_vlist = (*vlist);
-                VariablesList *modified_vlist = (*vlist);
-                int change_flag = 1;
-                for (;modified_vlist != NULL; modified_vlist = modified_vlist->prev) // go to the global env
-                {
-                    if (modified_vlist->level != 0)
-                        continue;
-                    else
-                    {
-                        change_flag = 0;
-                        modified_vlist->next = NULL;
-                        break;
-                    }
-                }
-                if (change_flag)
-                    modified_vlist = NULL;
-                for (ParametersList *plist_temp = func->plist; plist_temp != NULL; plist_temp = plist_temp->next) // initialize local variables // do not modifiy the original list beacuse we may use it more than once
-                {
-                    if (exp->content.function_call_expression.alist != NULL && plist_temp->exp->content.declaration_expression.exp != NULL)
-                    {
-                        eval_no_ret(plist_temp->exp, &modified_vlist);
-                        NB_Value *t = eval(exp->content.function_call_expression.alist->exp, vlist);
-                        Expression *exp_temp = nb_create_assignment_expression(plist_temp->exp->content.declaration_expression.exp->content.assignment_expression.identifier, &(Expression){LITERAL_EXPRESSION, *t});
-                        eval_no_ret(exp_temp, &modified_vlist);
-                        value_delete(&t);
-                        __free(exp_temp);
-                    }
-                    else if (plist_temp->exp->content.declaration_expression.exp != NULL)
-                        eval_no_ret(plist_temp->exp, &modified_vlist);
-                    else if (exp->content.function_call_expression.alist != NULL)
-                    {
-                        eval_no_ret(plist_temp->exp, &modified_vlist);
-                        NB_Value *t = eval(exp->content.function_call_expression.alist->exp, vlist);
-                        Expression *exp_temp = nb_create_assignment_expression(plist_temp->exp->content.declaration_expression.identifier, &(Expression){LITERAL_EXPRESSION, *t});
-                        eval_no_ret(exp_temp, &modified_vlist);
-                        value_delete(&t);
-                        __free(exp_temp);
-                    }
-                    else
-                    {
-                        nb_error("Argument Number Doesn't Match!");
-                        exit(1);
-                    }
-                    if (exp->content.function_call_expression.alist != NULL) // directly modifiy the arguments list because we use it only one time
-                        exp->content.function_call_expression.alist = exp->content.function_call_expression.alist->next;
-                }
-                (*vlist) = modified_vlist;
                 inter->statements_list = func->block->content.block_statement.slist;
                 if (inter->statements_list != NULL)
                     for (;inter->statements_list->prev != NULL; inter->statements_list = inter->statements_list->prev);
@@ -424,11 +440,11 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
                 r.type = NULL_RESULT;
                 do {
                     if (r.type == EXPRESSION_STATEMENT)
-                        value_delete(&(r.value));
-                    if (r.type == RETURN_STATEMENT)
+                        value_delete(&(r.content.value));
+                    else if (r.type == RETURN_STATEMENT)
                     {
-                        value_copy(ret, r.value);
-                        value_delete(&(r.value));
+                        value_copy(ret, r.content.value);
+                        value_delete(&(r.content.value));
                         if (func->type != VARIOUS)
                             nb_value_change_type(ret, func->type);
                         break;
@@ -436,9 +452,22 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
                     r = nb_interpret_once();
                 } while(r.type != NULL_RESULT);
                 inter->statements_list = saved_slist;
-                level_decrease();
-                (*vlist) = saved_vlist;
             }
+            
+            /* temporary */
+            else
+            {
+                UTF8_String *str = utf8_string_new_wrap("__p1");
+                VariablesList *found = find_in_list(inter->variables_list, str);
+                func->builtin_ptr(found->value);
+                utf8_string_delete(&str);
+            }
+
+            level_decrease();
+            if ((*vlist) != NULL)
+                (*vlist)->next = saved_vlist;
+            else
+                (*vlist) = saved_vlist;
             break;
         }
     }

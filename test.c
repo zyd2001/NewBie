@@ -8,5 +8,5 @@
 
 int main(void)
 {
-    size_t a = sizeof(bool);
+    size_t a = sizeof(Value);
 }

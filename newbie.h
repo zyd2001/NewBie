@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include "utility.h"
 #ifndef INCLUDED_HEAD
 #define INCLUDED_HEAD
@@ -43,6 +44,7 @@ typedef enum
 
 typedef enum
 {
+    NULL_RESULT,
     EXPRESSION_STATEMENT,
     FUNCTION_DEFINITION_STATEMENT,
     BLOCK_STATEMENT,
@@ -52,8 +54,7 @@ typedef enum
     FOREACH_STATEMENT,
     RETURN_STATEMENT,
     CONTINUE_STATEMENT,
-    BREAK_STATEMENT,
-    NULL_RESULT
+    BREAK_STATEMENT
 } StatementType;
 
 typedef ValueType NB_ValueType;
@@ -203,7 +204,7 @@ typedef struct FunctionList_tag
     NB_ValueType type;
     UTF8_String *identifier;
     Statement *block;
-    // (NB_Value*)() builtin_ptr;
+    NB_Value *(*builtin_ptr)(NB_Value *val, ...);
     struct FunctionList_tag *prev;
     struct FunctionList_tag *next;
 } FunctionList;
@@ -212,16 +213,22 @@ typedef struct NB_Interpreter_tag
 {
     int current_line;
     int level;
+    int block_state;
     StatementsList *statements_list;
     StatementsList *global_slist;
     VariablesList *variables_list;
+    // VariablesList *saved_vlist;
     FunctionList *func_list;
 } NB_Interpreter;
 
 typedef struct StatementResult_tag
 {
     StatementType type;
-    NB_Value *value;
+    union 
+    {
+        NB_Value *value;
+        char *error_msg;
+    } content;
 } StatementResult;
 
 Expression *nb_create_literal_expression(NB_ValueType type, char *text);
@@ -235,6 +242,7 @@ Expression *nb_create_function_call_expression(UTF8_String *identifier, Argument
 
 Statement *nb_create_expression_statement(Expression *exp);
 Statement *nb_create_block_statement(StatementsList *slist);
+Statement *nb_create_class_definition_statement(Statement *block);
 Statement *nb_create_if_statement(Expression *exp, Statement *block);
 Statement *nb_create_foreach_statement(UTF8_String *identifier, Expression *exp, Statement *block);
 Statement *nb_create_for_statement(Expression *exp1, Expression *exp2, Expression *exp3, Statement *block);
@@ -267,5 +275,7 @@ void nb_interpreter_init();
 void nb_clean();
 void nb_error(char *str);
 void nb_warning(char *str);
+
+#define new_statement_result() (StatementResult*)calloc(1, sizeof(StatementResult));
 
 #endif
