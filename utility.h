@@ -2,7 +2,7 @@
 #define INCLUDED_UTILITY_HEAD
 
 #define __free(ptr) do {free(ptr);ptr = NULL;}while(0)
-#define __log(str) fprintf(stdout, "%s\n", #str)
+// #define __log(str) fprintf(stdout, "%s\n", #str)
 
 typedef struct Array_tag Array;
 
@@ -21,6 +21,7 @@ typedef enum ValueType_tag
     BOOL,
     STRING,
     ARRAY,
+    OBJECT,
     VARIOUS
 } ValueType;
 

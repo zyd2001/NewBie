@@ -1,13 +1,3 @@
-{
-    var str = <<<ASD
-    asd\n"";
-            haha;
-    asd
->>>ASD;
-    println(str + "asd");
-}
-
-function println(string str)
-{
-    print(str + "\n");
-}
+println(log(10, 2));
+println(PI);
+println(E);

@@ -5,6 +5,20 @@
 
 static int state = 0;
 static Statement *current_if;
+static ClassList *current_class;
+
+void nb_compile(char *file)
+{
+    extern int yylex_destroy(void);
+    extern int yyparse(void);
+    FILE *fp;
+    fp = fopen(file, "r");
+    extern FILE *yyin;
+    yyin = fp;
+    yyparse();
+    yylex_destroy();
+    fclose(fp);
+}
 
 Expression *nb_create_literal_expression(NB_ValueType type, char *text)
 {
@@ -118,39 +132,68 @@ Expression *nb_create_function_call_expression(UTF8_String *identifier, Argument
 Statement *nb_create_function_definition_statement(NB_ValueType type, UTF8_String *identifier, ParametersList *plist, Statement *block)
 {
     NB_Interpreter *inter = nb_get_interpreter();
-    if (inter->block_state > 0)
-        fprintf(stderr, "Don't Define Function inside a Block!");
     int count = 1;
     if (plist == NULL)
         count = 0;
     else
         for (;plist->prev != NULL; plist = plist->prev)
             count++;
-    if (inter->func_list == NULL)
+    if (inter->block_state == 1)
+        fprintf(stderr, "Don't Define Function inside a Block!");
+    else if (inter->block_state == 2)
     {
-        inter->func_list = (FunctionList*)malloc(sizeof(FunctionList));
-        inter->func_list->prev = NULL;
-        inter->func_list->next = NULL;
-        inter->func_list->pnum = count;
-        inter->func_list->builtin = 0;
-        inter->func_list->identifier = identifier;
-        inter->func_list->type = type;
-        inter->func_list->plist = plist;
-        inter->func_list->block = block;
+        if (current_class->func_list == NULL)
+        {
+            current_class->func_list = (FunctionList*)malloc(sizeof(FunctionList));
+            current_class->func_list->prev = NULL;
+            current_class->func_list->next = NULL;
+            current_class->func_list->pnum = count;
+            current_class->func_list->builtin = 0;
+            current_class->func_list->identifier = identifier;
+            current_class->func_list->type = type;
+            current_class->func_list->plist = plist;
+            current_class->func_list->block = block;
+        }
+        else
+        {
+            current_class->func_list->next = (FunctionList*)malloc(sizeof(FunctionList));
+            current_class->func_list->next->prev = current_class->func_list;
+            current_class->func_list = current_class->func_list->next;
+            current_class->func_list->next = NULL;
+            current_class->func_list->pnum = count;
+            current_class->func_list->builtin = 0;
+            current_class->func_list->identifier = identifier;
+            current_class->func_list->type = type;
+            current_class->func_list->plist = plist;
+            current_class->func_list->block = block;
+        }
     }
     else
-    {
-        inter->func_list->next = (FunctionList*)malloc(sizeof(FunctionList));
-        inter->func_list->next->prev = inter->func_list;
-        inter->func_list = inter->func_list->next;
-        inter->func_list->next = NULL;
-        inter->func_list->pnum = count;
-        inter->func_list->builtin = 0;
-        inter->func_list->identifier = identifier;
-        inter->func_list->type = type;
-        inter->func_list->plist = plist;
-        inter->func_list->block = block;
-    }
+        if (inter->func_list == NULL)
+        {
+            inter->func_list = (FunctionList*)malloc(sizeof(FunctionList));
+            inter->func_list->prev = NULL;
+            inter->func_list->next = NULL;
+            inter->func_list->pnum = count;
+            inter->func_list->builtin = 0;
+            inter->func_list->identifier = identifier;
+            inter->func_list->type = type;
+            inter->func_list->plist = plist;
+            inter->func_list->block = block;
+        }
+        else
+        {
+            inter->func_list->next = (FunctionList*)malloc(sizeof(FunctionList));
+            inter->func_list->next->prev = inter->func_list;
+            inter->func_list = inter->func_list->next;
+            inter->func_list->next = NULL;
+            inter->func_list->pnum = count;
+            inter->func_list->builtin = 0;
+            inter->func_list->identifier = identifier;
+            inter->func_list->type = type;
+            inter->func_list->plist = plist;
+            inter->func_list->block = block;
+        }
     Statement *statement = new_statement();
     statement->type = FUNCTION_DEFINITION_STATEMENT;
     statement->line_number = nb_get_interpreter()->current_line;
@@ -166,9 +209,31 @@ Statement *nb_create_expression_statement(Expression *exp)
     return statement;
 }
 
-Statement *nb_create_class_definition_statement(Statement *block)
+Statement *nb_create_class_definition_statement(UTF8_String *identifier, Statement *block)
 {
-
+    NB_Interpreter *inter = nb_get_interpreter();
+    Statement *statement = new_statement();
+    statement->type = CLASS_DEFINITION_STATEMENT;
+    statement->line_number = inter->current_line;
+    if (inter->class_list == NULL)
+    {
+        inter->class_list = (ClassList*)malloc(sizeof(ClassList));
+        inter->class_list->prev = NULL;
+        inter->class_list->next = NULL;
+        inter->class_list->block = block;
+        inter->class_list->identifier = identifier;
+    }
+    else
+    {
+        inter->class_list->next = (ClassList*)malloc(sizeof(ClassList));
+        inter->class_list->next->prev = inter->class_list;
+        inter->class_list = inter->class_list->next;
+        inter->class_list->next = NULL;
+        inter->class_list->block = block;
+        inter->class_list->identifier = identifier;
+    }
+    current_class = inter->class_list;
+    return statement;
 }
 
 Statement *nb_create_block_statement(StatementsList *slist)

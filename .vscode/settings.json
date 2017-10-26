@@ -19,6 +19,8 @@
         "pcre2.h": "c",
         "limits.h": "c",
         "stddef.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "newbie_dev.h": "c",
+        "math.h": "c"
     },
 }

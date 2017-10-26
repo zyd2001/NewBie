@@ -22,13 +22,14 @@
             "args": [
                 "-g",
                 "utility.c",
-                "y.tab.c",
-                "lex.yy.c",
+                "newbie.tab.c",
+                "newbie.yy.c",
                 "compile.c",
                 "evaluate.c",
                 "interpreter.c",
                 "main.c",
-                "-ll"
+                "-ll",
+                "-ldl"
             ]
         }
     ]

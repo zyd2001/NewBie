@@ -30,8 +30,8 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_YY_Y_TAB_H_INCLUDED
-# define YY_YY_Y_TAB_H_INCLUDED
+#ifndef YY_YY_NEWBIE_TAB_H_INCLUDED
+# define YY_YY_NEWBIE_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -97,7 +97,10 @@ extern int yydebug;
     DIV_ASSIGN = 307,
     MOD_ASSIGN = 308,
     INCREMENT_T = 309,
-    DECREMENT_T = 310
+    DECREMENT_T = 310,
+    PUBLIC = 311,
+    PROTECTED = 312,
+    PRIVATE = 313
   };
 #endif
 /* Tokens.  */
@@ -154,6 +157,9 @@ extern int yydebug;
 #define MOD_ASSIGN 308
 #define INCREMENT_T 309
 #define DECREMENT_T 310
+#define PUBLIC 311
+#define PROTECTED 312
+#define PRIVATE 313
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -169,7 +175,7 @@ union YYSTYPE
     ParametersList       *parameter_list;
     ArgumentsList        *argument_list;
 
-#line 173 "y.tab.h" /* yacc.c:1909  */
+#line 179 "newbie.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -182,4 +188,4 @@ extern YYSTYPE yylval;
 
 int yyparse (void);
 
-#endif /* !YY_YY_Y_TAB_H_INCLUDED  */
+#endif /* !YY_YY_NEWBIE_TAB_H_INCLUDED  */

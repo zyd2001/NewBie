@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <dlfcn.h>
 #include "utility.h"
 #ifndef INCLUDED_HEAD
 #define INCLUDED_HEAD
@@ -47,6 +48,7 @@ typedef enum
     NULL_RESULT,
     EXPRESSION_STATEMENT,
     FUNCTION_DEFINITION_STATEMENT,
+    CLASS_DEFINITION_STATEMENT,
     BLOCK_STATEMENT,
     IF_STATEMENT,
     ELSE_STATEMENT,
@@ -204,10 +206,25 @@ typedef struct FunctionList_tag
     NB_ValueType type;
     UTF8_String *identifier;
     Statement *block;
-    NB_Value *(*builtin_ptr)(NB_Value *val, ...);
+    NB_Value *(*builtin_ptr)(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier));
     struct FunctionList_tag *prev;
     struct FunctionList_tag *next;
 } FunctionList;
+
+typedef struct ClassList_tag
+{
+    Statement *block;
+    FunctionList *func_list;
+    UTF8_String *identifier;
+    struct ClassList_tag *prev;
+    struct ClassList_tag *next;
+} ClassList;
+
+typedef struct HandleList_tag
+{
+    void *handle;
+    struct HandleList_tag *next;
+} HandleList;
 
 typedef struct NB_Interpreter_tag
 {
@@ -217,8 +234,9 @@ typedef struct NB_Interpreter_tag
     StatementsList *statements_list;
     StatementsList *global_slist;
     VariablesList *variables_list;
-    // VariablesList *saved_vlist;
     FunctionList *func_list;
+    ClassList *class_list;
+    HandleList *handle_list;
 } NB_Interpreter;
 
 typedef struct StatementResult_tag
@@ -242,7 +260,7 @@ Expression *nb_create_function_call_expression(UTF8_String *identifier, Argument
 
 Statement *nb_create_expression_statement(Expression *exp);
 Statement *nb_create_block_statement(StatementsList *slist);
-Statement *nb_create_class_definition_statement(Statement *block);
+Statement *nb_create_class_definition_statement(UTF8_String *identifier, Statement *block);
 Statement *nb_create_if_statement(Expression *exp, Statement *block);
 Statement *nb_create_foreach_statement(UTF8_String *identifier, Expression *exp, Statement *block);
 Statement *nb_create_for_statement(Expression *exp1, Expression *exp2, Expression *exp3, Statement *block);
@@ -272,9 +290,12 @@ NB_Interpreter *nb_get_interpreter();
 NB_Interpreter *nb_interpreter_new();
 int nb_interpreter_set(NB_Interpreter *inter);
 void nb_interpreter_init();
+void nb_add_builtin_func(FunctionList **flist, int pnum, NB_Value *(*ptr)(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier)), UTF8_String *identifier, char **pname_array, NB_ValueType *ptype);
+void nb_add_global_variable(NB_Value *val, UTF8_String *identifier);
 void nb_clean();
 void nb_error(char *str);
 void nb_warning(char *str);
+void nb_compile(char *file);
 
 #define new_statement_result() (StatementResult*)calloc(1, sizeof(StatementResult));
 

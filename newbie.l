@@ -1,6 +1,6 @@
 %{
 #include "newbie.h"
-#include "y.tab.h"
+#include "newbie.tab.h"
 
 UTF8_String *string_buffer;
 
@@ -37,11 +37,11 @@ void increase_line_number()
 <INITIAL>"break"        return BREAK;
 <INITIAL>"continue"     return CONTINUE;
 <INITIAL>"return"       return RETURN;
-<INITIAL>"class"        {nb_get_interpreter()->block_state--;return CLASS;}
+<INITIAL>"class"        {nb_get_interpreter()->block_state = 2;return CLASS;}
 <INITIAL>"("            return LP;
 <INITIAL>")"            return RP;
-<INITIAL>"{"            {nb_get_interpreter()->block_state++;return LC;}
-<INITIAL>"}"            {nb_get_interpreter()->block_state--;return RC;}
+<INITIAL>"{"            {nb_get_interpreter()->block_state = nb_get_interpreter()->block_state == 2 ? 2 : 1;return LC;}
+<INITIAL>"}"            {nb_get_interpreter()->block_state = 0;return RC;}
 <INITIAL>"["            return LB;
 <INITIAL>"]"            return RB;
 <INITIAL>";"            return SEMICOLON;
@@ -71,6 +71,9 @@ void increase_line_number()
 <INITIAL>"--"           return DECREMENT_T;
 <INITIAL>"!"            return EXCLAMATION;
 <INITIAL>"."            return DOT;
+<INITIAL>"public"       return PUBLIC;
+<INITIAL>"protected"    return PROTECTED;
+<INITIAL>"private"      return PRIVATE;
 <INITIAL>"true" {       
     yylval.expression = nb_create_literal_expression(BOOL, (char*)1);
     return BOOL_LITERAL;

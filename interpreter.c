@@ -1,4 +1,5 @@
 #include "newbie.h"
+#include <libconfig.h>
 
 static NB_Interpreter *inter;
 
@@ -242,14 +243,17 @@ void level_decrease()
     inter->level--;
 }
 
-/* temporary, only add a print builtin function */
-NB_Value *print(NB_Value *val, ...)
+NB_Interpreter *nb_interpreter_new()
 {
-    value_to_string(&val);
-    utf32_string_print(val->value.string_value);
-    return NULL;
+    NB_Interpreter *inter = (NB_Interpreter*)malloc(sizeof(NB_Interpreter));
+    inter->current_line = 1;
+    inter->level = 0;
+    inter->block_state = 0;
+    inter->variables_list = NULL;
+    inter->func_list = NULL;
+    inter->class_list = NULL;
+    inter->handle_list = NULL;
 }
-
 
 void nb_interpreter_init()
 {
@@ -267,48 +271,52 @@ void nb_interpreter_init()
         fprintf(stderr, "No Any Statement!");
         exit(1);
     }
-    
-    /* temporary, only add a print builtin function */
 
-    if (inter->func_list == NULL)
+    FILE *setting = fopen("NewBie.ini", "r");
+    void (*add_lib)(FunctionList **flist, void (*add_func)(FunctionList **flist, int pnum, NB_Value *(*ptr)(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier)), UTF8_String *identifier, char **pname_array, NB_ValueType *ptype), void (*add_val)(NB_Value *val, UTF8_String *identifier));
+    char *lib_name = (char*)malloc(30 * sizeof(char));
+    fgets(lib_name, 30, setting);
+    while (lib_name[0] != '\0')
     {
-        inter->func_list = (FunctionList*)malloc(sizeof(FunctionList));
-        inter->func_list->prev = NULL;
-        inter->func_list->next = NULL;
-        inter->func_list->pnum = 1;
-        inter->func_list->builtin = 1;
-        inter->func_list->identifier = utf8_string_new_wrap("print");
-        inter->func_list->type = VARIOUS;
-        inter->func_list->plist = nb_create_parameter_list(nb_create_declaration_expression(VARIOUS, utf8_string_new_wrap("__p1"), NULL));
-        inter->func_list->block = NULL;
-        inter->func_list->builtin_ptr = print;
+        for (int i = 0; i < strlen(lib_name); i++)
+        {
+            if (lib_name[i] == '\n')
+            {
+                lib_name[i] = '\0';
+                break;
+            }
+        }
+        void *handle = dlopen(lib_name, RTLD_NOW);
+        if (handle == NULL)
+            fprintf(stderr, "%s\n", dlerror());
+        else
+        {
+            add_lib = dlsym(handle, "add_lib");
+            add_lib(&(inter->func_list), nb_add_builtin_func, nb_add_global_variable);
+            if (inter->handle_list == NULL)
+            {
+                inter->handle_list = (HandleList*)malloc(sizeof(HandleList));
+                inter->handle_list->next = NULL;
+                inter->handle_list->handle = handle;
+            }
+            else
+            {
+                HandleList *temp_hlist = inter->handle_list;
+                for (;;temp_hlist = temp_hlist->next)
+                    if (temp_hlist->next == NULL)
+                        break;
+                temp_hlist->next = (HandleList*)malloc(sizeof(HandleList));
+                temp_hlist->next->next = NULL;
+                temp_hlist->next->handle = handle;
+            }
+        }
+        lib_name[0] = '\0';
+        fgets(lib_name, 30, setting);    
     }
-    else
-    {
-        inter->func_list->next = (FunctionList*)malloc(sizeof(FunctionList));
-        inter->func_list->next->prev = inter->func_list;
-        inter->func_list = inter->func_list->next;
-        inter->func_list->next = NULL;
-        inter->func_list->pnum = 1;
-        inter->func_list->builtin = 1;
-        inter->func_list->identifier = utf8_string_new_wrap("print");
-        inter->func_list->type = VARIOUS;
-        inter->func_list->plist = nb_create_parameter_list(nb_create_declaration_expression(VARIOUS, utf8_string_new_wrap("__p1"), NULL));
-        inter->func_list->block = NULL;
-        inter->func_list->builtin_ptr = print;
-    }
+    __free(lib_name);
+    fclose(setting);
 
     inter->global_slist = inter->statements_list;
-}
-
-NB_Interpreter *nb_interpreter_new()
-{
-    NB_Interpreter *inter = (NB_Interpreter*)malloc(sizeof(NB_Interpreter));
-    inter->current_line = 1;
-    inter->level = 0;
-    inter->block_state = 0;
-    inter->variables_list = NULL;
-    inter->func_list = NULL;
 }
 
 int nb_interpreter_set(NB_Interpreter *interpreter)
@@ -341,26 +349,35 @@ void nb_clean()
 
     level_decrease();
 
-    FunctionList *saved;    
+    FunctionList *saved_flist;    
     while (inter->func_list != NULL)
     {
         if (!(inter->func_list->builtin))
         {
-            saved = inter->func_list->prev;
+            saved_flist = inter->func_list->prev;
             free_statement(inter->func_list->block);
             free_parameters_list(inter->func_list->plist);
             utf8_string_delete(&(inter->func_list->identifier));
             __free(inter->func_list);
-            inter->func_list = saved;
+            inter->func_list = saved_flist;
         }
         else
         {
-            saved = inter->func_list->prev;
+            saved_flist = inter->func_list->prev;
             free_parameters_list(inter->func_list->plist);
             utf8_string_delete(&(inter->func_list->identifier));
             __free(inter->func_list);
-            inter->func_list = saved;
+            inter->func_list = saved_flist;
         }
+    }
+
+    HandleList *saved_hlist;
+    while (inter->handle_list != NULL)
+    {
+        saved_hlist = inter->handle_list->next;
+        dlclose(inter->handle_list->handle);
+        __free(inter->handle_list);
+        inter->handle_list = saved_hlist;
     }
 
     __free(inter);
@@ -375,6 +392,71 @@ void nb_error(char *str)
 void nb_warning(char *str)
 {
     fprintf(stderr, "%s\n", str);
+}
+
+void nb_add_builtin_func(FunctionList **flist, int pnum, NB_Value *(*ptr)(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier)), UTF8_String *identifier, char **pname_array, NB_ValueType *ptype)
+{
+    ParametersList *plist = NULL;
+    if (pnum > 0)
+    {
+        plist = nb_create_parameter_list(nb_create_declaration_expression(ptype[0], utf8_string_new_wrap(pname_array[0]), NULL));
+        for (int i = 1; i < pnum; i++)
+        {
+            plist = nb_cat_parameter_list(plist, nb_create_declaration_expression(ptype[i], utf8_string_new_wrap(pname_array[i]), NULL));
+        }
+        for (;plist->prev != NULL; plist = plist->prev);
+    }
+
+    if ((*flist) == NULL)
+    {
+        (*flist) = (FunctionList*)malloc(sizeof(FunctionList));
+        (*flist)->prev = NULL;
+        (*flist)->next = NULL;
+        (*flist)->pnum = pnum;
+        (*flist)->builtin = 1;
+        (*flist)->identifier = identifier;
+        (*flist)->type = VARIOUS;
+        (*flist)->plist = plist;
+        (*flist)->block = NULL;
+        (*flist)->builtin_ptr = ptr;
+    }
+    else
+    {
+        (*flist)->next = (FunctionList*)malloc(sizeof(FunctionList));
+        (*flist)->next->prev = (*flist);
+        (*flist) = (*flist)->next;
+        (*flist)->next = NULL;
+        (*flist)->pnum = pnum;
+        (*flist)->builtin = 1;
+        (*flist)->identifier = identifier;
+        (*flist)->type = VARIOUS;
+        (*flist)->plist = plist;
+        (*flist)->block = NULL;
+        (*flist)->builtin_ptr = ptr;
+    }
+}
+
+void nb_add_global_variable(NB_Value *val, UTF8_String *identifier)
+{
+    if (inter->variables_list == NULL)
+    {
+        inter->variables_list = (VariablesList*)malloc(sizeof(VariablesList));
+        inter->variables_list->prev = NULL;
+        inter->variables_list->next = NULL;
+        inter->variables_list->identifier = identifier;
+        inter->variables_list->level = 0;
+        inter->variables_list->value = val;
+    }
+    else
+    {
+        inter->variables_list->next = (VariablesList*)malloc(sizeof(VariablesList));
+        inter->variables_list->next->prev = inter->variables_list;
+        inter->variables_list = inter->variables_list->next;
+        inter->variables_list->next = NULL;
+        inter->variables_list->identifier = identifier;
+        inter->variables_list->level = 0;
+        inter->variables_list->value = val;
+    }
 }
 
 void free_expression_func(Expression *exp)

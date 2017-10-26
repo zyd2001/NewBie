@@ -1,7 +1,7 @@
 %{
 
 #include "newbie.h"
-#include "y.tab.h"
+#include "newbie.tab.h"
 
 extern int lex(void);
 static int flag = 0;
@@ -43,7 +43,7 @@ void yyerror (char const *s)
 %token INT_T DOUBLE_T BOOL_T STRING_T ARRAY_T VAR_T FUNC_T IF ELSE ELSEIF FOR IN CLASS RETURN BREAK CONTINUE
         LP RP LC RC LB RB SEMICOLON COMMA ASSIGN_T EXCLAMATION DOT
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
-        INCREMENT_T DECREMENT_T
+        INCREMENT_T DECREMENT_T PUBLIC PROTECTED PRIVATE
 %type<expression> expression function_call_expression declaration_expression primary_expression assignment_expression expression_optional binary_expression unary_expression
 %type<statement> statement block function_definition_statement
 %type<statement_list> statement_list
@@ -95,9 +95,9 @@ void yyerror (char const *s)
         {
             $$ = nb_create_break_statement();
         }
-        | CLASS block
+        | CLASS IDENTIFIER block
         {
-            $$ = nb_create_class_definition_statement($2);
+            $$ = nb_create_class_definition_statement($2, $3);
         }
         | block
         | function_definition_statement

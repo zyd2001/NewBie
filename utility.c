@@ -508,7 +508,7 @@ UTF32_String *utf32_string_copy_func(UTF32_String **destination, UTF32_String *s
     (*destination)->size = source->size;
     (*destination)->limit = source->limit;
     (*destination)->length = source->length;
-    (*destination)->value = (char*)realloc((*destination)->value, source->limit);
+    (*destination)->value = (char*)realloc((*destination)->value, source->limit * sizeof(char));
     memcpy((*destination)->value, source->value, source->size);
     return (*destination);
 }
@@ -652,7 +652,11 @@ Value *value_copy_func(Value **destination, Value *source)
 {
     if ((*destination) == NULL)
         (*destination) = value_new_type(source->type);
-    (*destination)->type = source->type;
+    if ((*destination)->type != source->type)
+    {
+        value_delete(destination);
+        (*destination) = value_new_type(source->type);
+    }
     switch(source->type)
     {
         case INT:
@@ -663,10 +667,10 @@ Value *value_copy_func(Value **destination, Value *source)
             (*destination)->value.double_value = source->value.double_value;
             break;
         case STRING:
-            (*destination)->value.string_value = utf32_string_copy_new(source->value.string_value);
+            (*destination)->value.string_value = utf32_string_copy((*destination)->value.string_value, source->value.string_value);
             break;
         case ARRAY:
-            (*destination)->value.array_value = array_copy_new(source->value.array_value);
+            (*destination)->value.array_value = array_copy((*destination)->value.array_value, source->value.array_value);
             break;
     }
     return (*destination);
@@ -777,12 +781,19 @@ UTF32_String *get_string_value(Value *val)
     switch (val->type)
     {
         case INT:
-        case BOOL:
         {
             char *out = (char*)malloc(50 * sizeof(char));
             sprintf(out, "%d", val->value.int_value);
             utf32_string_append_utf8(str, out);
             __free(out);
+            break;
+        }
+        case BOOL:
+        {
+            if (val->value.int_value)
+                utf32_string_append_utf8(str, "true");
+            else
+                utf32_string_append_utf8(str, "false");
             break;
         }
         case DOUBLE:

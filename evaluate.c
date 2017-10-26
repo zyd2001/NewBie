@@ -81,6 +81,7 @@ do { \
 
 VariablesList *find_in_list(VariablesList *vlist, UTF8_String *str);
 VariablesList *find_in_list_func(VariablesList *vlist, UTF8_String *str);
+NB_Value *find_in_list_value(VariablesList *vlist, char *str);
 
 NB_Value *eval(Expression *exp, VariablesList **vlist)
 {
@@ -381,42 +382,28 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
             level_increase();
             StatementsList *saved_slist = inter->statements_list;
             VariablesList *saved_vlist = NULL;
-            VariablesList *modified_vlist = (*vlist);
-            int change_flag = 1;
-            for (;modified_vlist != NULL; modified_vlist = modified_vlist->prev) // go to the global env
-            {
-                if (modified_vlist->level != 0)
-                    continue;
-                else
-                {
-                    change_flag = 0;
-                    saved_vlist = modified_vlist->next;
-                    modified_vlist->next = NULL;
-                    break;
-                }
-            }
-            if (change_flag)
-                modified_vlist = NULL;
+            VariablesList *new_vlist = NULL;
+
             ArgumentsList *alist_temp = exp->content.function_call_expression.alist;
             for (ParametersList *plist_temp = func->plist; plist_temp != NULL; plist_temp = plist_temp->next) // initialize local variables // do not modifiy the original list beacuse we may use it more than once
             {
                 if (alist_temp != NULL && plist_temp->exp->content.declaration_expression.exp != NULL)
                 {
-                    eval_no_ret(plist_temp->exp, &modified_vlist);
+                    eval_no_ret(plist_temp->exp, &new_vlist);
                     NB_Value *t = eval(alist_temp->exp, vlist);
                     Expression *exp_temp = nb_create_assignment_expression(plist_temp->exp->content.declaration_expression.exp->content.assignment_expression.identifier, &(Expression){LITERAL_EXPRESSION, *t});
-                    eval_no_ret(exp_temp, &modified_vlist);
+                    eval_no_ret(exp_temp, &new_vlist);
                     value_delete(&t);
                     __free(exp_temp);
                 }
                 else if (plist_temp->exp->content.declaration_expression.exp != NULL)
-                    eval_no_ret(plist_temp->exp, &modified_vlist);
+                    eval_no_ret(plist_temp->exp, &new_vlist);
                 else if (alist_temp != NULL)
                 {
-                    eval_no_ret(plist_temp->exp, &modified_vlist);
+                    eval_no_ret(plist_temp->exp, &new_vlist);
                     NB_Value *t = eval(alist_temp->exp, vlist);
                     Expression *exp_temp = nb_create_assignment_expression(plist_temp->exp->content.declaration_expression.identifier, &(Expression){LITERAL_EXPRESSION, *t});
-                    eval_no_ret(exp_temp, &modified_vlist);
+                    eval_no_ret(exp_temp, &new_vlist);
                     value_delete(&t);
                     __free(exp_temp);
                 }
@@ -429,7 +416,29 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
                 if (alist_temp != NULL) 
                     alist_temp = alist_temp->next;
             }
-            (*vlist) = modified_vlist;            
+            if (new_vlist != NULL)
+                for (;new_vlist->prev != NULL; new_vlist = new_vlist->prev);
+
+            int change_flag = 1;
+            for (;(*vlist) != NULL; (*vlist) = (*vlist)->prev) // go to the global env
+            {
+                if ((*vlist)->level != 0)
+                    continue;
+                else
+                {
+                    change_flag = 0;
+                    saved_vlist = (*vlist)->next;
+                    (*vlist)->next = new_vlist;
+                    if (new_vlist != NULL)
+                        new_vlist->prev = (*vlist);
+                    break;
+                }
+            }
+            if (change_flag)
+                (*vlist) = new_vlist;
+            if ((*vlist) != NULL)
+                for (;(*vlist)->next != NULL; (*vlist) = (*vlist)->next);
+            // (*vlist) = modified_vlist;            
 
             if (!func->builtin)
             {
@@ -457,10 +466,9 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
             /* temporary */
             else
             {
-                UTF8_String *str = utf8_string_new_wrap("__p1");
-                VariablesList *found = find_in_list(inter->variables_list, str);
-                func->builtin_ptr(found->value);
-                utf8_string_delete(&str);
+                NB_Value *val = func->builtin_ptr((*vlist), find_in_list_value);
+                value_copy(ret, val);
+                value_delete(&val);
             }
 
             level_decrease();
@@ -507,4 +515,18 @@ VariablesList *find_in_list(VariablesList *vlist, UTF8_String *str)
     }
     else
         return found;
+}
+
+NB_Value *find_in_list_value(VariablesList *vlist, char *str)
+{
+    for (;vlist != NULL; vlist = vlist->prev)
+    {
+        if (!strcmp(str, utf8_string_get_value(vlist->identifier)))
+            return vlist->value;
+    }
+    if (!vlist)
+    {
+        nb_error("Undefined Variable!");
+        exit(1);    
+    }
 }
