@@ -93,18 +93,18 @@ NB_Value *nb_log(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, c
     return ret;
 }
 
-void add_lib(FunctionList **flist, void (*add_func)(FunctionList **flist, int pnum, NB_Value *(*ptr)(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier)), UTF8_String *identifier, char **pname_array, NB_ValueType *ptype), void (*add_val)(NB_Value *val, UTF8_String *identifier))
+void add_lib(FunctionList **flist, void (*add_func)(FunctionList **flist, int pnum, NB_Value *(*ptr)(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier)), UTF8_String *identifier, NB_ValueType type, char **pname_array, NB_ValueType *ptype), void (*add_val)(NB_Value *val, UTF8_String *identifier))
 {
-    add_func(flist, 1, nb_sin, utf8_string_new_wrap("sin"), (char*[]){"num"}, (NB_ValueType[]){DOUBLE});
-    add_func(flist, 1, nb_cos, utf8_string_new_wrap("cos"), (char*[]){"num"}, (NB_ValueType[]){DOUBLE});
-    add_func(flist, 1, nb_tan, utf8_string_new_wrap("tan"), (char*[]){"num"}, (NB_ValueType[]){DOUBLE});
-    add_func(flist, 1, nb_acos, utf8_string_new_wrap("acos"), (char*[]){"num"}, (NB_ValueType[]){DOUBLE});
-    add_func(flist, 1, nb_asin, utf8_string_new_wrap("asin"), (char*[]){"num"}, (NB_ValueType[]){DOUBLE});
-    add_func(flist, 1, nb_atan, utf8_string_new_wrap("atan"), (char*[]){"num"}, (NB_ValueType[]){DOUBLE});
-    add_func(flist, 2, nb_pow, utf8_string_new_wrap("pow"), (char*[]){"num1", "num2"}, (NB_ValueType[]){DOUBLE, DOUBLE});
-    add_func(flist, 1, nb_sqrt, utf8_string_new_wrap("sqrt"), (char*[]){"num"}, (NB_ValueType[]){DOUBLE});
-    add_func(flist, 1, nb_cbrt, utf8_string_new_wrap("cbrt"), (char*[]){"num"}, (NB_ValueType[]){DOUBLE});
-    add_func(flist, 2, nb_log, utf8_string_new_wrap("log"), (char*[]){"base", "num"}, (NB_ValueType[]){DOUBLE, DOUBLE});
+    add_func(flist, 1, nb_sin, utf8_string_new_wrap("sin"), DOUBLE, (char*[]){"num"}, (NB_ValueType[]){DOUBLE});
+    add_func(flist, 1, nb_cos, utf8_string_new_wrap("cos"), DOUBLE, (char*[]){"num"}, (NB_ValueType[]){DOUBLE});
+    add_func(flist, 1, nb_tan, utf8_string_new_wrap("tan"), DOUBLE, (char*[]){"num"}, (NB_ValueType[]){DOUBLE});
+    add_func(flist, 1, nb_acos, utf8_string_new_wrap("acos"), DOUBLE, (char*[]){"num"}, (NB_ValueType[]){DOUBLE});
+    add_func(flist, 1, nb_asin, utf8_string_new_wrap("asin"), DOUBLE, (char*[]){"num"}, (NB_ValueType[]){DOUBLE});
+    add_func(flist, 1, nb_atan, utf8_string_new_wrap("atan"), DOUBLE, (char*[]){"num"}, (NB_ValueType[]){DOUBLE});
+    add_func(flist, 2, nb_pow, utf8_string_new_wrap("pow"), DOUBLE, (char*[]){"num1", "num2"}, (NB_ValueType[]){DOUBLE, DOUBLE});
+    add_func(flist, 1, nb_sqrt, utf8_string_new_wrap("sqrt"), DOUBLE, (char*[]){"num"}, (NB_ValueType[]){DOUBLE});
+    add_func(flist, 1, nb_cbrt, utf8_string_new_wrap("cbrt"), DOUBLE, (char*[]){"num"}, (NB_ValueType[]){DOUBLE});
+    add_func(flist, 2, nb_log, utf8_string_new_wrap("log"), DOUBLE, (char*[]){"base", "num"}, (NB_ValueType[]){DOUBLE, DOUBLE});
     NB_Value *E = value_new_type(DOUBLE);
     E->value.double_value = 2.718281828459;
     NB_Value *PI = value_new_type(DOUBLE);

@@ -598,6 +598,7 @@ Value *value_new_type(ValueType type)
 {
     Value *new = (Value*)malloc(sizeof(Value));
     new->type = type;
+    new->various = 0;
     switch(type)
     {
         case INT:
@@ -729,10 +730,16 @@ int get_int_value(Value *val)
             i = val->value.double_value;
             break;
         case STRING:
-            break;
+        {
+            char *temp_str = utf32_to_utf8(val->value.string_value); 
+            i = atoi(temp_str);
+            __free(temp_str);
+            break;            
+        }
         case ARRAY:
             break;
     }
+    return i;
 }
 
 double get_double_value(Value *val)
@@ -748,7 +755,12 @@ double get_double_value(Value *val)
             d = val->value.double_value;
             break;
         case STRING:
-            break;
+        {
+            char *temp_str = utf32_to_utf8(val->value.string_value);
+            d = atof(temp_str);
+            __free(temp_str);
+            break;            
+        }
         case ARRAY:
             break;
     }

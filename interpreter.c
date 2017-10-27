@@ -273,7 +273,7 @@ void nb_interpreter_init()
     }
 
     FILE *setting = fopen("NewBie.ini", "r");
-    void (*add_lib)(FunctionList **flist, void (*add_func)(FunctionList **flist, int pnum, NB_Value *(*ptr)(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier)), UTF8_String *identifier, char **pname_array, NB_ValueType *ptype), void (*add_val)(NB_Value *val, UTF8_String *identifier));
+    void (*add_lib)(FunctionList **flist, void (*add_func)(FunctionList **flist, int pnum, NB_Value *(*ptr)(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier)), UTF8_String *identifier, NB_ValueType type, char **pname_array, NB_ValueType *ptype), void (*add_val)(NB_Value *val, UTF8_String *identifier));
     char *lib_name = (char*)malloc(30 * sizeof(char));
     fgets(lib_name, 30, setting);
     while (lib_name[0] != '\0')
@@ -394,7 +394,7 @@ void nb_warning(char *str)
     fprintf(stderr, "%s\n", str);
 }
 
-void nb_add_builtin_func(FunctionList **flist, int pnum, NB_Value *(*ptr)(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier)), UTF8_String *identifier, char **pname_array, NB_ValueType *ptype)
+void nb_add_builtin_func(FunctionList **flist, int pnum, NB_Value *(*ptr)(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier)), UTF8_String *identifier, NB_ValueType type, char **pname_array, NB_ValueType *ptype)
 {
     ParametersList *plist = NULL;
     if (pnum > 0)
@@ -415,7 +415,7 @@ void nb_add_builtin_func(FunctionList **flist, int pnum, NB_Value *(*ptr)(Variab
         (*flist)->pnum = pnum;
         (*flist)->builtin = 1;
         (*flist)->identifier = identifier;
-        (*flist)->type = VARIOUS;
+        (*flist)->type = type;
         (*flist)->plist = plist;
         (*flist)->block = NULL;
         (*flist)->builtin_ptr = ptr;
@@ -429,7 +429,7 @@ void nb_add_builtin_func(FunctionList **flist, int pnum, NB_Value *(*ptr)(Variab
         (*flist)->pnum = pnum;
         (*flist)->builtin = 1;
         (*flist)->identifier = identifier;
-        (*flist)->type = VARIOUS;
+        (*flist)->type = type;
         (*flist)->plist = plist;
         (*flist)->block = NULL;
         (*flist)->builtin_ptr = ptr;

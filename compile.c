@@ -7,12 +7,10 @@ static int state = 0;
 static Statement *current_if;
 static ClassList *current_class;
 
-void nb_compile(char *file)
+void nb_compile(FILE *fp)
 {
     extern int yylex_destroy(void);
     extern int yyparse(void);
-    FILE *fp;
-    fp = fopen(file, "r");
     extern FILE *yyin;
     yyin = fp;
     yyparse();

@@ -290,12 +290,12 @@ NB_Interpreter *nb_get_interpreter();
 NB_Interpreter *nb_interpreter_new();
 int nb_interpreter_set(NB_Interpreter *inter);
 void nb_interpreter_init();
-void nb_add_builtin_func(FunctionList **flist, int pnum, NB_Value *(*ptr)(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier)), UTF8_String *identifier, char **pname_array, NB_ValueType *ptype);
+void nb_add_builtin_func(FunctionList **flist, int pnum, NB_Value *(*ptr)(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier)), UTF8_String *identifier, NB_ValueType type, char **pname_array, NB_ValueType *ptype);
 void nb_add_global_variable(NB_Value *val, UTF8_String *identifier);
 void nb_clean();
 void nb_error(char *str);
 void nb_warning(char *str);
-void nb_compile(char *file);
+void nb_compile(FILE *fp);
 
 #define new_statement_result() (StatementResult*)calloc(1, sizeof(StatementResult));
 

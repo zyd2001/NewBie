@@ -21,6 +21,7 @@
         "stddef.h": "c",
         "stdio.h": "c",
         "newbie_dev.h": "c",
-        "math.h": "c"
+        "math.h": "c",
+        "type_traits": "c"
     },
 }

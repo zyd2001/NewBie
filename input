@@ -1,3 +1,4 @@
-println(log(10, 2));
-println(PI);
-println(E);
+string str = readln("Enter a number: ");
+//println(str);
+var a = toInt(str);
+println(getType(str));
