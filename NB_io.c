@@ -21,9 +21,8 @@ NB_Value *println(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, 
     return value_new();
 }
 
-char *readline(char *prompt)
+char *readline()
 {
-    printf("%s", prompt);
     char ch, *ret = (char*)malloc(50 * sizeof(char));
     int i = 1;
     for (;;i++)
@@ -45,9 +44,8 @@ NB_Value *readln(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, c
 {
     char *identifier = "prompt";
     NB_Value *found = find(vlist, identifier);
-    char *prompt = utf32_to_utf8(found->value.string_value);
-    char *ret = readline(prompt);
-    __free(prompt);
+    utf32_string_print(found->value.string_value);
+    char *ret = readline();
     NB_Value *val = value_new();
     val->type = STRING;
     val->value.string_value = utf32_string_new_wrap_utf8(ret);
@@ -57,7 +55,7 @@ NB_Value *readln(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, c
 
 void add_lib(FunctionList **flist, void (*add_func)(FunctionList **flist, int pnum, NB_Value *(*ptr)(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier)), UTF8_String *identifier, NB_ValueType type, char **pname_array, NB_ValueType *ptype), void (*add_val)(NB_Value *val, UTF8_String *identifier))
 {
-    add_func(flist, 1, print, utf8_string_new_wrap("print"), INT, (char*[]){"str"}, (NB_ValueType[]){VARIOUS});
-    add_func(flist, 1, println, utf8_string_new_wrap("println"), INT, (char*[]){"str"}, (NB_ValueType[]){VARIOUS});
+    add_func(flist, 1, print, utf8_string_new_wrap("print"), INT, (char*[]){"str"}, (NB_ValueType[]){STRING});
+    add_func(flist, 1, println, utf8_string_new_wrap("println"), INT, (char*[]){"str"}, (NB_ValueType[]){STRING});
     add_func(flist, 1, readln, utf8_string_new_wrap("readln"), STRING, (char*[]){"prompt"}, (NB_ValueType[]){STRING});
 }

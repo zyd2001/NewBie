@@ -53,12 +53,12 @@ Expression *nb_create_literal_expression(NB_ValueType type, char *text)
     return expression;
 }
 
-Expression *nb_create_assignment_expression(UTF8_String *identifier, Expression *exp)
+Expression *nb_create_assignment_expression(Expression *lval, Expression *rval)
 {
     Expression *expression = new_expression();
     expression->type = ASSIGNMENT_EXPRESSION;
-    expression->content.assignment_expression.identifier = identifier;
-    expression->content.assignment_expression.exp = exp;
+    expression->content.assignment_expression.lval = lval;
+    expression->content.assignment_expression.rval = rval;
     return expression;
 }
 
@@ -95,20 +95,19 @@ Expression *nb_create_unary_expression(UnaryType type, Expression *exp)
     Expression *expression = new_expression();
     expression->type = UNARY_EXPRESSION;
     expression->content.unary_expression.type = type;
-    expression->content.unary_expression.identifier = NULL;
     expression->content.unary_expression.exp = exp;
     return expression;
 }
 
-Expression *nb_create_change_expression(UnaryType type, UTF8_String *identifier)
-{
-    Expression *expression = new_expression();
-    expression->type = UNARY_EXPRESSION;
-    expression->content.unary_expression.type = type;
-    expression->content.unary_expression.identifier = identifier;
-    expression->content.unary_expression.exp = NULL;
-    return expression;
-}
+// Expression *nb_create_change_expression(UnaryType type, UTF8_String *identifier)
+// {
+//     Expression *expression = new_expression();
+//     expression->type = UNARY_EXPRESSION;
+//     expression->content.unary_expression.type = type;
+//     expression->content.unary_expression.identifier = identifier;
+//     expression->content.unary_expression.exp = NULL;
+//     return expression;
+// }
 
 Expression *nb_create_identifier_expression(UTF8_String *identifier)
 {
@@ -116,6 +115,22 @@ Expression *nb_create_identifier_expression(UTF8_String *identifier)
     expression->type = IDENTIFIER_EXPRESSION;
     expression->content.identifier_expression = identifier;
     return expression; 
+}
+
+Expression *nb_create_array_expression(ExpressionList *elist)
+{
+    Expression *expression = new_expression();
+    expression->type = ARRAY_EXPRESSION;
+    expression->content.expression_list = elist;
+    return expression;
+}
+
+Expression *nb_create_index_expression(Expression *exp, Expression *index)
+{
+    Expression *expression = new_expression();
+    expression->type = INDEX_EXPRESSION;
+    expression->content.index_expression = (IndexExpression){exp, index};
+    return expression;
 }
 
 Expression *nb_create_function_call_expression(UTF8_String *identifier, ArgumentsList *alist)
@@ -414,4 +429,23 @@ ParametersList *nb_cat_parameter_list(ParametersList *plist, Expression *exp)
     plist->next = NULL;
     plist->exp = exp;
     return plist;
+}
+
+ExpressionList *nb_create_expression_list(Expression *exp)
+{
+    ExpressionList *elist = (ExpressionList*)malloc(sizeof(ExpressionList));
+    elist->next = NULL;
+    elist->exp = exp;
+    return elist;
+}
+
+ExpressionList *nb_cat_expression_list(ExpressionList *elist, Expression *exp)
+{
+    ExpressionList *temp = elist;
+    for (;temp->next != NULL; temp = temp->next);
+    temp->next = (ExpressionList*)malloc(sizeof(ExpressionList));
+    temp = temp->next;
+    temp->next = NULL;
+    temp->exp = exp;
+    return elist;
 }

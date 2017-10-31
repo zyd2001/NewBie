@@ -1,15 +1,7 @@
 #include "newbie.h"
-#include <libconfig.h>
 
 static NB_Interpreter *inter;
-
-int get_bool_value_free(NB_Value *val)
-{
-    value_to_bool(&val);
-    int i = val->value.int_value;
-    value_delete(&val);
-    return i;
-}
+void free_temp_variables_list(VariablesList *vlist);
 
 void nb_interpret()
 {
@@ -17,8 +9,6 @@ void nb_interpret()
     StatementsList *saved = inter->statements_list; // save the statements list because after running, the list will be NULL
     result.type = NULL_RESULT;
     do {
-        if (result.type == EXPRESSION_STATEMENT)
-            value_delete(&(result.content.value));
         result = nb_interpret_once();
     } while(result.type != NULL_RESULT);
     inter->statements_list = saved;
@@ -57,9 +47,7 @@ StatementResult nb_interpret_once()
                     inter->statements_list = this_slist; \
                     r.type = NULL_RESULT; \
                     do { \
-                        if (r.type == EXPRESSION_STATEMENT) \
-                            value_delete(&(r.content.value)); \
-                        else if (r.type == BREAK_STATEMENT) \
+                        if (r.type == BREAK_STATEMENT) \
                             goto break_tag##num; \
                         else if (r.type == CONTINUE_STATEMENT) \
                             goto continue_tag##num; \
@@ -85,20 +73,77 @@ StatementResult nb_interpret_once()
                 Statement *s = inter->statements_list->s;
                 level_increase();
                 if (s->content.for_statement.exp1 != NULL)
-                    eval_no_ret(s->content.for_statement.exp1, &(inter->variables_list));
+                    eval(s->content.for_statement.exp1, &(inter->variables_list));
                 StatementResult r;
                 if (s->content.for_statement.exp2 != NULL && s->content.for_statement.exp3 != NULL)
-                    for (;get_bool_value_free(eval(s->content.for_statement.exp2, &(inter->variables_list)));eval_no_ret(s->content.for_statement.exp3, &(inter->variables_list)))
+                    for (;get_bool_value(eval(s->content.for_statement.exp2, &(inter->variables_list)));eval(s->content.for_statement.exp3, &(inter->variables_list)))
                     for_body(0)
-                else if (s->content.for_statement.exp2 == NULL)
-                    for (;;eval_no_ret(s->content.for_statement.exp3, &(inter->variables_list)))
+                else if (s->content.for_statement.exp2 == NULL && s->content.for_statement.exp3 != NULL)
+                    for (;;eval(s->content.for_statement.exp3, &(inter->variables_list)))
                     for_body(1)
-                else if (s->content.for_statement.exp3 == NULL)
-                    for (;get_bool_value_free(eval(s->content.for_statement.exp2, &(inter->variables_list)));)
+                else if (s->content.for_statement.exp3 == NULL && s->content.for_statement.exp2 != NULL)
+                    for (;get_bool_value(eval(s->content.for_statement.exp2, &(inter->variables_list)));)
                     for_body(2)
                 else
                     for (;;)
                     for_body(3)
+                level_decrease();
+                inter->statements_list = saved;
+                break;
+            }
+            case FOREACH_STATEMENT:
+            {
+                result.type = FOREACH_STATEMENT;
+                level_increase();
+                StatementsList *this_slist = inter->statements_list->s->content.foreach_statement.block->content.block_statement.slist;
+                if (this_slist != NULL)
+                    for (;this_slist->prev != NULL; this_slist = this_slist->prev);
+                StatementsList *saved = inter->statements_list;
+                NB_Value *arr = eval(inter->statements_list->s->content.foreach_statement.exp, &(inter->variables_list));
+                arr = value_copy_new(arr);
+                Expression *temp_exp = nb_create_declaration_expression(ARRAY, inter->statements_list->s->content.foreach_statement.identifier, NULL);
+                eval(temp_exp, &(inter->variables_list));
+                __free(temp_exp);
+                VariablesList *var = inter->variables_list;
+                value_delete(&(var->value));
+                StatementResult r;
+                for (int i = 0; i < array_get_length(arr->value.array_value); i++)
+                {
+                    var->value = array_get_addr(arr->value.array_value, i);
+                    inter->statements_list = this_slist; 
+                    r.type = NULL_RESULT; 
+                    do { 
+                        if (r.type == BREAK_STATEMENT) 
+                            goto break_tag; 
+                        else if (r.type == CONTINUE_STATEMENT) 
+                            goto continue_tag; 
+                        else if (r.type == RETURN_STATEMENT) 
+                        { 
+                            result.type = RETURN_STATEMENT; 
+                            result.content.value = r.content.value; 
+                            value_delete(&arr);
+                            level_decrease(); 
+                            return result; 
+                        } 
+                        r = nb_interpret_once(); 
+                    } while(r.type != NULL_RESULT); 
+                    continue; 
+                    break_tag: 
+                        break; 
+                    continue_tag:
+                        continue;
+                }
+        
+                if (var->prev != NULL)
+                    var->prev->next = var->next;
+                if (var->next != NULL)
+                    var->next->prev = var->prev;
+                if (inter->variables_list == var)
+                    inter->variables_list = var->prev;
+                utf8_string_delete(&(var->identifier));
+                __free(var);
+
+                value_delete(&arr);
                 level_decrease();
                 inter->statements_list = saved;
                 break;
@@ -114,9 +159,7 @@ StatementResult nb_interpret_once()
                 #define if_body \
                 r.type = NULL_RESULT; \
                 do { \
-                    if (r.type == EXPRESSION_STATEMENT) \
-                        value_delete(&(r.content.value)); \
-                    else if (r.type == BREAK_STATEMENT) \
+                    if (r.type == BREAK_STATEMENT) \
                     { \
                         result.type = BREAK_STATEMENT; \
                         level_decrease(); \
@@ -140,7 +183,7 @@ StatementResult nb_interpret_once()
                 result.type = IF_STATEMENT;
                 level_increase();
                 StatementResult r;
-                if (get_bool_value_free(eval(inter->statements_list->s->content.if_statement.exp, &(inter->variables_list))))
+                if (get_bool_value(eval(inter->statements_list->s->content.if_statement.exp, &(inter->variables_list))))
                 {
                     StatementsList *saved = inter->statements_list;
                     inter->statements_list = inter->statements_list->s->content.if_statement.block->content.block_statement.slist;
@@ -157,7 +200,7 @@ StatementResult nb_interpret_once()
                         for (;elseif_list->prev != NULL; elseif_list = elseif_list->prev);
                         for (;elseif_list != NULL; elseif_list = elseif_list->next)
                         {
-                            if (get_bool_value_free(eval(elseif_list->exp, &(inter->variables_list))))
+                            if (get_bool_value(eval(elseif_list->exp, &(inter->variables_list))))
                             {
                                 StatementsList *saved = inter->statements_list;
                                 inter->statements_list = elseif_list->block->content.block_statement.slist;
@@ -200,7 +243,7 @@ StatementResult nb_interpret_once()
         inter->statements_list = inter->statements_list->next;
     }
     else
-       result.type = NULL_RESULT;
+        result.type = NULL_RESULT;
     return result;
 }
 
@@ -316,6 +359,7 @@ void nb_interpreter_init()
     __free(lib_name);
     fclose(setting);
 
+    inter->val = value_new();
     inter->global_slist = inter->statements_list;
 }
 
@@ -342,6 +386,8 @@ void free_parameters_list_func(ParametersList *plist);
 #define free_parameters_list(plist) do {free_parameters_list_func(plist); plist = NULL;}while(0)
 void free_elseif_list_func(ElseIfList *elist);
 #define free_elseif_list(elist) do {free_elseif_list_func(elist); elist = NULL;}while(0)
+void free_expression_list_func(ExpressionList *elist);
+#define free_expression_list(elist) do {free_expression_list_func(elist); elist = NULL;}while(0)
 
 void nb_clean()
 {    
@@ -380,6 +426,7 @@ void nb_clean()
         inter->handle_list = saved_hlist;
     }
 
+    value_delete(&(inter->val));
     __free(inter);
 }
 
@@ -478,8 +525,8 @@ void free_expression_func(Expression *exp)
             utf8_string_delete(&(exp->content.identifier_expression));
             break;
         case ASSIGNMENT_EXPRESSION:
-            utf8_string_delete(&(exp->content.assignment_expression.identifier));
-            free_expression(exp->content.assignment_expression.exp);
+            free_expression(exp->content.assignment_expression.lval);
+            free_expression(exp->content.assignment_expression.rval);
             break;
         case DECLARATION_EXPRESSION:
             if (exp->content.declaration_expression.exp != NULL)
@@ -492,17 +539,33 @@ void free_expression_func(Expression *exp)
             free_expression(exp->content.binary_expression.second);
             break;
         case UNARY_EXPRESSION:
-            if (exp->content.unary_expression.exp != NULL)
-                free_expression(exp->content.unary_expression.exp);
-            else
-                utf8_string_delete(&(exp->content.unary_expression.identifier));
+            free_expression(exp->content.unary_expression.exp);
             break;
         case FUNCTION_CALL_EXPRESSION:
             utf8_string_delete(&(exp->content.function_call_expression.identifier));
             free_arguments_list(exp->content.function_call_expression.alist);
             break;
+        case ARRAY_EXPRESSION:
+            free_expression_list(exp->content.expression_list);
+            break;
+        case INDEX_EXPRESSION:
+            free_expression(exp->content.index_expression.exp);
+            free_expression(exp->content.index_expression.index);
+            break;
     }
     __free(exp);
+}
+
+void free_expression_list_func(ExpressionList *elist)
+{
+    ExpressionList *saved;
+    while (elist != NULL)
+    {
+        saved = elist->next;
+        free_expression(elist->exp);
+        __free(elist);
+        elist = saved;
+    }
 }
 
 void free_statement_func(Statement *s)
@@ -530,6 +593,11 @@ void free_statement_func(Statement *s)
                 free_expression(s->content.for_statement.exp2);
             if (s->content.for_statement.exp3 != NULL)
                 free_expression(s->content.for_statement.exp3);
+            break;
+        case FOREACH_STATEMENT:
+            free_statement(s->content.foreach_statement.block);
+            free_expression(s->content.foreach_statement.exp);
+            utf8_string_delete(&(s->content.foreach_statement.identifier));
             break;
         case RETURN_STATEMENT:
             free_expression(s->content.expression);
@@ -564,6 +632,18 @@ void free_statements_list_func(StatementsList *slist) // StatementsList usually 
                 slist = saved;
             }
         }
+    }
+}
+
+void free_temp_variables_list(VariablesList *vlist)
+{
+    VariablesList *saved;
+    while (vlist != NULL)
+    {
+        saved = vlist->prev;
+        value_delete(&(vlist->value));
+        __free(vlist);
+        vlist = saved;
     }
 }
 

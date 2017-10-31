@@ -1364,6 +1364,13 @@ case 81:
 YY_RULE_SETUP
 #line 161 "newbie.l"
 {
+    if (utf8_string_get_length(string_buffer) == 0)
+    {
+        yylval.expression = nb_create_literal_expression(STRING, "");
+        utf8_string_delete(&string_buffer);
+        BEGIN INITIAL;
+        return STRING_LITERAL;
+    }
     yylval.expression = nb_create_literal_expression(STRING, utf8_string_get_value(string_buffer));
     utf8_string_delete(&string_buffer);
     BEGIN INITIAL;
@@ -1372,17 +1379,17 @@ YY_RULE_SETUP
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 167 "newbie.l"
+#line 174 "newbie.l"
 {
     utf8_string_append(string_buffer, yytext);
 }
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 170 "newbie.l"
+#line 177 "newbie.l"
 ECHO;
 	YY_BREAK
-#line 1386 "newbie.yy.c"
+#line 1393 "newbie.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(LINE_COMMENT):
 case YY_STATE_EOF(BLOCK_COMMENT):
@@ -2390,6 +2397,6 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 170 "newbie.l"
+#line 177 "newbie.l"
 
 

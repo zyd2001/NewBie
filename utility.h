@@ -139,12 +139,14 @@ void *array_delete_func(Array **arr, ...);
 #define array_delete(...) array_delete_func(__VA_ARGS__, NULL)
 Array *array_push(Array *arr, Value *value);
 Value *array_get(Array *arr, int index);
+Value *array_get_addr(Array *arr, int index);
 Array *array_insert(Array *arr, Value *val, int index);
 Value *array_remove(Array *arr, int index);
 Value *array_pop(Array *arr);
 Array *array_copy_func(Array **destination, Array *source);
 Array *array_copy_new(Array *source);
 #define array_copy(destination, source) array_copy_func(&destination, source)
+int array_get_length(Array *arr);
 
 struct delete_func_struct_tag 
 {

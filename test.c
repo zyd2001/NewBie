@@ -8,18 +8,21 @@
 
 int main(void)
 {
-    FILE *setting = fopen("NewBie.ini", "r");
-    char *filename =(char*)malloc(30 * sizeof(char));
-    fgets(filename, 30, setting);
-    // fgets(filename, 30, setting);
-    for (int i = 0; i < strlen(filename); i++)
-    {
-        if (filename[i] == '\n')
-        {
-            filename[i] = '\0';
-            break;
-        }
-    }
-    fclose(setting);
-    free(filename);
+    Value *val1 = value_new_type(INT);
+    val1->value.int_value = 1;
+    // Value *val2 = value_new_type(INT);
+    // val2->value.int_value = 2;
+    // Value *test = value_new();
+    // test->type = ARRAY;
+    // test->value.array_value = array_new();
+    // array_push(test->value.array_value, val1);
+    Array *arr = array_new();
+    array_push(arr, val1);
+    // array_push(arr, val2);
+    // array_push(arr, test);
+    // Value *get = array_get(arr, 2);
+    // Value *get1 = array_get_addr(test->value.array_value, 0);
+    Array *arr2 = array_copy_new(arr);
+    array_delete(&arr, &arr2);
+    value_delete(&val1);
 }

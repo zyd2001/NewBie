@@ -171,11 +171,12 @@ union YYSTYPE
     UTF8_String         *identifier;
     Expression          *expression;
     Statement           *statement;
-    StatementsList       *statement_list;
-    ParametersList       *parameter_list;
-    ArgumentsList        *argument_list;
+    StatementsList      *statement_list;
+    ParametersList      *parameter_list;
+    ArgumentsList       *argument_list;
+    ExpressionList      *expression_list;
 
-#line 179 "newbie.tab.h" /* yacc.c:1909  */
+#line 180 "newbie.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

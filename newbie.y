@@ -28,11 +28,12 @@ void yyerror (char const *s)
     UTF8_String         *identifier;
     Expression          *expression;
     Statement           *statement;
-    StatementsList       *statement_list;
-    ParametersList       *parameter_list;
-    ArgumentsList        *argument_list;
+    StatementsList      *statement_list;
+    ParametersList      *parameter_list;
+    ArgumentsList       *argument_list;
+    ExpressionList      *expression_list;
 }
-%expect 78
+%expect 91
 %left LOGICAL_AND LOGICAL_OR
 %left EQ_T NE_T GT_T GE_T LT_T LE_T
 %left ADD_T SUB_T
@@ -44,11 +45,13 @@ void yyerror (char const *s)
         LP RP LC RC LB RB SEMICOLON COMMA ASSIGN_T EXCLAMATION DOT
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
         INCREMENT_T DECREMENT_T PUBLIC PROTECTED PRIVATE
-%type<expression> expression function_call_expression declaration_expression primary_expression assignment_expression expression_optional binary_expression unary_expression
+%type<expression> expression function_call_expression declaration_expression primary_expression assignment_expression expression_optional binary_expression unary_expression possible_array_expression
+                    index_expression assignment_lval_expression declaration_rval_expression
 %type<statement> statement block function_definition_statement
 %type<statement_list> statement_list
 %type<argument_list> argument_list
 %type<parameter_list> parameter_list
+%type<expression_list> expression_list
 %%
     statement_list: statement
         {
@@ -75,7 +78,7 @@ void yyerror (char const *s)
         {
             $$ = nb_cat_elseif_statement($3, $5);
         }
-        | FOR LP IDENTIFIER IN expression RP block
+        | FOR LP IDENTIFIER IN possible_array_expression RP block
         {
             $$ = nb_create_foreach_statement($3, $5, $7);
         }
@@ -107,14 +110,30 @@ void yyerror (char const *s)
         | binary_expression
         | unary_expression
         | primary_expression
-        | function_call_expression
+        | index_expression
+        | possible_array_expression
         | LP expression RP
         {
             $$ = $2;
         }
-        | IDENTIFIER
+        ;
+    possible_array_expression: IDENTIFIER
         {
             $$ = nb_create_identifier_expression($1);
+        }
+        | function_call_expression
+        | LB expression_list RB
+        {
+            $$ = nb_create_array_expression($2);
+        }
+        | index_expression LB expression RB
+        {
+            $$ = nb_create_index_expression($1, $3);            
+        }
+        ;
+    index_expression: possible_array_expression LB expression RB
+        {
+            $$ = nb_create_index_expression($1, $3);
         }
         ;
     expression_optional: /* empty */
@@ -184,18 +203,23 @@ void yyerror (char const *s)
         {
             $$ = nb_create_unary_expression(NOT, $2);
         }
-        | IDENTIFIER INCREMENT_T
+        | assignment_lval_expression INCREMENT_T
         {
-            $$ = nb_create_change_expression(INCREMENT, $1);
+            $$ = nb_create_unary_expression(INCREMENT, $1);
         }
-        | IDENTIFIER DECREMENT_T
+        | assignment_lval_expression DECREMENT_T
         {
-            $$ = nb_create_change_expression(DECREMENT, $1);
+            $$ = nb_create_unary_expression(DECREMENT, $1);
         }
         ;
     function_call_expression: IDENTIFIER LP argument_list RP
         {
             $$ = nb_create_function_call_expression($1, $3);
+        }
+        ;
+    declaration_rval_expression: IDENTIFIER ASSIGN_T expression
+        {
+            $$ = nb_create_assignment_expression(nb_create_identifier_expression($1), $3);
         }
         ;
     declaration_expression: INT_T IDENTIFIER 
@@ -222,60 +246,75 @@ void yyerror (char const *s)
         {
             $$ = nb_create_declaration_expression(VARIOUS, $2, NULL);
         }
-        | INT_T assignment_expression 
+        | INT_T declaration_rval_expression
         {
             $$ = nb_create_declaration_expression(INT, NULL, $2);
         }
-        | DOUBLE_T assignment_expression 
+        | DOUBLE_T declaration_rval_expression
         {
             $$ = nb_create_declaration_expression(DOUBLE, NULL, $2);
         }
-        | BOOL_T assignment_expression 
+        | BOOL_T declaration_rval_expression 
         {
             $$ = nb_create_declaration_expression(BOOL, NULL, $2);
         }
-        | STRING_T assignment_expression 
+        | STRING_T declaration_rval_expression 
         {
             $$ = nb_create_declaration_expression(STRING, NULL, $2);
         }
-        | ARRAY_T assignment_expression 
+        | ARRAY_T declaration_rval_expression
         {
             $$ = nb_create_declaration_expression(ARRAY, NULL, $2);
         }
-        | VAR_T assignment_expression 
+        | VAR_T declaration_rval_expression
         {
             $$ = nb_create_declaration_expression(VARIOUS, NULL, $2);
         }
         ;
-    assignment_expression: IDENTIFIER ASSIGN_T expression
+    assignment_lval_expression: index_expression
+        | IDENTIFIER
+        {
+            $$ = nb_create_identifier_expression($1);
+        }
+        ;
+    assignment_expression: assignment_lval_expression ASSIGN_T expression
         {
             $$ = nb_create_assignment_expression($1, $3);
         }
-        | IDENTIFIER ADD_ASSIGN expression
+        | assignment_lval_expression ADD_ASSIGN expression
         {
-            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(ADD, nb_create_identifier_expression(utf8_string_copy_new($1)), $3));
+            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(ADD, $1, $3));
         }
-        | IDENTIFIER SUB_ASSIGN expression
+        | assignment_lval_expression SUB_ASSIGN expression
         {
-            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(SUB, nb_create_identifier_expression(utf8_string_copy_new($1)), $3));
+            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(SUB, $1, $3));
         }
-        | IDENTIFIER MUL_ASSIGN expression
+        | assignment_lval_expression MUL_ASSIGN expression
         {
-            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(MUL, nb_create_identifier_expression(utf8_string_copy_new($1)), $3));
+            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(MUL, $1, $3));
         }
-        | IDENTIFIER DIV_ASSIGN expression
+        | assignment_lval_expression DIV_ASSIGN expression
         {
-            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(DIV, nb_create_identifier_expression(utf8_string_copy_new($1)), $3));
+            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(DIV, $1, $3));
         }
-        | IDENTIFIER MOD_ASSIGN expression
+        | assignment_lval_expression MOD_ASSIGN expression
         {
-            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(MOD, nb_create_identifier_expression(utf8_string_copy_new($1)), $3));
+            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(MOD, $1, $3));
         }
-        ;
+        ;    
     primary_expression: INT_LITERAL
         | DOUBLE_LITERAL
         | STRING_LITERAL
         | BOOL_LITERAL
+        ;
+    expression_list: expression
+        {
+            $$ = nb_create_expression_list($1);
+        }
+        | expression_list COMMA expression
+        {
+            $$ = nb_cat_expression_list($1, $3);
+        }
         ;
     function_definition_statement: INT_T IDENTIFIER LP parameter_list RP block
         {

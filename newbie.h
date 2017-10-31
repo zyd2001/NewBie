@@ -40,7 +40,9 @@ typedef enum
     DECLARATION_EXPRESSION,
     BINARY_EXPRESSION,
     UNARY_EXPRESSION,
-    FUNCTION_CALL_EXPRESSION  
+    FUNCTION_CALL_EXPRESSION,
+    ARRAY_EXPRESSION,
+    INDEX_EXPRESSION
 } ExpressionType;
 
 typedef enum
@@ -83,8 +85,8 @@ typedef struct ParametersList_tag
 
 typedef struct AssignmentExpression_tag
 {
-    UTF8_String *identifier;
-    Expression *exp;
+    Expression *lval;
+    Expression *rval;
 } AssignmentExpression;
 
 typedef struct DeclarationExpression_tag
@@ -105,7 +107,6 @@ typedef struct UnaryExpression_tag
 {
     UnaryType type;
     Expression *exp;
-    UTF8_String *identifier;
 } UnaryExpression;
 
 typedef struct FunctionCallExpression_tag
@@ -113,6 +114,18 @@ typedef struct FunctionCallExpression_tag
     UTF8_String *identifier;
     ArgumentsList *alist;
 } FunctionCallExpression;
+
+typedef struct ExpressionList_tag
+{
+    Expression *exp;
+    struct ExpressionList_tag *next;
+} ExpressionList;
+
+typedef struct IndexExpression_tag
+{
+    Expression *exp;
+    Expression *index;
+} IndexExpression;
 
 typedef struct Expression_tag 
 {
@@ -129,6 +142,8 @@ typedef struct Expression_tag
         BinaryExpression binary_expression;
         UnaryExpression unary_expression;
         FunctionCallExpression function_call_expression;
+        ExpressionList *expression_list;
+        IndexExpression index_expression;
     } content;
 } Expression;
 
@@ -237,6 +252,7 @@ typedef struct NB_Interpreter_tag
     FunctionList *func_list;
     ClassList *class_list;
     HandleList *handle_list;
+    NB_Value *val;
 } NB_Interpreter;
 
 typedef struct StatementResult_tag
@@ -250,13 +266,15 @@ typedef struct StatementResult_tag
 } StatementResult;
 
 Expression *nb_create_literal_expression(NB_ValueType type, char *text);
-Expression *nb_create_assignment_expression(UTF8_String *identifier, Expression *exp);
+Expression *nb_create_assignment_expression(Expression *lval, Expression *rval);
 Expression *nb_create_binary_expression(BinaryType type, Expression *left, Expression *right);
 Expression *nb_create_unary_expression(UnaryType type, Expression *exp);
-Expression *nb_create_change_expression(UnaryType type, UTF8_String *identifier);
+// Expression *nb_create_change_expression(UnaryType type, UTF8_String *identifier);
 Expression *nb_create_declaration_expression(NB_ValueType type, UTF8_String *identifier, Expression *assignment_expression);
 Expression *nb_create_identifier_expression(UTF8_String *identifier);
+Expression *nb_create_array_expression(ExpressionList *elist);
 Expression *nb_create_function_call_expression(UTF8_String *identifier, ArgumentsList *alist);
+Expression *nb_create_index_expression(Expression *exp, Expression *index);
 
 Statement *nb_create_expression_statement(Expression *exp);
 Statement *nb_create_block_statement(StatementsList *slist);
@@ -280,12 +298,15 @@ ArgumentsList *nb_cat_argument_list(ArgumentsList *alist, Expression *exp);
 ParametersList *nb_create_parameter_list(Expression *exp);
 ParametersList *nb_cat_parameter_list(ParametersList *plist, Expression *exp);
 
+ExpressionList *nb_create_expression_list(Expression *exp);
+ExpressionList *nb_cat_expression_list(ExpressionList *elist, Expression *exp);
+
 void nb_interpret();
 StatementResult nb_interpret_once();
 void level_increase();
 void level_decrease();
 NB_Value *eval(Expression *exp, VariablesList **vlist);
-void eval_no_ret(Expression *exp, VariablesList **vlist);
+// void eval_no_ret(Expression *exp, VariablesList **vlist);
 NB_Interpreter *nb_get_interpreter();
 NB_Interpreter *nb_interpreter_new();
 int nb_interpreter_set(NB_Interpreter *inter);

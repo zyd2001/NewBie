@@ -11,7 +11,7 @@ struct Array_tag
 {
     int limit;
     int size;
-    char **index;
+    // char **index;
     Value *value;
 };
 
@@ -363,25 +363,32 @@ UTF32_String *utf8_to_utf32(char *str)
 {
     size_t utf8_len = utf8_strlen(str);
     size_t utf8_size = strlen(str);
-    size_t utf32_size = utf8_len * 4;
-    char *utf32 = (char*)malloc(utf32_size * sizeof(char));
-    int size = encoding_convert(str, utf8_size, utf32, utf32_size, "utf-32le", "utf-8");
-    if (size == 0)
+    if (utf8_size == 0)
     {
-        fprintf(stderr, "incomplete convertion");  
-        exit(1);
+        return utf32_string_new();
     }
     else
     {
-        UTF32_String *new = utf32_string_new();
-        new->length = utf8_len;
-        new->size = utf32_size;
-        new->limit = utf32_size;
-        new->value = (char*)realloc(new->value, utf32_size);
-        memcpy(new->value, utf32, utf32_size);
-        free(utf32);
-        utf32 = NULL;
-        return new;
+        size_t utf32_size = utf8_len * 4;
+        char *utf32 = (char*)malloc(utf32_size * sizeof(char));
+        int size = encoding_convert(str, utf8_size, utf32, utf32_size, "utf-32le", "utf-8");
+        if (size == 0)
+        {
+            fprintf(stderr, "incomplete convertion");  
+            exit(1);
+        }
+        else
+        {
+            UTF32_String *new = utf32_string_new();
+            new->length = utf8_len;
+            new->size = utf32_size;
+            new->limit = utf32_size;
+            new->value = (char*)realloc(new->value, utf32_size);
+            memcpy(new->value, utf32, utf32_size);
+            free(utf32);
+            utf32 = NULL;
+            return new;
+        }
     }
 }
 
@@ -562,11 +569,14 @@ int utf32_string_indexof_utf32(UTF32_String *str, UTF32_String *target)
 
 size_t utf32_string_print(UTF32_String *str)
 {
-    char *out = (char*)malloc(str->size);
-    encoding_convert(str->value, str->size, out, str->size, OUT_PUT_ENCODING, "utf-32le");
-    size_t size = printf("%s", out);
-    free(out);
-    return size;
+    if (str->length != 0)
+    {
+        char *out = (char*)malloc(str->size);
+        encoding_convert(str->value, str->size, out, str->size, OUT_PUT_ENCODING, "utf-32le");
+        size_t size = printf("%s", out);
+        free(out);
+        return size;
+    }
 }
 
 char *utf32_string_get_value(UTF32_String *str)
@@ -596,7 +606,7 @@ void *utf32_string_delete_func(UTF32_String **str, ...)
 
 Value *value_new_type(ValueType type)
 {
-    Value *new = (Value*)malloc(sizeof(Value));
+    Value *new = (Value*)calloc(1, sizeof(Value));
     new->type = type;
     new->various = 0;
     switch(type)
@@ -651,12 +661,21 @@ Value *value_new_type(ValueType type)
 
 Value *value_copy_func(Value **destination, Value *source)
 {
+    if ((*destination) == source)
+        return source;
     if ((*destination) == NULL)
         (*destination) = value_new_type(source->type);
     if ((*destination)->type != source->type)
     {
-        value_delete(destination);
-        (*destination) = value_new_type(source->type);
+        switch ((*destination)->type)
+        {
+            case STRING:
+                utf32_string_delete(&(*destination)->value.string_value);
+                break;
+            case ARRAY:
+                array_delete(&(*destination)->value.array_value);
+        }
+        (*destination)->type = source->type;
     }
     switch(source->type)
     {
@@ -854,7 +873,7 @@ Array *array_new()
     Array *arr = (Array*)malloc(sizeof(Array));
     arr->limit = 5;
     arr->size = 0;
-    arr->index = (char**)malloc(sizeof(char*) * 5);
+    // arr->index = (char**)malloc(sizeof(char*) * 5);
     arr->value = (Value*)malloc(5 * sizeof(Value));
 }
 
@@ -864,7 +883,20 @@ void *array_delete_func(Array **arr, ...)
     va_start(args, arr);
     for (Array **i = arr; i != NULL; i = va_arg(args, Array**))
     {
-        free((*i)->index);
+        // free((*i)->index);
+        for (int j = 0; j < (*i)->size; j++)
+        {
+            Value *t = (*i)->value + j;
+            switch (t->type)
+            {
+                case STRING:
+                    utf32_string_delete(&(t->value.string_value));
+                    break;
+                case ARRAY:
+                    array_delete(&(t->value.array_value));
+                    break;
+            }
+        }
         free((*i)->value);
         free(*i);
         *i = NULL;
@@ -880,7 +912,10 @@ Array *array_push(Array *arr, Value *value)
         arr->limit += 5;
         arr->value = (Value*)realloc(arr->value, arr->limit * sizeof(Value));
     }
-    memcpy(arr->value + arr->size, value, sizeof(Value));
+    Value *new = value_new();
+    value_copy(new, value);
+    memcpy(arr->value + arr->size, new, sizeof(Value));
+    __free(new);
     arr->size++;
     return arr;
 }
@@ -893,6 +928,16 @@ Value *array_get(Array *arr, int index)
         exit(1);
     }
     return value_copy_new(arr->value + index);
+}
+
+Value *array_get_addr(Array *arr, int index)
+{
+    if ((index + 1) > arr->size)
+    {
+        fprintf(stderr, "OutOfBoundary");
+        exit(1);
+    }
+    return arr->value + index;
 }
 
 Array *array_insert(Array *arr, Value *val, int index)
@@ -936,9 +981,18 @@ Array *array_copy_func(Array **destination, Array *source)
     (*destination)->limit = source->limit;
     (*destination)->size = source->size;
     (*destination)->value = (Value*)realloc((*destination)->value, (*destination)->size * sizeof(Value));
-    (*destination)->index = (char**)realloc((*destination)->index, (*destination)->size * sizeof(char*));
-    memcpy((*destination)->value, source->value, (*destination)->size * sizeof(Value));
-    memcpy((*destination)->index, source->index, sizeof(char*));
+    // (*destination)->index = (char**)realloc((*destination)->index, (*destination)->size * sizeof(char*));
+    Value *temp, *dest;
+    for (int i = 0; i < source->size; i++)
+    {
+        temp = value_new();
+        dest = (*destination)->value + i;
+        value_copy(temp, source->value + i);
+        memcpy(dest, source->value + i, sizeof(Value));
+        free(temp);
+    }
+    // memcpy((*destination)->value, source->value, (*destination)->size * sizeof(Value));
+    // memcpy((*destination)->index, source->index, sizeof(char*));
     return (*destination);
 }
 
@@ -946,6 +1000,11 @@ Array *array_copy_new(Array *source)
 {
     Array *i = NULL;
     return array_copy_func(&i, source);
+}
+
+int array_get_length(Array *arr)
+{
+    return arr->size;
 }
 
 #define move_to(list, index) \

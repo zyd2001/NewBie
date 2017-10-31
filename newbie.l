@@ -159,6 +159,13 @@ void increase_line_number()
     utf8_string_append(string_buffer, "\"");
 }
 <STRING_LITERAL_STATE>\" {
+    if (utf8_string_get_length(string_buffer) == 0)
+    {
+        yylval.expression = nb_create_literal_expression(STRING, "");
+        utf8_string_delete(&string_buffer);
+        BEGIN INITIAL;
+        return STRING_LITERAL;
+    }
     yylval.expression = nb_create_literal_expression(STRING, utf8_string_get_value(string_buffer));
     utf8_string_delete(&string_buffer);
     BEGIN INITIAL;
