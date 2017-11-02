@@ -1,6 +1,5 @@
-#include "nb.h"
+#include "newbie.h"
 
-static NB_Interpreter *inter;
 void free_temp_variables_list(VariablesList *vlist);
 
 void nb_interpret()
@@ -296,15 +295,16 @@ void level_decrease()
 
 NB_Interpreter *nb_interpreter_new()
 {
-    NB_Interpreter *inter = (NB_Interpreter*)malloc(sizeof(NB_Interpreter));
-    inter->current_line = 1;
-    inter->level = 0;
-    inter->block_state = 0;
-    inter->variables_list = NULL;
-    inter->func_list = NULL;
-    inter->class_list = NULL;
-    inter->handle_list = NULL;
-    inter->temp_vlist = NULL;
+    NB_Interpreter *i = (NB_Interpreter*)malloc(sizeof(NB_Interpreter));
+    i->current_line = 1;
+    i->level = 0;
+    i->block_state = 0;
+    i->variables_list = NULL;
+    i->func_list = NULL;
+    i->class_list = NULL;
+    i->handle_list = NULL;
+    i->temp_vlist = NULL;
+    return i;
 }
 
 void nb_interpreter_init()
@@ -376,11 +376,6 @@ int nb_interpreter_set(NB_Interpreter *interpreter)
 {
     inter = interpreter;
     return 1;
-}
-
-NB_Interpreter *nb_get_interpreter()
-{
-    return inter;
 }
 
 void free_expression_func(Expression *exp);

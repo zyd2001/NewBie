@@ -1,5 +1,5 @@
 array a = [1, 2, 3, [4, 5]];
-println(print_array(a) + "item(s) in the array");
+println(print_array(a) + " item(s) in the array");
 
 int print_array(array a)
 {

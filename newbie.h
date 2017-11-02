@@ -309,8 +309,6 @@ StatementResult nb_interpret_once();
 void level_increase();
 void level_decrease();
 NB_Value *eval(Expression *exp, VariablesList **vlist);
-// void eval_no_ret(Expression *exp, VariablesList **vlist);
-NB_Interpreter *nb_get_interpreter();
 NB_Interpreter *nb_interpreter_new();
 int nb_interpreter_set(NB_Interpreter *inter);
 void nb_interpreter_init();
@@ -321,6 +319,6 @@ void nb_error(char *str);
 void nb_warning(char *str);
 void nb_compile(FILE *fp);
 
-#define new_statement_result() (StatementResult*)calloc(1, sizeof(StatementResult));
+NB_Interpreter *inter;
 
 #endif

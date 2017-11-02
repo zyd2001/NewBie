@@ -1,5 +1,5 @@
 %{
-#include "nb.h"
+#include "newbie.h"
 #include "newbie.tab.h"
 
 UTF8_String *string_buffer;
@@ -7,7 +7,7 @@ UTF8_String *string_buffer;
 char *heredoc_tag;
 void increase_line_number()
 {
-    nb_get_interpreter()->current_line++;
+    inter->current_line++;
 }
 #define yylex lex
 %}
@@ -35,11 +35,11 @@ void increase_line_number()
 <INITIAL>"break"        return BREAK;
 <INITIAL>"continue"     return CONTINUE;
 <INITIAL>"return"       return RETURN;
-<INITIAL>"class"        {nb_get_interpreter()->block_state = 2;return CLASS;}
+<INITIAL>"class"        return CLASS;
 <INITIAL>"("            return LP;
 <INITIAL>")"            return RP;
-<INITIAL>"{"            {nb_get_interpreter()->block_state = nb_get_interpreter()->block_state == 2 ? 2 : 1;return LC;}
-<INITIAL>"}"            {nb_get_interpreter()->block_state = 0;return RC;}
+<INITIAL>"{"            return LC;
+<INITIAL>"}"            return RC;
 <INITIAL>"["            return LB;
 <INITIAL>"]"            return RB;
 <INITIAL>";"            return SEMICOLON;

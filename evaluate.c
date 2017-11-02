@@ -1,4 +1,4 @@
-#include "nb.h"
+#include "newbie.h"
 
 #define bool_check(operator)\
 do {\
@@ -105,7 +105,6 @@ NB_Value *find_in_list_value(VariablesList *vlist, char *str);
 NB_Value *eval(Expression *exp, VariablesList **vlist)
 {
     NB_Value *ret;
-    NB_Interpreter *inter = nb_get_interpreter();
     switch (exp->type)
     {
         case LITERAL_EXPRESSION:

@@ -596,7 +596,7 @@ int yy_flex_debug = 0;
 char *yytext;
 #line 1 "newbie.l"
 #line 2 "newbie.l"
-#include "nb.h"
+#include "newbie.h"
 #include "newbie.tab.h"
 
 UTF8_String *string_buffer;
@@ -604,7 +604,7 @@ UTF8_String *string_buffer;
 char *heredoc_tag;
 void increase_line_number()
 {
-    nb_get_interpreter()->current_line++;
+    inter->current_line++;
 }
 #define yylex lex
 
@@ -1001,7 +1001,7 @@ return RETURN;
 case 22:
 YY_RULE_SETUP
 #line 38 "newbie.l"
-{nb_get_interpreter()->block_state = 2;return CLASS;}
+return CLASS;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
@@ -1016,12 +1016,12 @@ return RP;
 case 25:
 YY_RULE_SETUP
 #line 41 "newbie.l"
-{nb_get_interpreter()->block_state = nb_get_interpreter()->block_state == 2 ? 2 : 1;return LC;}
+return LC;
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
 #line 42 "newbie.l"
-{nb_get_interpreter()->block_state = 0;return RC;}
+return RC;
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
