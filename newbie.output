@@ -47,9 +47,9 @@ Grammar
    23 possible_array_expression: IDENTIFIER
    24                          | function_call_expression
    25                          | LB expression_list RB
-   26                          | index_expression LB expression RB
 
-   27 index_expression: possible_array_expression LB expression RB
+   26 index_expression: possible_array_expression LB expression RB
+   27                 | index_expression LB expression RB
 
    28 expression_optional: %empty
    29                    | expression
@@ -203,9 +203,9 @@ expression (62)
     30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 48 63 64 65 66 67
     68 73 74 84 85
 possible_array_expression (63)
-    on left: 23 24 25 26, on right: 7 21 27
+    on left: 23 24 25, on right: 7 21 26
 index_expression (64)
-    on left: 27, on right: 20 26 61
+    on left: 26 27, on right: 20 27 61
 expression_optional (65)
     on left: 28 29, on right: 8
 binary_expression (66)
@@ -752,7 +752,7 @@ State 28
 State 29
 
    21 expression: possible_array_expression .
-   27 index_expression: possible_array_expression . LB expression RB
+   26 index_expression: possible_array_expression . LB expression RB
 
     LB  shift, and go to state 90
 
@@ -762,7 +762,7 @@ State 29
 State 30
 
    20 expression: index_expression .
-   26 possible_array_expression: index_expression . LB expression RB
+   27 index_expression: index_expression . LB expression RB
    61 assignment_lval_expression: index_expression .
 
     LB  shift, and go to state 91
@@ -1831,7 +1831,7 @@ State 89
 
 State 90
 
-   27 index_expression: possible_array_expression LB . expression RB
+   26 index_expression: possible_array_expression LB . expression RB
 
     SUB_T           shift, and go to state 1
     INT_LITERAL     shift, and go to state 2
@@ -1863,7 +1863,7 @@ State 90
 
 State 91
 
-   26 possible_array_expression: index_expression LB . expression RB
+   27 index_expression: index_expression LB . expression RB
 
     SUB_T           shift, and go to state 1
     INT_LITERAL     shift, and go to state 2
@@ -2851,7 +2851,7 @@ State 137
 
 State 138
 
-   27 index_expression: possible_array_expression LB expression . RB
+   26 index_expression: possible_array_expression LB expression . RB
    30 binary_expression: expression . ADD_T expression
    31                  | expression . SUB_T expression
    32                  | expression . MUL_T expression
@@ -2884,7 +2884,7 @@ State 138
 
 State 139
 
-   26 possible_array_expression: index_expression LB expression . RB
+   27 index_expression: index_expression LB expression . RB
    30 binary_expression: expression . ADD_T expression
    31                  | expression . SUB_T expression
    32                  | expression . MUL_T expression
@@ -3370,7 +3370,6 @@ State 158
     LB          shift, and go to state 24
 
     possible_array_expression  go to state 174
-    index_expression           go to state 175
     function_call_expression   go to state 33
 
 
@@ -3399,7 +3398,7 @@ State 159
     expression                  go to state 117
     possible_array_expression   go to state 29
     index_expression            go to state 30
-    expression_optional         go to state 176
+    expression_optional         go to state 175
     binary_expression           go to state 31
     unary_expression            go to state 32
     function_call_expression    go to state 33
@@ -3445,16 +3444,16 @@ State 160
 
 State 161
 
-   27 index_expression: possible_array_expression LB expression RB .
+   26 index_expression: possible_array_expression LB expression RB .
 
-    $default  reduce using rule 27 (index_expression)
+    $default  reduce using rule 26 (index_expression)
 
 
 State 162
 
-   26 possible_array_expression: index_expression LB expression RB .
+   27 index_expression: index_expression LB expression RB .
 
-    $default  reduce using rule 26 (possible_array_expression)
+    $default  reduce using rule 27 (index_expression)
 
 
 State 163
@@ -3497,7 +3496,7 @@ State 164
 
     LC  shift, and go to state 23
 
-    block  go to state 177
+    block  go to state 176
 
 
 State 165
@@ -3511,7 +3510,7 @@ State 165
     ARRAY_T   shift, and go to state 44
     VAR_T     shift, and go to state 12
 
-    declaration_expression  go to state 178
+    declaration_expression  go to state 177
 
 
 State 166
@@ -3520,7 +3519,7 @@ State 166
 
     LC  shift, and go to state 23
 
-    block  go to state 179
+    block  go to state 178
 
 
 State 167
@@ -3529,7 +3528,7 @@ State 167
 
     LC  shift, and go to state 23
 
-    block  go to state 180
+    block  go to state 179
 
 
 State 168
@@ -3538,7 +3537,7 @@ State 168
 
     LC  shift, and go to state 23
 
-    block  go to state 181
+    block  go to state 180
 
 
 State 169
@@ -3547,7 +3546,7 @@ State 169
 
     LC  shift, and go to state 23
 
-    block  go to state 182
+    block  go to state 181
 
 
 State 170
@@ -3556,7 +3555,7 @@ State 170
 
     LC  shift, and go to state 23
 
-    block  go to state 183
+    block  go to state 182
 
 
 State 171
@@ -3586,85 +3585,76 @@ State 173
 State 174
 
     7 statement: FOR LP IDENTIFIER IN possible_array_expression . RP block
-   27 index_expression: possible_array_expression . LB expression RB
 
-    RP  shift, and go to state 184
-    LB  shift, and go to state 90
+    RP  shift, and go to state 183
 
 
 State 175
 
-   26 possible_array_expression: index_expression . LB expression RB
+    8 statement: FOR LP expression_optional SEMICOLON expression_optional . SEMICOLON expression_optional RP block
 
-    LB  shift, and go to state 91
+    SEMICOLON  shift, and go to state 184
 
 
 State 176
-
-    8 statement: FOR LP expression_optional SEMICOLON expression_optional . SEMICOLON expression_optional RP block
-
-    SEMICOLON  shift, and go to state 185
-
-
-State 177
 
    75 function_definition_statement: INT_T IDENTIFIER LP parameter_list RP block .
 
     $default  reduce using rule 75 (function_definition_statement)
 
 
-State 178
+State 177
 
    88 parameter_list: parameter_list COMMA declaration_expression .
 
     $default  reduce using rule 88 (parameter_list)
 
 
-State 179
+State 178
 
    76 function_definition_statement: DOUBLE_T IDENTIFIER LP parameter_list RP block .
 
     $default  reduce using rule 76 (function_definition_statement)
 
 
-State 180
+State 179
 
    77 function_definition_statement: BOOL_T IDENTIFIER LP parameter_list RP block .
 
     $default  reduce using rule 77 (function_definition_statement)
 
 
-State 181
+State 180
 
    78 function_definition_statement: STRING_T IDENTIFIER LP parameter_list RP block .
 
     $default  reduce using rule 78 (function_definition_statement)
 
 
-State 182
+State 181
 
    79 function_definition_statement: ARRAY_T IDENTIFIER LP parameter_list RP block .
 
     $default  reduce using rule 79 (function_definition_statement)
 
 
-State 183
+State 182
 
    80 function_definition_statement: FUNC_T IDENTIFIER LP parameter_list RP block .
 
     $default  reduce using rule 80 (function_definition_statement)
 
 
-State 184
+State 183
 
     7 statement: FOR LP IDENTIFIER IN possible_array_expression RP . block
 
     LC  shift, and go to state 23
 
-    block  go to state 186
+    block  go to state 185
 
 
-State 185
+State 184
 
     8 statement: FOR LP expression_optional SEMICOLON expression_optional SEMICOLON . expression_optional RP block
 
@@ -3689,7 +3679,7 @@ State 185
     expression                  go to state 117
     possible_array_expression   go to state 29
     index_expression            go to state 30
-    expression_optional         go to state 187
+    expression_optional         go to state 186
     binary_expression           go to state 31
     unary_expression            go to state 32
     function_call_expression    go to state 33
@@ -3699,30 +3689,30 @@ State 185
     primary_expression          go to state 37
 
 
-State 186
+State 185
 
     7 statement: FOR LP IDENTIFIER IN possible_array_expression RP block .
 
     $default  reduce using rule 7 (statement)
 
 
-State 187
+State 186
 
     8 statement: FOR LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional . RP block
 
-    RP  shift, and go to state 188
+    RP  shift, and go to state 187
 
 
-State 188
+State 187
 
     8 statement: FOR LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional RP . block
 
     LC  shift, and go to state 23
 
-    block  go to state 189
+    block  go to state 188
 
 
-State 189
+State 188
 
     8 statement: FOR LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional RP block .
 

@@ -130,6 +130,7 @@ typedef struct IndexExpression_tag
 typedef struct Expression_tag 
 {
     ExpressionType type; 
+    char ref;    
     union 
     {
         // int int_literal;
@@ -252,7 +253,7 @@ typedef struct NB_Interpreter_tag
     FunctionList *func_list;
     ClassList *class_list;
     HandleList *handle_list;
-    NB_Value *val;
+    VariablesList *temp_vlist;
 } NB_Interpreter;
 
 typedef struct StatementResult_tag
@@ -268,6 +269,7 @@ typedef struct StatementResult_tag
 Expression *nb_create_literal_expression(NB_ValueType type, char *text);
 Expression *nb_create_assignment_expression(Expression *lval, Expression *rval);
 Expression *nb_create_binary_expression(BinaryType type, Expression *left, Expression *right);
+Expression *nb_create_binary_expression_sp(BinaryType type, Expression *left, Expression *right);
 Expression *nb_create_unary_expression(UnaryType type, Expression *exp);
 // Expression *nb_create_change_expression(UnaryType type, UTF8_String *identifier);
 Expression *nb_create_declaration_expression(NB_ValueType type, UTF8_String *identifier, Expression *assignment_expression);

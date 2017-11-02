@@ -77,26 +77,26 @@ do { \
     } \
 } while(0)
 
-// #define vlist_move_to_next(vlist) \
-// do { \
-//     if (vlist != NULL) \
-//     { \
-//         vlist->next = (VariablesList*)malloc(sizeof(VariablesList)); \
-//         vlist->next->prev = vlist; \
-//         vlist = vlist->next; \
-//         vlist->next = NULL; \
-//         vlist->value = value_new(); \
-//         vlist->identifier = NULL; \
-//     } \
-//     else \
-//     { \
-//         vlist = (VariablesList*)malloc(sizeof(VariablesList)); \
-//         vlist->prev = NULL; \
-//         vlist->next = NULL; \
-//         vlist->value = value_new(); \
-//         vlist->identifier = NULL; \
-//     } \
-// } while(0)
+#define vlist_move_to_next(vlist) \
+do { \
+    if (vlist != NULL) \
+    { \
+        vlist->next = (VariablesList*)malloc(sizeof(VariablesList)); \
+        vlist->next->prev = vlist; \
+        vlist = vlist->next; \
+        vlist->next = NULL; \
+        vlist->value = value_new(); \
+        vlist->identifier = NULL; \
+    } \
+    else \
+    { \
+        vlist = (VariablesList*)malloc(sizeof(VariablesList)); \
+        vlist->prev = NULL; \
+        vlist->next = NULL; \
+        vlist->value = value_new(); \
+        vlist->identifier = NULL; \
+    } \
+} while(0)
 
 VariablesList *find_in_list(VariablesList *vlist, UTF8_String *str);
 VariablesList *find_in_list_func(VariablesList *vlist, UTF8_String *str);
@@ -317,8 +317,9 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
                     break;
                 }
             }
-            value_copy(inter->val, new);
-            ret = inter->val;
+            vlist_move_to_next(inter->temp_vlist);
+            value_copy(inter->temp_vlist->value, new);
+            ret = inter->temp_vlist->value;
             value_delete(&new, &first, &second);
             break;
         }
@@ -328,7 +329,8 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
             {
                 case MINUS:
                 {
-                    ret = inter->val;
+                    vlist_move_to_next(inter->temp_vlist);
+                    ret = inter->temp_vlist->value;
                     NB_Value *val = eval(exp->content.unary_expression.exp, vlist);
                     value_copy(ret, val);
                     switch (val->type)
@@ -355,7 +357,8 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
                 }
                 case NOT:
                 {
-                    ret = inter->val;
+                    vlist_move_to_next(inter->temp_vlist);            
+                    ret = inter->temp_vlist->value;
                     NB_Value *val = eval(exp->content.unary_expression.exp, vlist);                    
                     value_copy(ret, val);
                     switch (val->type)      
@@ -426,9 +429,10 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
                 temp->various = 1;
                 array_push(new->value.array_value, temp);
             }
-            value_copy(inter->val, new);
+            vlist_move_to_next(inter->temp_vlist);
+            value_copy(inter->temp_vlist->value, new);
             value_delete(&new);
-            ret = inter->val;
+            ret = inter->temp_vlist->value;
             break;
         }
         case INDEX_EXPRESSION:
@@ -441,9 +445,10 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
                 NB_Value *new = value_new();
                 new->type = STRING;
                 new->value.string_value = utf32_string_substr(val->value.string_value, i, 1);
-                value_copy(inter->val, new);
+                vlist_move_to_next(inter->temp_vlist);
+                value_copy(inter->temp_vlist->value, new);
                 value_delete(&new);
-                ret = inter->val;
+                ret = inter->temp_vlist->value;
             }
             else if (val->type == ARRAY)
                 ret = array_get_addr(val->value.array_value, i);
@@ -491,7 +496,7 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
                 {
                     eval(plist_temp->exp, &new_vlist);
                     NB_Value *t = eval(alist_temp->exp, vlist);
-                    Expression *exp_temp = nb_create_assignment_expression(plist_temp->exp->content.declaration_expression.exp->content.assignment_expression.lval, &(Expression){LITERAL_EXPRESSION, *t});
+                    Expression *exp_temp = nb_create_assignment_expression(plist_temp->exp->content.declaration_expression.exp->content.assignment_expression.lval, &(Expression){LITERAL_EXPRESSION, 0, *t});
                     eval(exp_temp, &new_vlist);
                     __free(exp_temp);
                 }
@@ -501,7 +506,7 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
                 {
                     eval(plist_temp->exp, &new_vlist);
                     NB_Value *t = eval(alist_temp->exp, vlist);
-                    Expression *exp_temp = nb_create_assignment_expression(nb_create_identifier_expression(plist_temp->exp->content.declaration_expression.identifier), &(Expression){LITERAL_EXPRESSION, *t});
+                    Expression *exp_temp = nb_create_assignment_expression(nb_create_identifier_expression(plist_temp->exp->content.declaration_expression.identifier), &(Expression){LITERAL_EXPRESSION, 0, *t});
                     eval(exp_temp, &new_vlist);
                     __free(exp_temp->content.assignment_expression.lval);
                     __free(exp_temp);
@@ -548,8 +553,9 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
                 do {
                     if (r.type == RETURN_STATEMENT)
                     {
-                        value_copy(inter->val, r.content.value);
-                        ret = inter->val;
+                        vlist_move_to_next(inter->temp_vlist);
+                        value_copy(inter->temp_vlist->value, r.content.value);
+                        ret = inter->temp_vlist->value;
                         if (func->type != VARIOUS)
                             nb_value_change_type(ret, func->type);
                         break;
@@ -563,8 +569,9 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
             else
             {
                 NB_Value *val = func->builtin_ptr((*vlist), find_in_list_value);
-                value_copy(inter->val, val);
-                ret = inter->val;
+                vlist_move_to_next(inter->temp_vlist);
+                value_copy(inter->temp_vlist->value, val);
+                ret = inter->temp_vlist->value;
                 value_delete(&val);
             }
 

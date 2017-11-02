@@ -84,6 +84,18 @@ Expression *nb_create_binary_expression(BinaryType type, Expression *left, Expre
 {
     Expression *expression = new_expression();
     expression->type = BINARY_EXPRESSION;
+    expression->ref = 0;
+    expression->content.binary_expression.type = type;
+    expression->content.binary_expression.first = left;
+    expression->content.binary_expression.second = right;
+    return expression;    
+}
+
+Expression *nb_create_binary_expression_sp(BinaryType type, Expression *left, Expression *right)
+{
+    Expression *expression = new_expression();
+    expression->type = BINARY_EXPRESSION;
+    expression->ref = 1;
     expression->content.binary_expression.type = type;
     expression->content.binary_expression.first = left;
     expression->content.binary_expression.second = right;

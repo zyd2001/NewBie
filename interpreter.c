@@ -17,6 +17,8 @@ void nb_interpret()
 StatementResult nb_interpret_once()
 {
     StatementResult result;
+    VariablesList *saved_temp_vlist = inter->temp_vlist;
+    inter->temp_vlist = NULL;
     if (inter->statements_list != NULL)
     {
         switch (inter->statements_list->s->type)
@@ -100,7 +102,10 @@ StatementResult nb_interpret_once()
                     for (;this_slist->prev != NULL; this_slist = this_slist->prev);
                 StatementsList *saved = inter->statements_list;
                 NB_Value *arr = eval(inter->statements_list->s->content.foreach_statement.exp, &(inter->variables_list));
-                arr = value_copy_new(arr);
+                // NB_Value *arr = value_new();
+                // memcpy(arr, temp_arr, sizeof(NB_Value));
+                // inter->val->type = INT;
+                // inter->val->value.int_value = 0;
                 Expression *temp_exp = nb_create_declaration_expression(ARRAY, inter->statements_list->s->content.foreach_statement.identifier, NULL);
                 eval(temp_exp, &(inter->variables_list));
                 __free(temp_exp);
@@ -143,7 +148,8 @@ StatementResult nb_interpret_once()
                 utf8_string_delete(&(var->identifier));
                 __free(var);
 
-                value_delete(&arr);
+                // __free(arr);
+                // value_delete(&arr);
                 level_decrease();
                 inter->statements_list = saved;
                 break;
@@ -244,6 +250,8 @@ StatementResult nb_interpret_once()
     }
     else
         result.type = NULL_RESULT;
+    free_temp_variables_list(inter->temp_vlist);
+    inter->temp_vlist = saved_temp_vlist;
     return result;
 }
 
@@ -296,6 +304,7 @@ NB_Interpreter *nb_interpreter_new()
     inter->func_list = NULL;
     inter->class_list = NULL;
     inter->handle_list = NULL;
+    inter->temp_vlist = NULL;
 }
 
 void nb_interpreter_init()
@@ -359,7 +368,6 @@ void nb_interpreter_init()
     __free(lib_name);
     fclose(setting);
 
-    inter->val = value_new();
     inter->global_slist = inter->statements_list;
 }
 
@@ -426,7 +434,7 @@ void nb_clean()
         inter->handle_list = saved_hlist;
     }
 
-    value_delete(&(inter->val));
+    // value_delete(&(inter->val));
     __free(inter);
 }
 
@@ -535,7 +543,8 @@ void free_expression_func(Expression *exp)
                 utf8_string_delete(&(exp->content.declaration_expression.identifier));
             break;
         case BINARY_EXPRESSION:
-            free_expression(exp->content.binary_expression.first);
+            if (!(exp->ref))
+                free_expression(exp->content.binary_expression.first);
             free_expression(exp->content.binary_expression.second);
             break;
         case UNARY_EXPRESSION:

@@ -21,7 +21,7 @@ int yylex(void)
 }
 void yyerror (char const *s)
 {
-    fprintf (stderr, "%s\n", s);
+    fprintf (stderr, "%s %d\n", s, nb_get_interpreter()->current_line);
 }
 %}
 %union {
@@ -126,14 +126,14 @@ void yyerror (char const *s)
         {
             $$ = nb_create_array_expression($2);
         }
-        | index_expression LB expression RB
-        {
-            $$ = nb_create_index_expression($1, $3);            
-        }
         ;
     index_expression: possible_array_expression LB expression RB
         {
             $$ = nb_create_index_expression($1, $3);
+        }
+        | index_expression LB expression RB
+        {
+            $$ = nb_create_index_expression($1, $3);            
         }
         ;
     expression_optional: /* empty */
@@ -283,23 +283,23 @@ void yyerror (char const *s)
         }
         | assignment_lval_expression ADD_ASSIGN expression
         {
-            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(ADD, $1, $3));
+            $$ = nb_create_assignment_expression($1, nb_create_binary_expression_sp(ADD, $1, $3));
         }
         | assignment_lval_expression SUB_ASSIGN expression
         {
-            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(SUB, $1, $3));
+            $$ = nb_create_assignment_expression($1, nb_create_binary_expression_sp(SUB, $1, $3));
         }
         | assignment_lval_expression MUL_ASSIGN expression
         {
-            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(MUL, $1, $3));
+            $$ = nb_create_assignment_expression($1, nb_create_binary_expression_sp(MUL, $1, $3));
         }
         | assignment_lval_expression DIV_ASSIGN expression
         {
-            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(DIV, $1, $3));
+            $$ = nb_create_assignment_expression($1, nb_create_binary_expression_sp(DIV, $1, $3));
         }
         | assignment_lval_expression MOD_ASSIGN expression
         {
-            $$ = nb_create_assignment_expression($1, nb_create_binary_expression(MOD, $1, $3));
+            $$ = nb_create_assignment_expression($1, nb_create_binary_expression_sp(MOD, $1, $3));
         }
         ;    
     primary_expression: INT_LITERAL

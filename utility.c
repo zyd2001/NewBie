@@ -665,6 +665,7 @@ Value *value_copy_func(Value **destination, Value *source)
         return source;
     if ((*destination) == NULL)
         (*destination) = value_new_type(source->type);
+    ValueType type = (*destination)->type; // in order to save the original type to determine whether or not use copy_new
     if ((*destination)->type != source->type)
     {
         switch ((*destination)->type)
@@ -687,10 +688,16 @@ Value *value_copy_func(Value **destination, Value *source)
             (*destination)->value.double_value = source->value.double_value;
             break;
         case STRING:
-            (*destination)->value.string_value = utf32_string_copy((*destination)->value.string_value, source->value.string_value);
+            if (type != STRING)
+                (*destination)->value.string_value = utf32_string_copy_new(source->value.string_value);
+            else
+                (*destination)->value.string_value = utf32_string_copy((*destination)->value.string_value, source->value.string_value);
             break;
         case ARRAY:
-            (*destination)->value.array_value = array_copy((*destination)->value.array_value, source->value.array_value);
+            if (type != ARRAY)
+                (*destination)->value.array_value = array_copy_new(source->value.array_value);
+            else
+                (*destination)->value.array_value = array_copy((*destination)->value.array_value, source->value.array_value);
             break;
     }
     return (*destination);
@@ -982,15 +989,14 @@ Array *array_copy_func(Array **destination, Array *source)
     (*destination)->size = source->size;
     (*destination)->value = (Value*)realloc((*destination)->value, (*destination)->size * sizeof(Value));
     // (*destination)->index = (char**)realloc((*destination)->index, (*destination)->size * sizeof(char*));
-    Value *temp, *dest;
+    Value *temp = value_new(), *dest;
     for (int i = 0; i < source->size; i++)
     {
-        temp = value_new();
         dest = (*destination)->value + i;
         value_copy(temp, source->value + i);
-        memcpy(dest, source->value + i, sizeof(Value));
-        free(temp);
+        memcpy(dest, temp, sizeof(Value));
     }
+    __free(temp);
     // memcpy((*destination)->value, source->value, (*destination)->size * sizeof(Value));
     // memcpy((*destination)->index, source->index, sizeof(char*));
     return (*destination);

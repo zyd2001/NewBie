@@ -33,6 +33,7 @@ void increase_line_number()
 <INITIAL>"elif"         return ELSEIF;
 <INITIAL>"elsif"        return ELSEIF;
 <INITIAL>"for"          return FOR;
+<INITIAL>"foreach"          return FOR;
 <INITIAL>"in"           return IN;
 <INITIAL>"break"        return BREAK;
 <INITIAL>"continue"     return CONTINUE;
