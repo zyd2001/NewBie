@@ -1,4 +1,4 @@
-#include "newbie.h"
+#include "nb.h"
 
 static NB_Interpreter *inter;
 void free_temp_variables_list(VariablesList *vlist);
@@ -338,6 +338,7 @@ void nb_interpreter_init()
                 break;
             }
         }
+
         void *handle = dlopen(lib_name, RTLD_NOW);
         if (handle == NULL)
             fprintf(stderr, "%s\n", dlerror());

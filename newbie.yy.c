@@ -342,6 +342,9 @@ void yyfree (void *  );
 
 /* Begin user sect3 */
 
+#define yywrap() (/*CONSTCOND*/1)
+#define YY_SKIP_YYWRAP
+
 typedef unsigned char YY_CHAR;
 
 FILE *yyin = (FILE *) 0, *yyout = (FILE *) 0;
@@ -593,23 +596,19 @@ int yy_flex_debug = 0;
 char *yytext;
 #line 1 "newbie.l"
 #line 2 "newbie.l"
-#include "newbie.h"
+#include "nb.h"
 #include "newbie.tab.h"
 
 UTF8_String *string_buffer;
 
 char *heredoc_tag;
-int yywarp(void)
-{
-    return 1;
-}
 void increase_line_number()
 {
     nb_get_interpreter()->current_line++;
 }
 #define yylex lex
 
-#line 613 "newbie.yy.c"
+#line 612 "newbie.yy.c"
 
 #define INITIAL 0
 #define LINE_COMMENT 1
@@ -834,9 +833,9 @@ YY_DECL
 		}
 
 	{
-#line 19 "newbie.l"
+#line 16 "newbie.l"
 
-#line 840 "newbie.yy.c"
+#line 839 "newbie.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -896,297 +895,297 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 20 "newbie.l"
+#line 17 "newbie.l"
 return INT_T;
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 21 "newbie.l"
+#line 18 "newbie.l"
 return DOUBLE_T;
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 22 "newbie.l"
+#line 19 "newbie.l"
 return BOOL_T;
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 23 "newbie.l"
+#line 20 "newbie.l"
 return BOOL_T;
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 24 "newbie.l"
+#line 21 "newbie.l"
 return ARRAY_T;
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 25 "newbie.l"
+#line 22 "newbie.l"
 return STRING_T;
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 26 "newbie.l"
+#line 23 "newbie.l"
 return VAR_T;
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 27 "newbie.l"
+#line 24 "newbie.l"
 return FUNC_T;
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 28 "newbie.l"
+#line 25 "newbie.l"
 return FUNC_T;
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 29 "newbie.l"
+#line 26 "newbie.l"
 return IF;
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 30 "newbie.l"
+#line 27 "newbie.l"
 return ELSE;
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 31 "newbie.l"
+#line 28 "newbie.l"
 return ELSEIF;
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 32 "newbie.l"
+#line 29 "newbie.l"
 return ELSEIF;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 33 "newbie.l"
+#line 30 "newbie.l"
 return ELSEIF;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 34 "newbie.l"
+#line 31 "newbie.l"
 return ELSEIF;
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 35 "newbie.l"
+#line 32 "newbie.l"
 return FOR;
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 36 "newbie.l"
+#line 33 "newbie.l"
 return FOR;
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 37 "newbie.l"
+#line 34 "newbie.l"
 return IN;
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 38 "newbie.l"
+#line 35 "newbie.l"
 return BREAK;
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 39 "newbie.l"
+#line 36 "newbie.l"
 return CONTINUE;
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 40 "newbie.l"
+#line 37 "newbie.l"
 return RETURN;
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 41 "newbie.l"
+#line 38 "newbie.l"
 {nb_get_interpreter()->block_state = 2;return CLASS;}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 42 "newbie.l"
+#line 39 "newbie.l"
 return LP;
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 43 "newbie.l"
+#line 40 "newbie.l"
 return RP;
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 44 "newbie.l"
+#line 41 "newbie.l"
 {nb_get_interpreter()->block_state = nb_get_interpreter()->block_state == 2 ? 2 : 1;return LC;}
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 45 "newbie.l"
+#line 42 "newbie.l"
 {nb_get_interpreter()->block_state = 0;return RC;}
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 46 "newbie.l"
+#line 43 "newbie.l"
 return LB;
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 47 "newbie.l"
+#line 44 "newbie.l"
 return RB;
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 48 "newbie.l"
+#line 45 "newbie.l"
 return SEMICOLON;
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 49 "newbie.l"
+#line 46 "newbie.l"
 return COMMA;
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 50 "newbie.l"
+#line 47 "newbie.l"
 return LOGICAL_AND;
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 51 "newbie.l"
+#line 48 "newbie.l"
 return LOGICAL_AND;
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 52 "newbie.l"
+#line 49 "newbie.l"
 return LOGICAL_OR;
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 53 "newbie.l"
+#line 50 "newbie.l"
 return LOGICAL_OR;
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 54 "newbie.l"
+#line 51 "newbie.l"
 return ASSIGN_T;
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 55 "newbie.l"
+#line 52 "newbie.l"
 return EQ_T;
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 56 "newbie.l"
+#line 53 "newbie.l"
 return NE_T;
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 57 "newbie.l"
+#line 54 "newbie.l"
 return GT_T;
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 58 "newbie.l"
+#line 55 "newbie.l"
 return GE_T;
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 59 "newbie.l"
+#line 56 "newbie.l"
 return LT_T;
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 60 "newbie.l"
+#line 57 "newbie.l"
 return LE_T;
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 61 "newbie.l"
+#line 58 "newbie.l"
 return ADD_T;
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 62 "newbie.l"
+#line 59 "newbie.l"
 return SUB_T;
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 63 "newbie.l"
+#line 60 "newbie.l"
 return MUL_T;
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 64 "newbie.l"
+#line 61 "newbie.l"
 return DIV_T;
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 65 "newbie.l"
+#line 62 "newbie.l"
 return MOD_T;
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 66 "newbie.l"
+#line 63 "newbie.l"
 return ADD_ASSIGN;
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 67 "newbie.l"
+#line 64 "newbie.l"
 return SUB_ASSIGN;
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 68 "newbie.l"
+#line 65 "newbie.l"
 return MUL_ASSIGN;
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 69 "newbie.l"
+#line 66 "newbie.l"
 return DIV_ASSIGN;
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 70 "newbie.l"
+#line 67 "newbie.l"
 return MOD_ASSIGN;
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 71 "newbie.l"
+#line 68 "newbie.l"
 return INCREMENT_T;
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 72 "newbie.l"
+#line 69 "newbie.l"
 return DECREMENT_T;
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 73 "newbie.l"
+#line 70 "newbie.l"
 return EXCLAMATION;
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 74 "newbie.l"
+#line 71 "newbie.l"
 return DOT;
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 75 "newbie.l"
+#line 72 "newbie.l"
 return PUBLIC;
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 76 "newbie.l"
+#line 73 "newbie.l"
 return PROTECTED;
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 77 "newbie.l"
+#line 74 "newbie.l"
 return PRIVATE;
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 78 "newbie.l"
+#line 75 "newbie.l"
 {       
     yylval.expression = nb_create_literal_expression(BOOL, (char*)1);
     return BOOL_LITERAL;
@@ -1194,7 +1193,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 82 "newbie.l"
+#line 79 "newbie.l"
 {       
     yylval.expression = nb_create_literal_expression(BOOL, NULL);
     return BOOL_LITERAL;
@@ -1202,18 +1201,18 @@ YY_RULE_SETUP
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 86 "newbie.l"
+#line 83 "newbie.l"
 ;
 	YY_BREAK
 case 62:
 /* rule 62 can match eol */
 YY_RULE_SETUP
-#line 87 "newbie.l"
+#line 84 "newbie.l"
 increase_line_number();
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 88 "newbie.l"
+#line 85 "newbie.l"
 {
     yylval.identifier = utf8_string_new_wrap(yytext);
     return IDENTIFIER;
@@ -1221,7 +1220,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 92 "newbie.l"
+#line 89 "newbie.l"
 {
     yylval.expression = nb_create_literal_expression(INT, yytext);
     return INT_LITERAL;
@@ -1229,7 +1228,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 96 "newbie.l"
+#line 93 "newbie.l"
 {
     yylval.expression = nb_create_literal_expression(DOUBLE, yytext);
     return DOUBLE_LITERAL;
@@ -1237,7 +1236,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 100 "newbie.l"
+#line 97 "newbie.l"
 {
     string_buffer = utf8_string_new();
     BEGIN STRING_LITERAL_STATE;
@@ -1245,23 +1244,23 @@ YY_RULE_SETUP
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 104 "newbie.l"
+#line 101 "newbie.l"
 {BEGIN BLOCK_COMMENT;}
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 105 "newbie.l"
+#line 102 "newbie.l"
 {BEGIN LINE_COMMENT;}
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 106 "newbie.l"
+#line 103 "newbie.l"
 {BEGIN LINE_COMMENT;}
 	YY_BREAK
 case 70:
 /* rule 70 can match eol */
 YY_RULE_SETUP
-#line 107 "newbie.l"
+#line 104 "newbie.l"
 {
     heredoc_tag = (char*)malloc(32 * sizeof(char));
     for (int i = strlen(yytext) - 1; i > 0; i--)
@@ -1281,7 +1280,7 @@ case 71:
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 120 "newbie.l"
+#line 117 "newbie.l"
 {
     if(!strcmp(heredoc_tag, yytext + 3))
     {
@@ -1309,7 +1308,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 144 "newbie.l"
+#line 141 "newbie.l"
 {
     utf8_string_append(string_buffer, yytext);
 }
@@ -1317,61 +1316,61 @@ YY_RULE_SETUP
 case 73:
 /* rule 73 can match eol */
 YY_RULE_SETUP
-#line 147 "newbie.l"
+#line 144 "newbie.l"
 {
     utf8_string_append(string_buffer, yytext);
 }
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 150 "newbie.l"
+#line 147 "newbie.l"
 ;
 	YY_BREAK
 case 75:
 /* rule 75 can match eol */
 YY_RULE_SETUP
-#line 151 "newbie.l"
+#line 148 "newbie.l"
 {increase_line_number(); BEGIN INITIAL;}
 	YY_BREAK
 case 76:
 /* rule 76 can match eol */
 YY_RULE_SETUP
-#line 152 "newbie.l"
+#line 149 "newbie.l"
 increase_line_number();
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 153 "newbie.l"
+#line 150 "newbie.l"
 ;
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 154 "newbie.l"
+#line 151 "newbie.l"
 {BEGIN INITIAL;}
 	YY_BREAK
 case 79:
 /* rule 79 can match eol */
 YY_RULE_SETUP
-#line 155 "newbie.l"
+#line 152 "newbie.l"
 increase_line_number();
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 156 "newbie.l"
+#line 153 "newbie.l"
 {
     utf8_string_append(string_buffer, "\n");
 }
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 159 "newbie.l"
+#line 156 "newbie.l"
 {
     utf8_string_append(string_buffer, "\"");
 }
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 162 "newbie.l"
+#line 159 "newbie.l"
 {
     if (utf8_string_get_length(string_buffer) == 0)
     {
@@ -1388,17 +1387,17 @@ YY_RULE_SETUP
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 175 "newbie.l"
+#line 172 "newbie.l"
 {
     utf8_string_append(string_buffer, yytext);
 }
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 178 "newbie.l"
+#line 175 "newbie.l"
 ECHO;
 	YY_BREAK
-#line 1402 "newbie.yy.c"
+#line 1401 "newbie.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(LINE_COMMENT):
 case YY_STATE_EOF(BLOCK_COMMENT):
@@ -2406,6 +2405,6 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 178 "newbie.l"
+#line 175 "newbie.l"
 
 

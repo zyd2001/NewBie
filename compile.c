@@ -1,4 +1,4 @@
-#include "newbie.h"
+#include "nb.h"
 
 #define new_expression() (Expression*)malloc(sizeof(Expression))
 #define new_statement() (Statement*)malloc(sizeof(Statement))

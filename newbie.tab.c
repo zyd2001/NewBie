@@ -65,7 +65,7 @@
 #line 1 "newbie.y" /* yacc.c:339  */
 
 
-#include "newbie.h"
+#include "nb.h"
 #include "newbie.tab.h"
 
 extern int lex(void);

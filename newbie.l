@@ -1,20 +1,17 @@
 %{
-#include "newbie.h"
+#include "nb.h"
 #include "newbie.tab.h"
 
 UTF8_String *string_buffer;
 
 char *heredoc_tag;
-int yywarp(void)
-{
-    return 1;
-}
 void increase_line_number()
 {
     nb_get_interpreter()->current_line++;
 }
 #define yylex lex
 %}
+%option noyywrap
 %start LINE_COMMENT BLOCK_COMMENT STRING_LITERAL_STATE HEREDOC
 %%
 <INITIAL>"int"          return INT_T;
@@ -33,7 +30,7 @@ void increase_line_number()
 <INITIAL>"elif"         return ELSEIF;
 <INITIAL>"elsif"        return ELSEIF;
 <INITIAL>"for"          return FOR;
-<INITIAL>"foreach"          return FOR;
+<INITIAL>"foreach"      return FOR;
 <INITIAL>"in"           return IN;
 <INITIAL>"break"        return BREAK;
 <INITIAL>"continue"     return CONTINUE;

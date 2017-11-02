@@ -5,7 +5,8 @@
 #include <iconv.h>
 #include <stdarg.h>
 #include "utility.h"
-#define OUT_PUT_ENCODING "utf-8"
+
+#define OUT_PUT_ENCODING "gbk"
 
 struct Array_tag
 {
@@ -1256,46 +1257,46 @@ int linked_list_delete_func(Linked_List **list, struct delete_func_struct_tag *d
 //     return stack->item;
 // }
 
-UTF8_String *itoa(int i)
-{
-    UTF8_String *str = utf8_string_new();
-    int temp = -1;
-    for (; i != 0; i /= 10)
-    {
-        temp = i % 10;
-        switch (temp)
-        {
-            case 0:
-                utf8_string_append_char(str, '0');
-                break;
-            case 1:
-                utf8_string_append_char(str, '1');
-                break;
-            case 2:
-                utf8_string_append_char(str, '2');
-                break;
-            case 3:
-                utf8_string_append_char(str, '3');
-                break;
-            case 4:
-                utf8_string_append_char(str, '4');
-                break;
-            case 5:
-                utf8_string_append_char(str, '5');
-                break;
-            case 6:
-                utf8_string_append_char(str, '6');
-                break;
-            case 7:
-                utf8_string_append_char(str, '7');
-                break;
-            case 8:
-                utf8_string_append_char(str, '8');
-                break;
-            case 9:
-                utf8_string_append_char(str, '9');
-                break;
-        }
-    }
-    return str;
-}
+// UTF8_String *itoa(int i)
+// {
+//     UTF8_String *str = utf8_string_new();
+//     int temp = -1;
+//     for (; i != 0; i /= 10)
+//     {
+//         temp = i % 10;
+//         switch (temp)
+//         {
+//             case 0:
+//                 utf8_string_append_char(str, '0');
+//                 break;
+//             case 1:
+//                 utf8_string_append_char(str, '1');
+//                 break;
+//             case 2:
+//                 utf8_string_append_char(str, '2');
+//                 break;
+//             case 3:
+//                 utf8_string_append_char(str, '3');
+//                 break;
+//             case 4:
+//                 utf8_string_append_char(str, '4');
+//                 break;
+//             case 5:
+//                 utf8_string_append_char(str, '5');
+//                 break;
+//             case 6:
+//                 utf8_string_append_char(str, '6');
+//                 break;
+//             case 7:
+//                 utf8_string_append_char(str, '7');
+//                 break;
+//             case 8:
+//                 utf8_string_append_char(str, '8');
+//                 break;
+//             case 9:
+//                 utf8_string_append_char(str, '9');
+//                 break;
+//         }
+//     }
+//     return str;
+// }

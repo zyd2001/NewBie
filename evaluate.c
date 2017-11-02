@@ -1,4 +1,4 @@
-#include "newbie.h"
+#include "nb.h"
 
 #define bool_check(operator)\
 do {\
