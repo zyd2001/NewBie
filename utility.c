@@ -883,6 +883,7 @@ Array *array_new()
     arr->size = 0;
     // arr->index = (char**)malloc(sizeof(char*) * 5);
     arr->value = (Value*)malloc(5 * sizeof(Value));
+    return arr;
 }
 
 void *array_delete_func(Array **arr, ...)

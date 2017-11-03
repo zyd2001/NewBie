@@ -1,4 +1,4 @@
-#include "NewBie.h"
+#include "NewBie_Lang.h"
 #include <stdio.h>
 #include <stdlib.h>
 

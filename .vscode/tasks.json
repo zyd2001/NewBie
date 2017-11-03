@@ -21,6 +21,7 @@
             "command": "gcc",
             "args": [
                 "-g",
+                "-O2",
                 "utility.c",
                 "newbie.tab.c",
                 "newbie.yy.c",

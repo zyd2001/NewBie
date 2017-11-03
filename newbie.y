@@ -1,6 +1,6 @@
 %{
 
-#include "nb.h"
+#include "newbie.h"
 #include "newbie.tab.h"
 
 extern int lex(void);
@@ -21,7 +21,7 @@ int yylex(void)
 }
 void yyerror (char const *s)
 {
-    fprintf (stderr, "%s %d\n", s, nb_get_interpreter()->current_line);
+    fprintf (stderr, "%s %d\n", s, inter->current_line);
 }
 %}
 %union {

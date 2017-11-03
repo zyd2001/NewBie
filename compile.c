@@ -1,4 +1,4 @@
-#include "nb.h"
+#include "newbie.h"
 
 #define new_expression() (Expression*)malloc(sizeof(Expression))
 #define new_statement() (Statement*)malloc(sizeof(Statement))
@@ -156,7 +156,6 @@ Expression *nb_create_function_call_expression(UTF8_String *identifier, Argument
 
 Statement *nb_create_function_definition_statement(NB_ValueType type, UTF8_String *identifier, ParametersList *plist, Statement *block)
 {
-    NB_Interpreter *inter = nb_get_interpreter();
     int count = 1;
     if (plist == NULL)
         count = 0;
@@ -221,7 +220,7 @@ Statement *nb_create_function_definition_statement(NB_ValueType type, UTF8_Strin
         }
     Statement *statement = new_statement();
     statement->type = FUNCTION_DEFINITION_STATEMENT;
-    statement->line_number = nb_get_interpreter()->current_line;
+    statement->line_number = inter->current_line;
     return statement;    
 }
 
@@ -230,13 +229,13 @@ Statement *nb_create_expression_statement(Expression *exp)
     Statement *statement = new_statement();
     statement->type = EXPRESSION_STATEMENT;
     statement->content.expression = exp;
-    statement->line_number = nb_get_interpreter()->current_line;
+    statement->line_number = inter->current_line;
     return statement;
 }
 
 Statement *nb_create_class_definition_statement(UTF8_String *identifier, Statement *block)
 {
-    NB_Interpreter *inter = nb_get_interpreter();
+    NB_Interpreter *inter = inter;
     Statement *statement = new_statement();
     statement->type = CLASS_DEFINITION_STATEMENT;
     statement->line_number = inter->current_line;
@@ -266,7 +265,7 @@ Statement *nb_create_block_statement(StatementsList *slist)
     Statement *statement = new_statement();
     statement->type = BLOCK_STATEMENT;
     statement->content.block_statement = (Block){slist};
-    statement->line_number = nb_get_interpreter()->current_line;
+    statement->line_number = inter->current_line;
     return statement;
 }
 
@@ -275,7 +274,7 @@ Statement *nb_create_if_statement(Expression *exp, Statement *block)
     Statement *statement = new_statement();
     statement->type = IF_STATEMENT;
     statement->content.if_statement = (If){block, exp, NULL, NULL};
-    statement->line_number = nb_get_interpreter()->current_line;
+    statement->line_number = inter->current_line;
     current_if = statement;
     return statement;
 }
@@ -285,7 +284,7 @@ Statement *nb_create_foreach_statement(UTF8_String *identifier, Expression *exp,
     Statement *statement = new_statement();
     statement->type = FOREACH_STATEMENT;
     statement->content.foreach_statement = (Foreach){identifier, exp, block};
-    statement->line_number = nb_get_interpreter()->current_line;
+    statement->line_number = inter->current_line;
     return statement;
 }
 
@@ -294,7 +293,7 @@ Statement *nb_create_for_statement(Expression *exp1, Expression *exp2, Expressio
     Statement *statement = new_statement();
     statement->type = FOR_STATEMENT;
     statement->content.for_statement = (For){exp1, exp2, exp3, block};
-    statement->line_number = nb_get_interpreter()->current_line;
+    statement->line_number = inter->current_line;
     return statement;
 }
 
@@ -303,7 +302,7 @@ Statement *nb_create_return_statement(Expression *exp)
     Statement *statement = new_statement();
     statement->type = RETURN_STATEMENT;
     statement->content.expression = exp;
-    statement->line_number = nb_get_interpreter()->current_line;
+    statement->line_number = inter->current_line;
     return statement;
 }
 
@@ -311,7 +310,7 @@ Statement *nb_create_continue_statement()
 {
     Statement *statement = new_statement();
     statement->type = CONTINUE_STATEMENT;
-    statement->line_number = nb_get_interpreter()->current_line;
+    statement->line_number = inter->current_line;
     return statement;
 }
 
@@ -319,7 +318,7 @@ Statement *nb_create_break_statement()
 {
     Statement *statement = new_statement();
     statement->type = BREAK_STATEMENT;
-    statement->line_number = nb_get_interpreter()->current_line;
+    statement->line_number = inter->current_line;
     return statement;
 }
 
@@ -389,7 +388,7 @@ StatementsList *nb_create_statement_list(Statement *s)
     slist->next = NULL;
     if (state == 0)
     {
-        nb_get_interpreter()->statements_list = slist;
+        inter->statements_list = slist;
         state++;
     }
     return slist;
