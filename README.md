@@ -1,48 +1,65 @@
 # NewBie
 
-# 语法
+A simple interpreted programming language.
 
-## 循环
+# Compile
+
+**mingw is required for Windows to compile**
+
+First change the `OUT_PUT_ENCODING` macro in utility.c to `utf-8`, `gbk`, for `Linux` and `Windows` respectively.
+
+Then run ./compile.sh or ./compile.bat
+
+Rename NewBie_Linux.ini or NewBie_Win.ini to NewBie.ini respectively.
+
+Or you can just download the released archive for both Linux and Windows
+
+# Grammer
+
+## Loop
 
 `for (int i = 0; i < 1; i++){}` C-like
 
 `for/foreach (x in arr){}` Foreach
 
-没有while
+no while
 
-## 条件判断
+## Conditional Statememnt
+
 `if (expression){}` if
 
 `if (exp){} else{}` if-else
 
-`elseif / elsif / else if / elif` 四种
+`elseif / elsif / else if / elif` else if()
 
-## 变量声明
+## Variable Declaration
 
-`int double boolean/bool string array` 静态类型
+`int double boolean/bool string array` static type
 
-`var` 动态类型
+`var` dynamic type
 
 ## 函数
 
-`int double boolean/bool string array` 静态类型
+`int double boolean/bool string array` static type
 
-`func function` 动态类型
+`func function` dynamic type
 
 # builtin-func
 
+**gradually adding more**
+
 most math functions
 
-`string readln(string str)` 读取输入
+`string readln(string str)` 
 
-`int print(string str)` 输出，无返回值
+`int print(string str)` 
 
-`int println(string str)` 输出并换行，无返回值
+`int println(string str)` 
  
-`int toInt(var v)` 转换成int
+`int toInt(var v)` 
  
-`double toDouble(var v)` 转换成double
+`double toDouble(var v)` 
   
-`string getType(var v)` 获取类型名
+`string getType(var v)` 
    
-`array range(int i, int j)` i 到 j 的数组
+`array range(int i, int j)`
