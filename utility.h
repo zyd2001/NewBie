@@ -112,7 +112,7 @@ UTF32_String *utf32_string_substr(UTF32_String *str, int start, int length);
 int utf32_string_indexof(UTF32_String *str, char *target, size_t size);
 int utf32_string_indexof_utf32(UTF32_String *str, UTF32_String *target);
 int utf32_string_indexof_utf8(UTF32_String *str, char *target);
-size_t utf32_string_print(UTF32_String *str);
+size_t utf32_string_print(UTF32_String *str, FILE *file);
 char *utf32_string_get_value(UTF32_String *str);
 size_t utf32_string_get_length(UTF32_String *str);
 void *utf32_string_delete_func(UTF32_String **str, ...);

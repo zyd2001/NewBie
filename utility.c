@@ -6,7 +6,7 @@
 #include <stdarg.h>
 #include "utility.h"
 
-#define OUT_PUT_ENCODING "gbk"
+#define OUT_PUT_ENCODING "utf-8"
 
 struct Array_tag
 {
@@ -568,13 +568,13 @@ int utf32_string_indexof_utf32(UTF32_String *str, UTF32_String *target)
     return -1;
 }
 
-size_t utf32_string_print(UTF32_String *str)
+size_t utf32_string_print(UTF32_String *str, FILE *file)
 {
     if (str->length != 0)
     {
         char *out = (char*)malloc(str->size);
         encoding_convert(str->value, str->size, out, str->size, OUT_PUT_ENCODING, "utf-32le");
-        size_t size = printf("%s", out);
+        size_t size = fprintf(file, "%s", out);
         free(out);
         return size;
     }
