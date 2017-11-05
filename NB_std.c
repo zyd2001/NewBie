@@ -1,4 +1,5 @@
 #include "NewBie_Dev.h"
+#include <time.h>
 #define PCRE2_CODE_UNIT_WIDTH 32
 #include <pcre2.h>
 
@@ -88,6 +89,18 @@ NB_Value *regex(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, ch
     return ret;
 }
 
+NB_Value *regex_replace(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier))
+{
+
+}
+
+NB_Value *nb_time(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier))
+{
+    NB_Value *ret = value_new_type(INT);
+    ret->value.int_value = (int)time(NULL);
+    return ret;
+}
+
 void add_lib(FunctionList **flist, void (*add_func)(FunctionList **flist, int pnum, NB_Value *(*ptr)(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier)), UTF8_String *identifier, NB_ValueType type, char **pname_array, NB_ValueType *ptype), void (*add_val)(NB_Value *val, UTF8_String *identifier))
 {
     add_func(flist, 1, toInt, utf8_string_new_wrap("toInt"), INT, (char*[]){"var"}, (NB_ValueType[]){VARIOUS});
@@ -95,4 +108,5 @@ void add_lib(FunctionList **flist, void (*add_func)(FunctionList **flist, int pn
     add_func(flist, 1, getType, utf8_string_new_wrap("getType"), STRING, (char*[]){"var"}, (NB_ValueType[]){VARIOUS});
     add_func(flist, 2, range, utf8_string_new_wrap("range"), STRING, (char*[]){"num1", "num2"}, (NB_ValueType[]){INT, INT});
     add_func(flist, 2, regex, utf8_string_new_wrap("regex"), STRING, (char*[]){"subject", "pattern"}, (NB_ValueType[]){STRING, STRING});
+    add_func(flist, 0, nb_time, utf8_string_new_wrap("time"), INT, (char*[]){}, (NB_ValueType[]){});
 }

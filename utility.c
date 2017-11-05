@@ -991,14 +991,16 @@ Array *array_copy_func(Array **destination, Array *source)
     (*destination)->size = source->size;
     (*destination)->value = (Value*)realloc((*destination)->value, (*destination)->size * sizeof(Value));
     // (*destination)->index = (char**)realloc((*destination)->index, (*destination)->size * sizeof(char*));
-    Value *temp = value_new(), *dest;
+    Value *temp, *dest;
     for (int i = 0; i < source->size; i++)
     {
+        temp = value_new();
         dest = (*destination)->value + i;
         value_copy(temp, source->value + i);
         memcpy(dest, temp, sizeof(Value));
+        __free(temp);
     }
-    __free(temp);
+    // __free(temp);
     // memcpy((*destination)->value, source->value, (*destination)->size * sizeof(Value));
     // memcpy((*destination)->index, source->index, sizeof(char*));
     return (*destination);

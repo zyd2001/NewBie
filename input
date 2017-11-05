@@ -1,4 +1,5 @@
-var a = file_get_contents("input");
-println(a);
-file_put_contents("input", a);
-println(regex(a, "_.*_"));
+var arr = file_get_contents_array("input");
+for (x in arr)
+{
+    println(x);
+}

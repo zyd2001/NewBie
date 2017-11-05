@@ -109,6 +109,51 @@ NB_Value *file_get_contents(VariablesList *vlist, NB_Value *(*find)(VariablesLis
     return ret;
 }
 
+NB_Value *file_get_contents_array(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier))
+{
+    NB_Value *identifier = find(vlist, "file");
+    char *file = utf32_to_utf8(identifier->value.string_value);
+    FILE *fp = fopen(file, "r");
+    __free(file);
+    NB_Value *ret = value_new_type(ARRAY);
+    NB_Value *line = value_new();
+    line->type = STRING;
+    char ch;
+    char buf[1024];
+    buf[0] = '\0';
+    for (int count = 0; count < 1024; count++)
+    {
+        ch = fgetc(fp);
+        if (ch == EOF)
+        {
+            if (buf[0] != '\0')
+            {
+                buf[count] = '\0';
+                line->value.string_value = utf32_string_new_wrap_utf8(buf);
+                array_push(ret->value.array_value, line);
+                utf32_string_delete(&(line->value.string_value));
+                break;          
+            }
+            else
+                break;
+        }
+        if (ch == '\n')
+        {
+            buf[count] = '\0';
+            line->value.string_value = utf32_string_new_wrap_utf8(buf);
+            array_push(ret->value.array_value, line);
+            utf32_string_delete(&(line->value.string_value));
+            buf[0] = '\0';
+            count = -1;
+            continue;
+        }
+        buf[count] = ch;
+    }
+    __free(line);
+    fclose(fp);
+    return ret;
+}
+
 NB_Value *file_put_contents(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier))
 {
     NB_Value *val1 = find(vlist, "file");    
@@ -129,5 +174,6 @@ void add_lib(FunctionList **flist, void (*add_func)(FunctionList **flist, int pn
     add_func(flist, 1, println, utf8_string_new_wrap("println"), INT, (char*[]){"str"}, (NB_ValueType[]){STRING});
     add_func(flist, 1, readln, utf8_string_new_wrap("readln"), STRING, (char*[]){"prompt"}, (NB_ValueType[]){STRING});
     add_func(flist, 1, file_get_contents, utf8_string_new_wrap("file_get_contents"), STRING, (char*[]){"file"}, (NB_ValueType[]){STRING});
+    add_func(flist, 1, file_get_contents_array, utf8_string_new_wrap("file_get_contents_array"), ARRAY, (char*[]){"file"}, (NB_ValueType[]){STRING});
     add_func(flist, 2, file_put_contents, utf8_string_new_wrap("file_put_contents"), INT, (char*[]){"file", "str"}, (NB_ValueType[]){STRING, STRING});
 }
