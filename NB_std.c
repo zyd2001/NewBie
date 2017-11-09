@@ -101,6 +101,10 @@ NB_Value *nb_time(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, 
     return ret;
 }
 
+NB_Value *shell(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier))
+{
+}
+
 void add_lib(FunctionList **flist, void (*add_func)(FunctionList **flist, int pnum, NB_Value *(*ptr)(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier)), UTF8_String *identifier, NB_ValueType type, char **pname_array, NB_ValueType *ptype), void (*add_val)(NB_Value *val, UTF8_String *identifier))
 {
     add_func(flist, 1, toInt, utf8_string_new_wrap("toInt"), INT, (char*[]){"var"}, (NB_ValueType[]){VARIOUS});

@@ -70,37 +70,37 @@ extern int yydebug;
     STRING_T = 280,
     ARRAY_T = 281,
     VAR_T = 282,
-    FUNC_T = 283,
-    IF = 284,
-    ELSE = 285,
-    ELSEIF = 286,
-    FOR = 287,
-    IN = 288,
-    CLASS = 289,
-    RETURN = 290,
-    BREAK = 291,
-    CONTINUE = 292,
-    LP = 293,
-    RP = 294,
-    LC = 295,
-    RC = 296,
-    LB = 297,
-    RB = 298,
-    SEMICOLON = 299,
-    COMMA = 300,
-    ASSIGN_T = 301,
-    EXCLAMATION = 302,
-    DOT = 303,
-    ADD_ASSIGN = 304,
-    SUB_ASSIGN = 305,
-    MUL_ASSIGN = 306,
-    DIV_ASSIGN = 307,
-    MOD_ASSIGN = 308,
-    INCREMENT_T = 309,
-    DECREMENT_T = 310,
-    PUBLIC = 311,
-    PROTECTED = 312,
-    PRIVATE = 313
+    IF = 283,
+    ELSE = 284,
+    ELSEIF = 285,
+    FOR = 286,
+    IN = 287,
+    CLASS = 288,
+    RETURN = 289,
+    BREAK = 290,
+    CONTINUE = 291,
+    LP = 292,
+    RP = 293,
+    LC = 294,
+    RC = 295,
+    LB = 296,
+    RB = 297,
+    SEMICOLON = 298,
+    COMMA = 299,
+    ASSIGN_T = 300,
+    EXCLAMATION = 301,
+    DOT = 302,
+    ADD_ASSIGN = 303,
+    SUB_ASSIGN = 304,
+    MUL_ASSIGN = 305,
+    DIV_ASSIGN = 306,
+    MOD_ASSIGN = 307,
+    INCREMENT_T = 308,
+    DECREMENT_T = 309,
+    PUBLIC = 310,
+    PROTECTED = 311,
+    PRIVATE = 312,
+    REVERSE = 313
   };
 #endif
 /* Tokens.  */
@@ -129,37 +129,37 @@ extern int yydebug;
 #define STRING_T 280
 #define ARRAY_T 281
 #define VAR_T 282
-#define FUNC_T 283
-#define IF 284
-#define ELSE 285
-#define ELSEIF 286
-#define FOR 287
-#define IN 288
-#define CLASS 289
-#define RETURN 290
-#define BREAK 291
-#define CONTINUE 292
-#define LP 293
-#define RP 294
-#define LC 295
-#define RC 296
-#define LB 297
-#define RB 298
-#define SEMICOLON 299
-#define COMMA 300
-#define ASSIGN_T 301
-#define EXCLAMATION 302
-#define DOT 303
-#define ADD_ASSIGN 304
-#define SUB_ASSIGN 305
-#define MUL_ASSIGN 306
-#define DIV_ASSIGN 307
-#define MOD_ASSIGN 308
-#define INCREMENT_T 309
-#define DECREMENT_T 310
-#define PUBLIC 311
-#define PROTECTED 312
-#define PRIVATE 313
+#define IF 283
+#define ELSE 284
+#define ELSEIF 285
+#define FOR 286
+#define IN 287
+#define CLASS 288
+#define RETURN 289
+#define BREAK 290
+#define CONTINUE 291
+#define LP 292
+#define RP 293
+#define LC 294
+#define RC 295
+#define LB 296
+#define RB 297
+#define SEMICOLON 298
+#define COMMA 299
+#define ASSIGN_T 300
+#define EXCLAMATION 301
+#define DOT 302
+#define ADD_ASSIGN 303
+#define SUB_ASSIGN 304
+#define MUL_ASSIGN 305
+#define DIV_ASSIGN 306
+#define MOD_ASSIGN 307
+#define INCREMENT_T 308
+#define DECREMENT_T 309
+#define PUBLIC 310
+#define PROTECTED 311
+#define PRIVATE 312
+#define REVERSE 313
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -175,8 +175,9 @@ union YYSTYPE
     ParametersList      *parameter_list;
     ArgumentsList       *argument_list;
     ExpressionList      *expression_list;
+    NB_ValueType        type;
 
-#line 180 "newbie.tab.h" /* yacc.c:1909  */
+#line 181 "newbie.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

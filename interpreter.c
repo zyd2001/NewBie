@@ -94,6 +94,33 @@ StatementResult nb_interpret_once()
             }
             case FOREACH_STATEMENT:
             {
+                #define foreach_body(num) \
+                { \
+                    var->value = array_get_addr(arr->value.array_value, i); \
+                    inter->statements_list = this_slist;  \
+                    r.type = NULL_RESULT;  \
+                    do { \
+                        if (r.type == BREAK_STATEMENT) \
+                            goto break_tag##num; \
+                        else if (r.type == CONTINUE_STATEMENT) \
+                            goto continue_tag##num; \
+                        else if (r.type == RETURN_STATEMENT) \
+                        { \
+                            result.type = RETURN_STATEMENT; \
+                            result.content.value = r.content.value; \
+                            value_delete(&arr);\
+                            level_decrease(); \
+                            return result; \
+                        } \
+                        r = nb_interpret_once(); \
+                    } while(r.type != NULL_RESULT); \
+                    continue; \
+                    break_tag##num: \
+                        break; \
+                    continue_tag##num:\
+                        continue;\
+                }
+
                 result.type = FOREACH_STATEMENT;
                 level_increase();
                 StatementsList *this_slist = inter->statements_list->s->content.foreach_statement.block->content.block_statement.slist;
@@ -111,31 +138,15 @@ StatementResult nb_interpret_once()
                 VariablesList *var = inter->variables_list;
                 value_delete(&(var->value));
                 StatementResult r;
-                for (int i = 0; i < array_get_length(arr->value.array_value); i++)
+                if (inter->statements_list->s->content.foreach_statement.flag == 0)
                 {
-                    var->value = array_get_addr(arr->value.array_value, i);
-                    inter->statements_list = this_slist; 
-                    r.type = NULL_RESULT; 
-                    do { 
-                        if (r.type == BREAK_STATEMENT) 
-                            goto break_tag; 
-                        else if (r.type == CONTINUE_STATEMENT) 
-                            goto continue_tag; 
-                        else if (r.type == RETURN_STATEMENT) 
-                        { 
-                            result.type = RETURN_STATEMENT; 
-                            result.content.value = r.content.value; 
-                            value_delete(&arr);
-                            level_decrease(); 
-                            return result; 
-                        } 
-                        r = nb_interpret_once(); 
-                    } while(r.type != NULL_RESULT); 
-                    continue; 
-                    break_tag: 
-                        break; 
-                    continue_tag:
-                        continue;
+                    for (int i = 0; i < array_get_length(arr->value.array_value); i++)
+                    foreach_body(4)
+                }
+                else
+                {
+                    for (int i = array_get_length(arr->value.array_value) - 1; i >= 0; i--)
+                    foreach_body(5)
                 }
         
                 if (var->prev != NULL)
@@ -298,7 +309,7 @@ NB_Interpreter *nb_interpreter_new()
     NB_Interpreter *i = (NB_Interpreter*)malloc(sizeof(NB_Interpreter));
     i->current_line = 1;
     i->level = 0;
-    i->block_state = 0;
+    // i->block_state = 0;
     i->variables_list = NULL;
     i->func_list = NULL;
     i->class_list = NULL;
@@ -407,7 +418,7 @@ void nb_clean()
             saved_flist = inter->func_list->prev;
             free_statement(inter->func_list->block);
             free_parameters_list(inter->func_list->plist);
-            utf8_string_delete(&(inter->func_list->identifier));
+            // utf8_string_delete(&(inter->func_list->identifier));
             __free(inter->func_list);
             inter->func_list = saved_flist;
         }
@@ -415,7 +426,7 @@ void nb_clean()
         {
             saved_flist = inter->func_list->prev;
             free_parameters_list(inter->func_list->plist);
-            utf8_string_delete(&(inter->func_list->identifier));
+            // utf8_string_delete(&(inter->func_list->identifier));
             __free(inter->func_list);
             inter->func_list = saved_flist;
         }
@@ -465,7 +476,7 @@ void nb_add_builtin_func(FunctionList **flist, int pnum, NB_Value *(*ptr)(Variab
         (*flist)->next = NULL;
         (*flist)->pnum = pnum;
         (*flist)->builtin = 1;
-        (*flist)->identifier = identifier;
+        // (*flist)->identifier = identifier;
         (*flist)->type = type;
         (*flist)->plist = plist;
         (*flist)->block = NULL;
@@ -479,12 +490,15 @@ void nb_add_builtin_func(FunctionList **flist, int pnum, NB_Value *(*ptr)(Variab
         (*flist)->next = NULL;
         (*flist)->pnum = pnum;
         (*flist)->builtin = 1;
-        (*flist)->identifier = identifier;
+        // (*flist)->identifier = identifier;
         (*flist)->type = type;
         (*flist)->plist = plist;
         (*flist)->block = NULL;
         (*flist)->builtin_ptr = ptr;
     }
+    NB_Value *func = value_new_type(FUNCTION);
+    func->value.other = inter->func_list;
+    nb_add_global_variable(func, utf8_string_append_char(identifier, '$'));
 }
 
 void nb_add_global_variable(NB_Value *val, UTF8_String *identifier)

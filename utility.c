@@ -700,6 +700,9 @@ Value *value_copy_func(Value **destination, Value *source)
             else
                 (*destination)->value.array_value = array_copy((*destination)->value.array_value, source->value.array_value);
             break;
+        default:
+            (*destination)->value.other = source->value.other;
+            break;
     }
     return (*destination);
 }

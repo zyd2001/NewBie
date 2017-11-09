@@ -21,6 +21,7 @@ typedef enum ValueType_tag
     BOOL,
     STRING,
     ARRAY,
+    FUNCTION,
     OBJECT,
     VARIOUS
 } ValueType;
@@ -35,6 +36,7 @@ typedef struct Value_tag
         double double_value;
         UTF32_String *string_value;
         Array *array_value;
+        void *other;
     } value;
 } Value;
 

@@ -460,17 +460,13 @@ NB_Value *eval(Expression *exp, VariablesList **vlist)
         }
         case FUNCTION_CALL_EXPRESSION:
         {
-            FunctionList *func = NULL;
-            for (FunctionList *temp = inter->func_list; temp != NULL; temp = temp->prev)
+            NB_Value *v = find_in_list_value((*vlist), utf8_string_get_value(exp->content.function_call_expression.identifier));
+            if (v->type != FUNCTION)
             {
-                if (!utf8_string_compare(exp->content.function_call_expression.identifier, temp->identifier))
-                    func = temp;
+                nb_error("Not a function!");
+                exit(1);
             }
-            if (!func)
-            {
-                nb_error("Undefined Function!");
-                exit(1);    
-            }
+            FunctionList *func = (FunctionList*)(v->value.other);
             int count = 1;
             if (exp->content.function_call_expression.alist == NULL)
                 count = 0;

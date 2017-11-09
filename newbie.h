@@ -175,6 +175,7 @@ typedef struct Foreach_tag
     UTF8_String *identifier;
     Expression *exp;
     Statement *block;
+    int flag;
 } Foreach;
 
 typedef struct For_tag
@@ -221,7 +222,7 @@ typedef struct FunctionList_tag
     int pnum;
     char builtin;
     NB_ValueType type;
-    UTF8_String *identifier;
+    // UTF8_String *identifier;
     Statement *block;
     NB_Value *(*builtin_ptr)(VariablesList *vlist, NB_Value *(*find)(VariablesList *vlist, char *identifier));
     struct FunctionList_tag *prev;
@@ -247,7 +248,6 @@ typedef struct NB_Interpreter_tag
 {
     int current_line;
     int level;
-    int block_state;
     StatementsList *statements_list;
     StatementsList *global_slist;
     VariablesList *variables_list;
@@ -278,12 +278,13 @@ Expression *nb_create_identifier_expression(UTF8_String *identifier);
 Expression *nb_create_array_expression(ExpressionList *elist);
 Expression *nb_create_function_call_expression(UTF8_String *identifier, ArgumentsList *alist);
 Expression *nb_create_index_expression(Expression *exp, Expression *index);
+Expression *nb_create_anonymous_function_definition_expression(NB_ValueType type, ParametersList *plist, Statement *block);
 
 Statement *nb_create_expression_statement(Expression *exp);
 Statement *nb_create_block_statement(StatementsList *slist);
 Statement *nb_create_class_definition_statement(UTF8_String *identifier, Statement *block);
 Statement *nb_create_if_statement(Expression *exp, Statement *block);
-Statement *nb_create_foreach_statement(UTF8_String *identifier, Expression *exp, Statement *block);
+Statement *nb_create_foreach_statement(UTF8_String *identifier, Expression *exp, Statement *block, int flag);
 Statement *nb_create_for_statement(Expression *exp1, Expression *exp2, Expression *exp3, Statement *block);
 Statement *nb_create_return_statement(Expression *exp);
 Statement *nb_create_continue_statement();

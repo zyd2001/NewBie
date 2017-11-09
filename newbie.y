@@ -32,6 +32,7 @@ void yyerror (char const *s)
     ParametersList      *parameter_list;
     ArgumentsList       *argument_list;
     ExpressionList      *expression_list;
+    NB_ValueType        type;
 }
 %expect 91
 %left LOGICAL_AND LOGICAL_OR
@@ -41,17 +42,18 @@ void yyerror (char const *s)
 %nonassoc UMINUS
 %token <expression>     INT_LITERAL STRING_LITERAL DOUBLE_LITERAL BOOL_LITERAL
 %token <identifier>     IDENTIFIER
-%token INT_T DOUBLE_T BOOL_T STRING_T ARRAY_T VAR_T FUNC_T IF ELSE ELSEIF FOR IN CLASS RETURN BREAK CONTINUE
+%token INT_T DOUBLE_T BOOL_T STRING_T ARRAY_T VAR_T IF ELSE ELSEIF FOR IN CLASS RETURN BREAK CONTINUE
         LP RP LC RC LB RB SEMICOLON COMMA ASSIGN_T EXCLAMATION DOT
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
-        INCREMENT_T DECREMENT_T PUBLIC PROTECTED PRIVATE
+        INCREMENT_T DECREMENT_T PUBLIC PROTECTED PRIVATE REVERSE
 %type<expression> expression function_call_expression declaration_expression primary_expression assignment_expression expression_optional binary_expression unary_expression possible_array_expression
-                    index_expression assignment_lval_expression declaration_rval_expression
+                    index_expression assignment_lval_expression declaration_rval_expression parameter_list_item
 %type<statement> statement block function_definition_statement
 %type<statement_list> statement_list
 %type<argument_list> argument_list
 %type<parameter_list> parameter_list
 %type<expression_list> expression_list
+%type<type> type_tag
 %%
     statement_list: statement
         {
@@ -80,7 +82,11 @@ void yyerror (char const *s)
         }
         | FOR LP IDENTIFIER IN possible_array_expression RP block
         {
-            $$ = nb_create_foreach_statement($3, $5, $7);
+            $$ = nb_create_foreach_statement($3, $5, $7, 0);
+        }
+        | FOR LP IDENTIFIER IN REVERSE possible_array_expression RP block
+        {
+            $$ = nb_create_foreach_statement($3, $6, $8, 1);
         }
         | FOR LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional RP block
         {
@@ -112,6 +118,11 @@ void yyerror (char const *s)
         | primary_expression
         | index_expression
         | possible_array_expression
+        | type_tag LP parameter_list RP block
+        {
+            $$ = nb_create_anonymous_function_definition_expression($1, $3, $5);
+        }
+        ;
         | LP expression RP
         {
             $$ = $2;
@@ -222,53 +233,13 @@ void yyerror (char const *s)
             $$ = nb_create_assignment_expression(nb_create_identifier_expression($1), $3);
         }
         ;
-    declaration_expression: INT_T IDENTIFIER 
+    declaration_expression: type_tag IDENTIFIER
         {
-            $$ = nb_create_declaration_expression(INT, $2, NULL);
+            $$ = nb_create_declaration_expression($1, $2, NULL);
         }
-        | DOUBLE_T IDENTIFIER
+        | type_tag declaration_rval_expression
         {
-            $$ = nb_create_declaration_expression(DOUBLE, $2, NULL);
-        }
-        | BOOL_T IDENTIFIER
-        {
-            $$ = nb_create_declaration_expression(BOOL, $2, NULL);
-        }
-        | STRING_T IDENTIFIER
-        {
-            $$ = nb_create_declaration_expression(STRING, $2, NULL);
-        }
-        | ARRAY_T IDENTIFIER
-        {
-            $$ = nb_create_declaration_expression(ARRAY, $2, NULL);
-        }
-        | VAR_T IDENTIFIER
-        {
-            $$ = nb_create_declaration_expression(VARIOUS, $2, NULL);
-        }
-        | INT_T declaration_rval_expression
-        {
-            $$ = nb_create_declaration_expression(INT, NULL, $2);
-        }
-        | DOUBLE_T declaration_rval_expression
-        {
-            $$ = nb_create_declaration_expression(DOUBLE, NULL, $2);
-        }
-        | BOOL_T declaration_rval_expression 
-        {
-            $$ = nb_create_declaration_expression(BOOL, NULL, $2);
-        }
-        | STRING_T declaration_rval_expression 
-        {
-            $$ = nb_create_declaration_expression(STRING, NULL, $2);
-        }
-        | ARRAY_T declaration_rval_expression
-        {
-            $$ = nb_create_declaration_expression(ARRAY, NULL, $2);
-        }
-        | VAR_T declaration_rval_expression
-        {
-            $$ = nb_create_declaration_expression(VARIOUS, NULL, $2);
+            $$ = nb_create_declaration_expression($1, NULL, $2);
         }
         ;
     assignment_lval_expression: index_expression
@@ -316,29 +287,34 @@ void yyerror (char const *s)
             $$ = nb_cat_expression_list($1, $3);
         }
         ;
-    function_definition_statement: INT_T IDENTIFIER LP parameter_list RP block
+    function_definition_statement: type_tag IDENTIFIER LP parameter_list RP block
         {
-            $$ = nb_create_function_definition_statement(INT, $2, $4, $6);
+            $$ = nb_create_function_definition_statement($1, $2, $4, $6);
         }
-        | DOUBLE_T IDENTIFIER LP parameter_list RP block
+        ;
+    type_tag: INT_T
         {
-            $$ = nb_create_function_definition_statement(DOUBLE, $2, $4, $6);
+            $$ = INT;
         }
-        | BOOL_T IDENTIFIER LP parameter_list RP block
+        | DOUBLE_T
         {
-            $$ = nb_create_function_definition_statement(BOOL, $2, $4, $6);
+            $$ = DOUBLE;
         }
-        | STRING_T IDENTIFIER LP parameter_list RP block
+        | BOOL_T
         {
-            $$ = nb_create_function_definition_statement(STRING, $2, $4, $6);
+            $$ = BOOL;
         }
-        | ARRAY_T IDENTIFIER LP parameter_list RP block
+        | STRING_T
         {
-            $$ = nb_create_function_definition_statement(ARRAY, $2, $4, $6);
+            $$ = STRING;
         }
-        | FUNC_T IDENTIFIER LP parameter_list RP block
+        | ARRAY_T
         {
-            $$ = nb_create_function_definition_statement(VARIOUS, $2, $4, $6);
+            $$ = ARRAY;
+        }
+        | VAR_T
+        {
+            $$ = VARIOUS;
         }
         ;
     block: LC statement_list RC
@@ -363,15 +339,21 @@ void yyerror (char const *s)
             $$ = nb_cat_argument_list($1, $3);
         }
         ;
+    parameter_list_item: declaration_expression
+        | type_tag IDENTIFIER LP RP
+        {
+            $$ = nb_create_declaration_expression($1, utf8_string_append_char($2, '$'), NULL);
+        }
+        ;
     parameter_list: /* empty */
         {
             $$ = NULL;
         }
-        | declaration_expression
+        | parameter_list_item
         {
             $$ = nb_create_parameter_list($1);
         }
-        | parameter_list COMMA declaration_expression
+        | parameter_list COMMA parameter_list_item
         {
             $$ = nb_cat_parameter_list($1, $3);
         }

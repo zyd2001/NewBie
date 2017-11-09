@@ -145,12 +145,54 @@ Expression *nb_create_index_expression(Expression *exp, Expression *index)
     return expression;
 }
 
+Expression *nb_create_anonymous_function_definition_expression(NB_ValueType type, ParametersList *plist, Statement *block)
+{
+    int count = 1;
+    if (plist == NULL)
+        count = 0;
+    else
+        for (;plist->prev != NULL; plist = plist->prev)
+            count++;
+    if (inter->func_list == NULL)
+    {
+        inter->func_list = (FunctionList*)malloc(sizeof(FunctionList));
+        inter->func_list->prev = NULL;
+        inter->func_list->next = NULL;
+        inter->func_list->pnum = count;
+        inter->func_list->builtin = 0;
+        // inter->func_list->identifier = identifier;
+        inter->func_list->type = type;
+        inter->func_list->plist = plist;
+        inter->func_list->block = block;
+    }
+    else
+    {
+        inter->func_list->next = (FunctionList*)malloc(sizeof(FunctionList));
+        inter->func_list->next->prev = inter->func_list;
+        inter->func_list = inter->func_list->next;
+        inter->func_list->next = NULL;
+        inter->func_list->pnum = count;
+        inter->func_list->builtin = 0;
+        // inter->func_list->identifier = identifier;
+        inter->func_list->type = type;
+        inter->func_list->plist = plist;
+        inter->func_list->block = block;
+    }
+    NB_Value func;
+    func.type = FUNCTION;
+    func.value.other = inter->func_list;
+    Expression *expression = new_expression();
+    expression->type = LITERAL_EXPRESSION;
+    expression->content.literal_expression = func;   
+    return expression; 
+}
+
 Expression *nb_create_function_call_expression(UTF8_String *identifier, ArgumentsList *alist)
 {
     Expression *expression = new_expression();
     expression->type = FUNCTION_CALL_EXPRESSION;
     expression->content.function_call_expression.alist = alist;
-    expression->content.function_call_expression.identifier = identifier;
+    expression->content.function_call_expression.identifier = utf8_string_append_char(identifier, '$');
     return expression;
 }
 
@@ -162,62 +204,34 @@ Statement *nb_create_function_definition_statement(NB_ValueType type, UTF8_Strin
     else
         for (;plist->prev != NULL; plist = plist->prev)
             count++;
-    if (inter->block_state == 1)
-        fprintf(stderr, "Don't Define Function inside a Block!");
-    else if (inter->block_state == 2)
+    if (inter->func_list == NULL)
     {
-        if (current_class->func_list == NULL)
-        {
-            current_class->func_list = (FunctionList*)malloc(sizeof(FunctionList));
-            current_class->func_list->prev = NULL;
-            current_class->func_list->next = NULL;
-            current_class->func_list->pnum = count;
-            current_class->func_list->builtin = 0;
-            current_class->func_list->identifier = identifier;
-            current_class->func_list->type = type;
-            current_class->func_list->plist = plist;
-            current_class->func_list->block = block;
-        }
-        else
-        {
-            current_class->func_list->next = (FunctionList*)malloc(sizeof(FunctionList));
-            current_class->func_list->next->prev = current_class->func_list;
-            current_class->func_list = current_class->func_list->next;
-            current_class->func_list->next = NULL;
-            current_class->func_list->pnum = count;
-            current_class->func_list->builtin = 0;
-            current_class->func_list->identifier = identifier;
-            current_class->func_list->type = type;
-            current_class->func_list->plist = plist;
-            current_class->func_list->block = block;
-        }
+        inter->func_list = (FunctionList*)malloc(sizeof(FunctionList));
+        inter->func_list->prev = NULL;
+        inter->func_list->next = NULL;
+        inter->func_list->pnum = count;
+        inter->func_list->builtin = 0;
+        // inter->func_list->identifier = identifier;
+        inter->func_list->type = type;
+        inter->func_list->plist = plist;
+        inter->func_list->block = block;
     }
     else
-        if (inter->func_list == NULL)
-        {
-            inter->func_list = (FunctionList*)malloc(sizeof(FunctionList));
-            inter->func_list->prev = NULL;
-            inter->func_list->next = NULL;
-            inter->func_list->pnum = count;
-            inter->func_list->builtin = 0;
-            inter->func_list->identifier = identifier;
-            inter->func_list->type = type;
-            inter->func_list->plist = plist;
-            inter->func_list->block = block;
-        }
-        else
-        {
-            inter->func_list->next = (FunctionList*)malloc(sizeof(FunctionList));
-            inter->func_list->next->prev = inter->func_list;
-            inter->func_list = inter->func_list->next;
-            inter->func_list->next = NULL;
-            inter->func_list->pnum = count;
-            inter->func_list->builtin = 0;
-            inter->func_list->identifier = identifier;
-            inter->func_list->type = type;
-            inter->func_list->plist = plist;
-            inter->func_list->block = block;
-        }
+    {
+        inter->func_list->next = (FunctionList*)malloc(sizeof(FunctionList));
+        inter->func_list->next->prev = inter->func_list;
+        inter->func_list = inter->func_list->next;
+        inter->func_list->next = NULL;
+        inter->func_list->pnum = count;
+        inter->func_list->builtin = 0;
+        // inter->func_list->identifier = identifier;
+        inter->func_list->type = type;
+        inter->func_list->plist = plist;
+        inter->func_list->block = block;
+    }
+    NB_Value *func = value_new_type(FUNCTION);
+    func->value.other = inter->func_list;
+    nb_add_global_variable(func, utf8_string_append_char(identifier, '$'));
     Statement *statement = new_statement();
     statement->type = FUNCTION_DEFINITION_STATEMENT;
     statement->line_number = inter->current_line;
@@ -279,11 +293,11 @@ Statement *nb_create_if_statement(Expression *exp, Statement *block)
     return statement;
 }
 
-Statement *nb_create_foreach_statement(UTF8_String *identifier, Expression *exp, Statement *block)
+Statement *nb_create_foreach_statement(UTF8_String *identifier, Expression *exp, Statement *block, int flag)
 {
     Statement *statement = new_statement();
     statement->type = FOREACH_STATEMENT;
-    statement->content.foreach_statement = (Foreach){identifier, exp, block};
+    statement->content.foreach_statement = (Foreach){identifier, exp, block, flag};
     statement->line_number = inter->current_line;
     return statement;
 }

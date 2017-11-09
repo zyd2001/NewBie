@@ -1,5 +1,10 @@
-var arr = file_get_contents_array("input");
-for (x in arr)
+int a = 50;
+test(50, function () {println(a++);});
+
+
+int test(int i, var fun())
 {
-    println(x);
+    println(i);
+    fun();
+    println(i);    
 }

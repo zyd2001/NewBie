@@ -21,8 +21,8 @@ void increase_line_number()
 <INITIAL>"array"        return ARRAY_T;
 <INITIAL>"string"       return STRING_T;
 <INITIAL>"var"          return VAR_T;
-<INITIAL>"function"     return FUNC_T;
-<INITIAL>"func"         return FUNC_T;
+<INITIAL>"function"     return VAR_T;
+<INITIAL>"func"         return VAR_T;
 <INITIAL>"if"           return IF;
 <INITIAL>"else"         return ELSE;
 <INITIAL>"elseif"       return ELSEIF;
@@ -69,6 +69,7 @@ void increase_line_number()
 <INITIAL>"--"           return DECREMENT_T;
 <INITIAL>"!"            return EXCLAMATION;
 <INITIAL>"."            return DOT;
+<INITIAL>"~"            return REVERSE;
 <INITIAL>"public"       return PUBLIC;
 <INITIAL>"protected"    return PROTECTED;
 <INITIAL>"private"      return PRIVATE;
