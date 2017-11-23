@@ -58,3 +58,8 @@ NewBie.ini
 
 test.c
 test.out
+
+.vs/*
+Debug/*
+x64/*
+x86/*

@@ -2,6 +2,12 @@
 #define NEWBIE_HPP
 #include <vector>
 #include <string>
+#include <unordered_map>
+#include <memory>
+#include <utility>
+#include <variant>
+#include <iostream>
+#include <any>
 
 namespace zyd2001::NewBie
 {
@@ -32,56 +38,111 @@ namespace zyd2001::NewBie
 
     enum ValueType
     {
-        INT,
-        DOUBLE,
-        BOOL,
-        STRING,
-        ARRAY,
-        OBJECT
+        INT_TYPE,
+        DOUBLE_TYPE,
+        BOOL_TYPE,
+        STRING_TYPE,
+        ARRAY_TYPE,
+        OBJECT_TYPE
     };
     
     struct Value 
     {
         ValueType type;
-        union
-        {
-            int int_value;
-            double double_value;
-            bool bool_value;
-            u32string string_value;
-            std::unordered_map<string, Value> array_value;
-        } value;
-        Value() = default;
-        ~Value() = default;
+		void *content;
+		void operator+(const Value&);
+		void change_type(ValueType);
+		Value(ValueType, void*);
+		~Value();
     };
 
-    enum StatementType
-    {
-        NULL_RESULT,
-        EXPRESSION_STATEMENT,
-        FUNCTION_DEFINITION_STATEMENT,
-        CLASS_DEFINITION_STATEMENT,
-        BLOCK_STATEMENT,
-        IF_STATEMENT,
-        ELSE_STATEMENT,
-        FOR_STATEMENT,
-        FOREACH_STATEMENT,
-        RETURN_STATEMENT,
-        CONTINUE_STATEMENT,
-        BREAK_STATEMENT
-    };
-    
-    struct Statement
-    {
-        StatementType type;
-    };
+	enum ExpressionType
+	{
+		LITERAL_EXPRESSION,
+		IDENTIFIER_EXPRESSION,
+		BINARY_EXPRESSION,
+		UNARY_EXPRESSION,
+		FUNCTION_CALL_EXPRESSION,
+		ARRAY_EXPRESSION,
+		INDEX_EXPRESSION
+	};
+
+	struct Expression;
+
+	//struct DeclarationExpression
+	//{
+	//	ValueType type;
+	//	std::string identifier;
+	//	std::unique_ptr<Expression> exp;
+	//};
+
+	struct BinaryExpression
+	{
+		BinaryType type;
+		std::unique_ptr<Expression> lexp;
+		std::unique_ptr<Expression> rexp;
+	};
+
+	struct UnaryExpression
+	{
+		UnaryType type;
+		std::unique_ptr<Expression> exp;
+	};
+
+	//struct AssignmentExpression
+	//{
+	//	std::unique_ptr<Expression> lexp;
+	//	std::unique_ptr<Expression> rexp;
+	//};
+
+	struct FunctionCallExpression
+	{
+		std::string identifier;
+		std::vector<Expression> alist;
+	};
+
+	struct IndexExpression
+	{
+		std::unique_ptr<Expression> exp;
+		std::unique_ptr<Expression> index;
+	};
+
+	typedef std::vector<Expression> ArrayExpression;
+	typedef std::string IdentifierExpression;
+	typedef Value LiteralExpression;
 
     struct Expression
     {
-
+		ExpressionType type;
+		std::any content;
+		Expression(ExpressionType, std::any);
+		~Expression() {}
     };
 
-    class InterpreterImp
+	enum StatementType
+	{
+		NULL_RESULT,
+		EXPRESSION_STATEMENT,
+		FUNCTION_DEFINITION_STATEMENT,
+		CLASS_DEFINITION_STATEMENT,
+		BLOCK_STATEMENT,
+		IF_STATEMENT,
+		ELSE_STATEMENT,
+		FOR_STATEMENT,
+		FOREACH_STATEMENT,
+		RETURN_STATEMENT,
+		CONTINUE_STATEMENT,
+		BREAK_STATEMENT
+	};
+
+	struct Statement
+	{
+		StatementType type;
+		std::any content;
+		~Statement() {};
+	};
+
+    class Interpreter::InterpreterImp
     {
     public:
         InterpreterImp();
@@ -91,10 +152,11 @@ namespace zyd2001::NewBie
         bool setFile(const std::string &name);
         std::shared_ptr<Value> statement_result;
     private:
-        std::unique_ptr<ifstream> file;
+        std::unique_ptr<std::ifstream> file;
+		std::string filename;
         std::vector<Statement> statements_list;
-        std::vector<std::unordered_map<string, Value>> variables_list;
-        std::vector<unique_ptr<void *>> handle_list;
+        std::vector<std::unordered_map<std::string, Value>> variables_list;
+        std::vector<std::unique_ptr<void *>> handle_list;
     };
 }
 
