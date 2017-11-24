@@ -1,4 +1,4 @@
-#include "NewBie_Lang.hpp"
+﻿#include "NewBie_Lang.hpp"
 #include "NewBie.hpp"
 
 #include <iostream>
@@ -36,7 +36,10 @@ bool I::interprete()
 
 int main()
 {
-	Value v(INT_TYPE, static_cast<void*>(new int(5)));
+	Value v(STRING_TYPE, new u32string(U"123.235"));
 	v.change_type(STRING_TYPE);
-	string a = (*static_cast<string*>(v.content));
+	u32string get = v.get<u32string>();
+	v.change_type(DOUBLE_TYPE);
+	double d = v.get<double>();
+	cout << d << endl;
 }

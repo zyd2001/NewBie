@@ -5,9 +5,7 @@
 #include <unordered_map>
 #include <memory>
 #include <utility>
-#include <variant>
 #include <iostream>
-#include <any>
 
 namespace zyd2001::NewBie
 {
@@ -52,6 +50,10 @@ namespace zyd2001::NewBie
 		void *content;
 		void operator+(const Value&);
 		void change_type(ValueType);
+
+		template<typename T>
+		T &get() { return *static_cast<T*>(content); }
+
 		Value(ValueType, void*);
 		~Value();
     };
@@ -114,8 +116,8 @@ namespace zyd2001::NewBie
     struct Expression
     {
 		ExpressionType type;
-		std::any content;
-		Expression(ExpressionType, std::any);
+		void *content;
+		Expression(ExpressionType, void*);
 		~Expression() {}
     };
 
@@ -138,7 +140,7 @@ namespace zyd2001::NewBie
 	struct Statement
 	{
 		StatementType type;
-		std::any content;
+		void *content;
 		~Statement() {};
 	};
 
