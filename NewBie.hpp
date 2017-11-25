@@ -44,19 +44,31 @@ namespace zyd2001::NewBie
         OBJECT_TYPE
     };
     
+#if defined(_MSC_VER)
+using u32string = std::basic_string<uint32_t>;
+#define u32string zyd2001::NewBie::u32string
+#define U(str) reinterpret_cast<const uint32_t*>(U##str)
+#elif defined(__GNUC__)
+#define U(str) U##str
+#endif
+
     struct Value 
     {
         ValueType type;
 		void *content;
-		void operator+(const Value&);
 		void change_type(ValueType);
 
 		template<typename T>
-		T &get() { return *static_cast<T*>(content); }
+		T &get() const { return *static_cast<T*>(content); }
 
 		Value(ValueType, void*);
+		Value(const Value&);
 		~Value();
+		Value operator+(const Value&) const;
+		friend std::ostream &operator<<(std::ostream&, Value&);
     };
+
+	Value change(const Value&, ValueType);
 
 	enum ExpressionType
 	{

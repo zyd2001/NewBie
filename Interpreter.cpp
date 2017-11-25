@@ -4,8 +4,8 @@
 #include <iostream>
 #include <fstream>
 
-using namespace std;
 using namespace zyd2001::NewBie;
+using namespace std;
 #define I Interpreter::InterpreterImp
 
 Interpreter::Interpreter() : imp(new InterpreterImp()) {}
@@ -36,10 +36,8 @@ bool I::interprete()
 
 int main()
 {
-	Value v(STRING_TYPE, new u32string(U"123.235"));
-	v.change_type(STRING_TYPE);
-	u32string get = v.get<u32string>();
-	v.change_type(DOUBLE_TYPE);
-	double d = v.get<double>();
-	cout << d << endl;
+	Value v1(INT_TYPE, new int(123));
+	Value v2(STRING_TYPE, new u32string(U("123.235")));
+	Value v3(v1 + v2);
+	cout << v3 << endl;
 }
