@@ -77,6 +77,14 @@ using u32string = std::basic_string<uint32_t>;
 		Value operator*(const Value&) const;
 		Value operator/(const Value&) const;
 		Value &operator=(const Value&);
+		bool operator==(const Value&) const;
+		bool operator!=(const Value&) const;
+		bool operator>(const Value&) const;
+		bool operator>=(const Value&) const;
+		bool operator<(const Value&) const;
+		bool operator<=(const Value&) const;
+		bool operator!() const;
+		Value operator-() const;
 		friend std::ostream &operator<<(std::ostream&, Value&);
     };
 

@@ -214,6 +214,79 @@ Value &zyd2001::NewBie::Value::operator=(const Value &v)
 	return *this;
 }
 
+#define compare_value(tag) \
+Value first(*this), second(v); \
+if (type == STRING_TYPE || v.type == STRING_TYPE) \
+{ \
+	first.change_type(STRING_TYPE); \
+	second.change_type(STRING_TYPE); \
+	return first.get<u32string>() tag second.get<u32string>(); \
+} \
+else if (type == DOUBLE_TYPE || v.type == DOUBLE_TYPE) \
+{ \
+	first.change_type(DOUBLE_TYPE); \
+	second.change_type(DOUBLE_TYPE); \
+	return first.get<double>() tag second.get<double>(); \
+} \
+else \
+{ \
+	return first.get<int>() tag second.get<int>(); \
+}
+
+bool zyd2001::NewBie::Value::operator==(const Value &v) const
+{
+	compare_value(==)
+}
+
+bool zyd2001::NewBie::Value::operator!=(const Value &v) const
+{
+	compare_value(!=)
+}
+
+bool zyd2001::NewBie::Value::operator>(const Value &v) const
+{
+	compare_value(>)
+}
+
+bool zyd2001::NewBie::Value::operator>=(const Value &v) const
+{
+	compare_value(>=)
+}
+
+bool zyd2001::NewBie::Value::operator<(const Value &v) const
+{
+	compare_value(<)
+}
+
+bool zyd2001::NewBie::Value::operator<=(const Value &v) const
+{
+	compare_value(<=)
+}
+
+bool zyd2001::NewBie::Value::operator!() const
+{
+	Value v(*this);
+	v.change_type(BOOL_TYPE);
+	return !(v.get<bool>());
+}
+
+Value zyd2001::NewBie::Value::operator-() const
+{
+	Value v(*this);
+	switch (v.type)
+	{
+		case zyd2001::NewBie::INT_TYPE:
+			v.get<int>() = -(v.get<int>());
+			break;
+		case zyd2001::NewBie::DOUBLE_TYPE:
+			v.get<double>() = -(v.get<double>());
+			break;
+		default:
+			break;
+	}
+	return v;
+}
+
 Value zyd2001::NewBie::change(const Value &v, ValueType t)
 {
 	Value val(v);

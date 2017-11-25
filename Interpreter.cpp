@@ -36,11 +36,12 @@ bool I::interprete()
 
 int main()
 {
-	Value v1(123);
+	Value v1(233);
 	Value v2(U("233"));
 	Value v3 = v1 + v2;
 	Value v4 = v3;
-	v1 = v3 * 3;
+	v4 = v3 * 3;
 	cout << v3 << endl;
 	cout << v1 << endl;
+	cout << (v1 == v2) << endl;
 }
