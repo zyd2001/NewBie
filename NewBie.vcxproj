@@ -119,7 +119,7 @@
     <ClInclude Include="NewBie_Lang.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Base.cpp" />
+    <ClCompile Include="Value.cpp" />
     <ClCompile Include="Interpreter.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

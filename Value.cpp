@@ -54,6 +54,13 @@ Value::Value(const Value &v) : type(v.type)
 			break;
 	}
 }
+
+Value::Value(const int &i) : type(INT_TYPE), content(new int(i)) {}
+Value::Value(const double &d) : type(DOUBLE_TYPE), content(new double(d)) {}
+Value::Value(const bool &b) : type(BOOL_TYPE), content(new bool(b)) {}
+Value::Value(const u32string &s) : type(STRING_TYPE), content(new u32string(s)) {}
+Value::Value(const char_t *s) : type(STRING_TYPE), content(new u32string(s)) {}
+
 Value::~Value()
 {
 	switch (type)
@@ -104,6 +111,107 @@ Value Value::operator+(const Value &v) const
 	{
 		return Value(INT_TYPE, new int(get<int>() + v.get<int>()));
 	}
+}
+
+Value Value::operator-(const Value &v) const
+{
+	if (type == DOUBLE_TYPE || v.type == DOUBLE_TYPE)
+	{
+		Value first(*this);
+		Value second(v);
+		first.change_type(DOUBLE_TYPE);
+		second.change_type(DOUBLE_TYPE);
+		first.get<double>() -= second.get<double>();
+		return first;
+	}
+	else
+	{
+		return Value(INT_TYPE, new int(get<int>() - v.get<int>()));
+	}
+}
+
+Value Value::operator*(const Value &v) const
+{
+	if (type == STRING_TYPE && v.type == INT_TYPE)
+	{
+		Value first(*this);
+		u32string str(first.get<u32string>());
+		for (int i = 1; i < v.get<int>(); i++)
+			first.get<u32string>() += str;
+		return first;
+	}
+	else if (type == DOUBLE_TYPE || v.type == DOUBLE_TYPE)
+	{
+		Value first(*this);
+		Value second(v);
+		first.change_type(DOUBLE_TYPE);
+		second.change_type(DOUBLE_TYPE);
+		first.get<double>() *= second.get<double>();
+		return first;
+	}
+	else
+	{
+		return Value(INT_TYPE, new int(get<int>() * v.get<int>()));
+	}
+}
+
+Value zyd2001::NewBie::Value::operator/(const Value &v) const
+{
+	if (type == DOUBLE_TYPE || v.type == DOUBLE_TYPE)
+	{
+		Value first(*this);
+		Value second(v);
+		first.change_type(DOUBLE_TYPE);
+		second.change_type(DOUBLE_TYPE);
+		first.get<double>() /= second.get<double>();
+		return first;
+	}
+	else
+	{
+		return Value(INT_TYPE, new int(get<int>() /- v.get<int>()));
+	}
+}
+
+Value &zyd2001::NewBie::Value::operator=(const Value &v)
+{
+	if (this == &v)
+		return *this;
+	this->~Value();
+	type = v.type;
+	switch (type)
+	{
+		case zyd2001::NewBie::INT_TYPE:
+		{
+			int *ptr = new int(v.get<int>());
+			content = ptr;
+			break;
+		}
+		case zyd2001::NewBie::DOUBLE_TYPE:
+		{
+			double *ptr = new double(v.get<double>());
+			content = ptr;
+			break;
+		}
+		case zyd2001::NewBie::BOOL_TYPE:
+		{
+			bool *ptr = new bool(v.get<bool>());
+			content = ptr;
+			break;
+		}
+		case zyd2001::NewBie::STRING_TYPE:
+		{
+			u32string *ptr = new u32string(v.get<u32string>());
+			content = ptr;
+			break;
+		}
+		case zyd2001::NewBie::ARRAY_TYPE:
+			break;
+		case zyd2001::NewBie::OBJECT_TYPE:
+			break;
+		default:
+			break;
+	}
+	return *this;
 }
 
 Value zyd2001::NewBie::change(const Value &v, ValueType t)

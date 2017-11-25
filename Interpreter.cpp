@@ -36,8 +36,11 @@ bool I::interprete()
 
 int main()
 {
-	Value v1(INT_TYPE, new int(123));
-	Value v2(STRING_TYPE, new u32string(U("123.235")));
-	Value v3(v1 + v2);
+	Value v1(123);
+	Value v2(U("233"));
+	Value v3 = v1 + v2;
+	Value v4 = v3;
+	v1 = v3 * 3;
 	cout << v3 << endl;
+	cout << v1 << endl;
 }

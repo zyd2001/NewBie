@@ -48,8 +48,11 @@ namespace zyd2001::NewBie
 using u32string = std::basic_string<uint32_t>;
 #define u32string zyd2001::NewBie::u32string
 #define U(str) reinterpret_cast<const uint32_t*>(U##str)
+#define char_t uint32_t
 #elif defined(__GNUC__)
 #define U(str) U##str
+#define u32string std::u32string
+#define char_t char32_t
 #endif
 
     struct Value 
@@ -63,11 +66,21 @@ using u32string = std::basic_string<uint32_t>;
 
 		Value(ValueType, void*);
 		Value(const Value&);
+		Value(const int&);
+		Value(const double&);
+		Value(const bool&);
+		Value(const u32string&);
+		Value(const char_t*);
 		~Value();
 		Value operator+(const Value&) const;
+		Value operator-(const Value&) const;
+		Value operator*(const Value&) const;
+		Value operator/(const Value&) const;
+		Value &operator=(const Value&);
 		friend std::ostream &operator<<(std::ostream&, Value&);
     };
 
+	std::ostream &operator<<(std::ostream&, Value&);
 	Value change(const Value&, ValueType);
 
 	enum ExpressionType
