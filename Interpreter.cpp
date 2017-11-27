@@ -1,11 +1,13 @@
-﻿#include "NewBie_Lang.hpp"
+#include "NewBie_Lang.hpp"
 #include "NewBie.hpp"
+#include <FlexLexer.h>
 
 #include <iostream>
 #include <fstream>
 
 using namespace zyd2001::NewBie;
 using namespace std;
+
 #define I Interpreter::InterpreterImp
 
 Interpreter::Interpreter() : imp(new InterpreterImp()) {}
@@ -34,14 +36,25 @@ bool I::interprete()
 	return true;
 }
 
+//int I::parse()
+//{
+//	unique_ptr<FlexLexer> lexer;
+//	if (file->is_open())
+//		lexer = make_unique<yyFlexLexer>(file.get(), cout);
+//	else
+//		lexer = make_unique<yyFlexLexer>();
+//	Parser parser(*this);
+//	return parser.parse();
+//}
+
 int main()
 {
 	Value v1(233);
-	Value v2(U("233"));
+	Value v2(U("哈哈"));
 	Value v3 = v1 + v2;
 	Value v4 = v3;
 	v4 = v3 * 3;
 	cout << v3 << endl;
 	cout << v1 << endl;
-	cout << (v1 == v2) << endl;
+	cout << boolalpha << (v1 == v2) << endl;
 }

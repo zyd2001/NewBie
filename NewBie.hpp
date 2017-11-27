@@ -45,14 +45,13 @@ namespace zyd2001::NewBie
     };
     
 #if defined(_MSC_VER)
-using u32string = std::basic_string<uint32_t>;
-#define u32string zyd2001::NewBie::u32string
+using String = std::basic_string<uint32_t>;
 #define U(str) reinterpret_cast<const uint32_t*>(U##str)
-#define char_t uint32_t
+using char_t = uint32_t;
 #elif defined(__GNUC__)
 #define U(str) U##str
-#define u32string std::u32string
-#define char_t char32_t
+using String = std::u32string;
+using char_t = char32_t;
 #endif
 
     struct Value 
@@ -69,9 +68,10 @@ using u32string = std::basic_string<uint32_t>;
 		Value(const int&);
 		Value(const double&);
 		Value(const bool&);
-		Value(const u32string&);
+		Value(const String&);
 		Value(const char_t*);
 		~Value();
+		void swap(Value &);
 		Value operator+(const Value&) const;
 		Value operator-(const Value&) const;
 		Value operator*(const Value&) const;
@@ -104,31 +104,18 @@ using u32string = std::basic_string<uint32_t>;
 
 	struct Expression;
 
-	//struct DeclarationExpression
-	//{
-	//	ValueType type;
-	//	std::string identifier;
-	//	std::unique_ptr<Expression> exp;
-	//};
-
 	struct BinaryExpression
 	{
 		BinaryType type;
-		std::unique_ptr<Expression> lexp;
-		std::unique_ptr<Expression> rexp;
+		std::shared_ptr<Expression> lexp;
+		std::shared_ptr<Expression> rexp;
 	};
 
 	struct UnaryExpression
 	{
 		UnaryType type;
-		std::unique_ptr<Expression> exp;
+		std::shared_ptr<Expression> exp;
 	};
-
-	//struct AssignmentExpression
-	//{
-	//	std::unique_ptr<Expression> lexp;
-	//	std::unique_ptr<Expression> rexp;
-	//};
 
 	struct FunctionCallExpression
 	{
@@ -138,8 +125,8 @@ using u32string = std::basic_string<uint32_t>;
 
 	struct IndexExpression
 	{
-		std::unique_ptr<Expression> exp;
-		std::unique_ptr<Expression> index;
+		std::shared_ptr<Expression> exp;
+		std::shared_ptr<Expression> index;
 	};
 
 	typedef std::vector<Expression> ArrayExpression;
@@ -151,7 +138,7 @@ using u32string = std::basic_string<uint32_t>;
 		ExpressionType type;
 		void *content;
 		Expression(ExpressionType, void*);
-		~Expression() {}
+		~Expression();
     };
 
 	enum StatementType
@@ -170,12 +157,21 @@ using u32string = std::basic_string<uint32_t>;
 		BREAK_STATEMENT
 	};
 
+	using ExpressionsList = std::vector<Expression>;
+
 	struct Statement
 	{
 		StatementType type;
 		void *content;
-		~Statement() {};
+		Statement(StatementType, void*);
+		~Statement();
 	};
+
+	using StatementsList = std::vector<Statement>;
+	using VariablesList = std::vector<std::unordered_map<std::string, Value>>;
+
+#define YY_DECL zyd2001::NewBie::Parser::symbol_type yyFlexLexer::yylex(zyd2001::NewBie::Interpreter::InterpreterImp &inter)
+//YY_DECL;
 
     class Interpreter::InterpreterImp
     {
@@ -184,13 +180,14 @@ using u32string = std::basic_string<uint32_t>;
         InterpreterImp(const std::string &name);
         ~InterpreterImp();
         bool interprete();
-        bool setFile(const std::string &name);
+		bool setFile(const std::string &name);
+		int parse();
         std::shared_ptr<Value> statement_result;
     private:
         std::unique_ptr<std::ifstream> file;
 		std::string filename;
-        std::vector<Statement> statements_list;
-        std::vector<std::unordered_map<std::string, Value>> variables_list;
+        StatementsList statements_list;
+        VariablesList variables_list;
         std::vector<std::unique_ptr<void *>> handle_list;
     };
 }

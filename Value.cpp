@@ -12,9 +12,9 @@ using namespace std;
 #define replace(...) do {delete_cast(__VA_ARGS__); content = ptr;} while(0)
 
 #if defined(_MSC_VER)
-wstring_convert<codecvt_utf8<uint32_t>, uint32_t> conv;
+wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 #elif defined(__GNUC__)
-wstring_convert<codecvt_utf8<char32_t>, char32_t> conv;
+wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 #endif
 
 Value::Value(ValueType t, void *c) : type(t), content(c) {}
@@ -42,7 +42,7 @@ Value::Value(const Value &v) : type(v.type)
 		}
 		case zyd2001::NewBie::STRING_TYPE:
 		{
-			u32string *ptr = new u32string(v.get<u32string>());
+			String *ptr = new String(v.get<String>());
 			content = ptr;
 			break;
 		}
@@ -58,8 +58,8 @@ Value::Value(const Value &v) : type(v.type)
 Value::Value(const int &i) : type(INT_TYPE), content(new int(i)) {}
 Value::Value(const double &d) : type(DOUBLE_TYPE), content(new double(d)) {}
 Value::Value(const bool &b) : type(BOOL_TYPE), content(new bool(b)) {}
-Value::Value(const u32string &s) : type(STRING_TYPE), content(new u32string(s)) {}
-Value::Value(const char_t *s) : type(STRING_TYPE), content(new u32string(s)) {}
+Value::Value(const String &s) : type(STRING_TYPE), content(new String(s)) {}
+Value::Value(const char_t *s) : type(STRING_TYPE), content(new String(s)) {}
 
 Value::~Value()
 {
@@ -75,16 +75,26 @@ Value::~Value()
 			delete_cast(bool*);
 			break;
 		case zyd2001::NewBie::STRING_TYPE:
-			delete_cast(u32string*);
+			delete_cast(String*);
 			break;
 		case zyd2001::NewBie::ARRAY_TYPE:
-			delete_cast(unordered_map<string, Value>*);
+			delete_cast(unordered_map<std::string, Value>*);
 			break;
 		case zyd2001::NewBie::OBJECT_TYPE:
 			break;
 		default:
 			break;
 	}
+}
+
+void zyd2001::NewBie::Value::swap(Value &other)
+{
+	ValueType type_t = type;
+	type = other.type;
+	other.type = type_t;
+	void *ptr_t = content;
+	content = other.content;
+	other.content = ptr_t;
 }
 
 Value Value::operator+(const Value &v) const
@@ -95,7 +105,7 @@ Value Value::operator+(const Value &v) const
 		Value second(v);
 		first.change_type(STRING_TYPE);
 		second.change_type(STRING_TYPE);
-		first.get<u32string>() += second.get<u32string>();
+		first.get<String>() += second.get<String>();
 		return first;
 	}
 	else if (type == DOUBLE_TYPE || v.type == DOUBLE_TYPE)
@@ -135,9 +145,9 @@ Value Value::operator*(const Value &v) const
 	if (type == STRING_TYPE && v.type == INT_TYPE)
 	{
 		Value first(*this);
-		u32string str(first.get<u32string>());
+		String str(first.get<String>());
 		for (int i = 1; i < v.get<int>(); i++)
-			first.get<u32string>() += str;
+			first.get<String>() += str;
 		return first;
 	}
 	else if (type == DOUBLE_TYPE || v.type == DOUBLE_TYPE)
@@ -176,41 +186,8 @@ Value &zyd2001::NewBie::Value::operator=(const Value &v)
 {
 	if (this == &v)
 		return *this;
-	this->~Value();
-	type = v.type;
-	switch (type)
-	{
-		case zyd2001::NewBie::INT_TYPE:
-		{
-			int *ptr = new int(v.get<int>());
-			content = ptr;
-			break;
-		}
-		case zyd2001::NewBie::DOUBLE_TYPE:
-		{
-			double *ptr = new double(v.get<double>());
-			content = ptr;
-			break;
-		}
-		case zyd2001::NewBie::BOOL_TYPE:
-		{
-			bool *ptr = new bool(v.get<bool>());
-			content = ptr;
-			break;
-		}
-		case zyd2001::NewBie::STRING_TYPE:
-		{
-			u32string *ptr = new u32string(v.get<u32string>());
-			content = ptr;
-			break;
-		}
-		case zyd2001::NewBie::ARRAY_TYPE:
-			break;
-		case zyd2001::NewBie::OBJECT_TYPE:
-			break;
-		default:
-			break;
-	}
+	Value temp(v);
+	this->swap(temp);
 	return *this;
 }
 
@@ -220,7 +197,7 @@ if (type == STRING_TYPE || v.type == STRING_TYPE) \
 { \
 	first.change_type(STRING_TYPE); \
 	second.change_type(STRING_TYPE); \
-	return first.get<u32string>() tag second.get<u32string>(); \
+	return first.get<String>() tag second.get<String>(); \
 } \
 else if (type == DOUBLE_TYPE || v.type == DOUBLE_TYPE) \
 { \
@@ -318,7 +295,7 @@ void Value::change_type(ValueType t)
 				}
 				case zyd2001::NewBie::STRING_TYPE:
 				{
-					u32string *ptr = new u32string(conv.from_bytes(to_string(get_cast(int*))));
+					String *ptr = new String(conv.from_bytes(to_string(get_cast(int*))));
 					replace(int*);
 					break;
 				}
@@ -348,7 +325,7 @@ void Value::change_type(ValueType t)
 				}
 				case zyd2001::NewBie::STRING_TYPE:
 				{
-					u32string *ptr = new u32string(conv.from_bytes(to_string(get_cast(double*))));
+					String *ptr = new String(conv.from_bytes(to_string(get_cast(double*))));
 					replace(double*);
 					break;
 				}
@@ -377,7 +354,7 @@ void Value::change_type(ValueType t)
 					break;
 				case zyd2001::NewBie::STRING_TYPE:
 				{
-					u32string *ptr = new u32string(conv.from_bytes(get_cast(bool*) ? "true" : "false"));
+					String *ptr = new String(conv.from_bytes(get_cast(bool*) ? "true" : "false"));
 					replace(bool*);
 					break;
 				}
@@ -392,20 +369,20 @@ void Value::change_type(ValueType t)
 			{
 				case zyd2001::NewBie::INT_TYPE:
 				{
-					int *ptr = new int(stoi(conv.to_bytes(get_cast(u32string*))));
-					replace(u32string*);
+					int *ptr = new int(stoi(conv.to_bytes(get_cast(String*))));
+					replace(String*);
 					break;
 				}
 				case zyd2001::NewBie::DOUBLE_TYPE:
 				{
-					double *ptr = new double(stod(conv.to_bytes(get_cast(u32string*))));
-					replace(u32string*);
+					double *ptr = new double(stod(conv.to_bytes(get_cast(String*))));
+					replace(String*);
 					break;
 				}
 				case zyd2001::NewBie::BOOL_TYPE:
 				{
-					bool *ptr = new bool(get_cast(u32string*).empty() ? false : true);
-					replace(u32string*);
+					bool *ptr = new bool(get_cast(String*).empty() ? false : true);
+					replace(String*);
 					break;
 				}
 				case zyd2001::NewBie::STRING_TYPE:
@@ -439,7 +416,7 @@ ostream &zyd2001::NewBie::operator<<(ostream &out, Value &v)
 			out << v.get<bool>();
 			break;
 		case zyd2001::NewBie::STRING_TYPE:
-			out << conv.to_bytes(v.get<u32string>());
+			out << conv.to_bytes(v.get<String>());
 			break;
 		case zyd2001::NewBie::ARRAY_TYPE:
 			break;
