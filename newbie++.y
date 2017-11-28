@@ -3,11 +3,16 @@
 %defines "NewBie_Parser.hpp"
 %define parser_class_name {Parser}
 
-%code requires{
-
+%code requires
+{
 #include "NewBie_Lang.hpp"
 #include "NewBie.hpp"
+}
 
+%code
+{
+    using namespace std;
+    using namespace zyd2001::NewBie;
 }
 
 %define api.namespace {zyd2001::NewBie}
@@ -16,7 +21,7 @@
 %define api.token.prefix {TOKEN_}
 %define parse.trace
 %define parse.error verbose
-%printer { yyoutput << $$; } <*>;
+%printer { yyoutput << $$ << " " << yylino << endl; } <*>;
 %param {zyd2001::NewBie::Interpreter::InterpreterImp &inter}
 %locations
 %initial-action
@@ -43,6 +48,7 @@
 %type<zyd2001::NewBie::ParametersList> parameters_list
 %type<zyd2001::NewBie::ExpressionsList> expressions_list
 %type<zyd2001::NewBie::ValueType> type_tag
+%type<zyd2001::NewBie::Parameter> parameters_list_item
 %%
     statements_list: statement
         {
@@ -55,29 +61,29 @@
         ;
     statement: expression SEMICOLON
         {
-            $$ = nb_create_expression_statement($1);
+            $$ = Statement(EXPRESSION_STATEMENT, new Expression(std::move($1)));
         }
-        | IF LP expression RP block
+        | IF LP expression RP statement
         {
             $$ = nb_create_if_statement($3, $5);
         }
-        | ELSE block
+        | ELSE statement
         {
             $$ = nb_cat_else_statement($2);
         }
-        | ELSEIF LP expression RP block
+        | ELSEIF LP expression RP statement
         {
             $$ = nb_cat_elseif_statement($3, $5);
         }
-        | FOR LP IDENTIFIER IN possible_array_expression RP block
+        | FOR LP IDENTIFIER IN possible_array_expression RP statement
         {
             $$ = nb_create_foreach_statement($3, $5, $7, 0);
         }
-        | FOR LP IDENTIFIER IN REVERSE possible_array_expression RP block
+        | FOR LP IDENTIFIER IN REVERSE possible_array_expression RP statement
         {
             $$ = nb_create_foreach_statement($3, $6, $8, 1);
         }
-        | FOR LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional RP block
+        | FOR LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional RP statement
         {
             $$ = nb_create_for_statement($3, $5, $7, $9);
         }
@@ -93,10 +99,6 @@
         {
             $$ = nb_create_break_statement();
         }
-        | CLASS IDENTIFIER block
-        {
-            $$ = nb_create_class_definition_statement($2, $3);
-        }
         | block
         | function_definition_statement
         ;
@@ -104,107 +106,86 @@
         | unary_expression
         | primary_expression
         | index_expression
-        | possible_array_expression
-        | type_tag LP parameters_list RP block
+        | IDENTIFIER
         {
-            $$ = nb_create_anonymous_function_definition_expression($1, $3, $5);
+            $$ = Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression($1));
         }
-        ;
         | LP expression RP
         {
-            $$ = $2;
-        }
-        ;
-    possible_array_expression: IDENTIFIER
-        {
-            $$ = nb_create_identifier_expression($1);
-        }
-        | function_call_expression
-        | LB expressions_list RB
-        {
-            $$ = nb_create_array_expression($2);
-        }
-        ;
-    index_expression: possible_array_expression LB expression RB
-        {
-            $$ = nb_create_index_expression($1, $3);
-        }
-        | index_expression LB expression RB
-        {
-            $$ = nb_create_index_expression($1, $3);            
+            $$ = std::move($2);
         }
         ;
     expression_optional: /* empty */
         {
-            $$ = NULL;
+            $$ = Expression();
         }
         | expression
         ;
     binary_expression: expression ADD expression
         {
-            $$ = nb_create_binary_expression(ADD, $1, $3);
+            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({ADD, $1, $3}));
         }
         | expression SUB expression
         {
-            $$ = nb_create_binary_expression(SUB, $1, $3);            
+            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({SUB, $1, $3}));         
         }
         | expression MUL expression
         {
-            $$ = nb_create_binary_expression(MUL, $1, $3);            
+            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({MUL, $1, $3}));
         }
         | expression DIV expression
         {
-            $$ = nb_create_binary_expression(DIV, $1, $3);            
+            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({DIV, $1, $3}));
         }
         | expression MOD expression
         {
-            $$ = nb_create_binary_expression(MOD, $1, $3);            
+            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({MOD, $1, $3}));
         }
         | expression EQ expression
         {
-            $$ = nb_create_binary_expression(EQ, $1, $3);
+            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({EQ, $1, $3}));
         }
         | expression NE expression
         {
-            $$ = nb_create_binary_expression(NE, $1, $3);
+            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({NE, $1, $3}));
         }
         | expression GT expression
         {
-            $$ = nb_create_binary_expression(GT, $1, $3);
+            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({GT, $1, $3}));
         }
         | expression GE expression
         {
-            $$ = nb_create_binary_expression(GE, $1, $3);
+            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({GE, $1, $3}));
         }
         | expression LT expression
         {
-            $$ = nb_create_binary_expression(LT, $1, $3);
+            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({LT, $1, $3}));
         }
         | expression LE expression
         {
-            $$ = nb_create_binary_expression(LE, $1, $3);
+            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({LE, $1, $3}));
         }
         | expression LOGICAL_AND expression
         {
-            $$ = nb_create_binary_expression(AND, $1, $3);
+            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({AND, $1, $3}));
         }
         | expression LOGICAL_OR expression
         {
-            $$ = nb_create_binary_expression(OR, $1, $3);
+            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({OR, $1, $3}));
         }
         ;
     unary_expression: SUB expression %prec UMINUS
         {
-            $$ = nb_create_unary_expression(MINUS, $2);
+            $$ = Expression(UNARY_EXPRESSION, new UnaryExpression({MINUS, $2}));
         }
         | EXCLAMATION expression %prec UMINUS
         {
-            $$ = nb_create_unary_expression(NOT, $2);
+            $$ = Expression(UNARY_EXPRESSION, new UnaryExpression({NOT, $2}));
         }
         ;
     function_call_expression: IDENTIFIER LP arguments_list RP
         {
-            $$ = nb_create_function_call_expression($1, $3);
+            $$ = Expression(FUNCTION_CALL_EXPRESSION, new FunctionCallExpression({$1, $3}));
         }
         ;
     primary_expression: INT_LITERAL
@@ -214,11 +195,12 @@
         ;
     expressions_list: expression
         {
-            $$ = nb_create_expression_list($1);
+            $$.push_back($1);
         }
         | expressions_list COMMA expression
         {
-            $$ = nb_cat_expression_list($1, $3);
+            $1.push_back($3);
+            $$.swap($1);
         }
         ;
     function_definition_statement: type_tag IDENTIFIER LP parameters_list RP block
@@ -228,27 +210,27 @@
         ;
     type_tag: INT
         {
-            $$ = INT;
+            $$ = INT_TYPE;
         }
         | DOUBLE
         {
-            $$ = DOUBLE;
+            $$ = DOUBLE_TYPE;
         }
         | BOOL
         {
-            $$ = BOOL;
+            $$ = BOOL_TYPE;
         }
         | STRING
         {
-            $$ = STRING;
+            $$ = STRING_TYPE;
         }
         | ARRAY
         {
-            $$ = ARRAY;
+            $$ = ARRAY_TYPE;
         }
         | VAR
         {
-            $$ = VARIOUS;
+            $$ = VARIOUS_TYPE;
         }
         ;
     block: LC statements_list RC
@@ -262,29 +244,35 @@
         ;
     arguments_list: /* empty */
         {
-            $$ = NULL;
+            $$;
         }
         | expression
         {
-            $$ = nb_create_argument_list($1);
+            $$.push_back($1);
         }
         | arguments_list COMMA expression
         {
-            $$ = nb_cat_argument_list($1, $3);
+            $1.push_back($3);
+            $$.swap($1);
         }
         ;
-    parameter_list_item: INT_LITERAL;
+    parameter_list_item: type_tag IDENTIFIER primary_expression
+        {
+            $$ = {$1, $2, $3};
+        }
+        ;
     parameters_list: /* empty */
         {
-            $$ = NULL;
+            $$;
         }
         | parameter_list_item
         {
-            $$ = nb_create_parameter_list($1);
+            $$.push_back($1);
         }
         | parameters_list COMMA parameter_list_item
         {
-            $$ = nb_cat_parameter_list($1, $3);
+            $1.push_back($1);
+            $$.swap($1);
         }
         ;
 %%

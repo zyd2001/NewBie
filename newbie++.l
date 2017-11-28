@@ -27,8 +27,8 @@ wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 <INITIAL>"array"        return Parser::make_ARRAY(loc);
 <INITIAL>"string"       return Parser::make_STRING(loc);
 <INITIAL>"var"          return Parser::make_VAR(loc);
-<INITIAL>"function"     return VAR;
-<INITIAL>"func"         return VAR;
+<INITIAL>"function"     return Parser::make_FUNC(loc);
+<INITIAL>"func"         return Parser::make_FUNC(loc);
 <INITIAL>"if"           return Parser::make_IF(loc);
 <INITIAL>"else"         return Parser::make_ELSE(loc);
 <INITIAL>"elseif"       return Parser::make_ELSEIF(loc);
@@ -80,20 +80,20 @@ wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 <INITIAL>"protected"    return Parser::make_PROTECTED(loc);
 <INITIAL>"private"      return Parser::make_PRIVATE(loc);
 <INITIAL>"true" {       
-    return Parser::make_BOOL_LITERAL(Expression(LITERAL_EXPRESSION, new Value(true)), loc);
+    return Parser::make_BOOL_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(true)), loc);
 }
 <INITIAL>"false" {       
-    return Parser::make_BOOL_LITERAL(Expression(LITERAL_EXPRESSION, new Value(false)), loc);
+    return Parser::make_BOOL_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(false)), loc);
 }
 <INITIAL>[ \t] ;
 <INITIAL>[A-Za-z_][A-Za-z_0-9]* {
-    return Parser::make_IDENTIFIER(Expression(IDENTIFIER_EXPRESSION, new string(yytext)), loc); 
+    return Parser::make_IDENTIFIER(new string(yytext), loc); 
 }
 <INITIAL>[1-9][0-9]*|"0" {
-    return Parser::make_INT_LITERAL(Expression(LITERAL_EXPRESSION, new Value(stoi(yytext))), loc);
+    return Parser::make_INT_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(stoi(yytext))), loc);
 }
 <INITIAL>[0-9]+\.[0-9]+ {
-    return Parser::make_DOUBLE_LITERAL(Expression(LITERAL_EXPRESSION, new Value(stod(yytext))), loc);
+    return Parser::make_DOUBLE_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(stod(yytext))), loc);
 }
 <INITIAL>\" {
     BEGIN STRING_LITERAL_STATE;
@@ -112,9 +112,9 @@ wstring_convert<codecvt_utf8<char_t>, char_t> conv;
     {
         BEGIN INITIAL;
         if (string_buffer.empty())
-            return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new String()), loc);
+            return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(string_t())), loc);
         else
-            return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new String(conv.from_bytes(string_buffer))), loc);
+            return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(string_t(conv.from_bytes(string_buffer)))), loc);
     }
     else
         string_buffer += yytext;
@@ -143,11 +143,11 @@ wstring_convert<codecvt_utf8<char_t>, char_t> conv;
     swap(temp, string_buffer);
     if (string_buffer.empty())
     {
-        return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new String()), loc);
+        return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(string_t())), loc);
     }
     else
     {
-        return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new String(conv.from_bytes(temp))), loc);
+        return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(string_t(conv.from_bytes(string_buffer)))), loc);
     }
 }
 <STRING_LITERAL_STATE>. {

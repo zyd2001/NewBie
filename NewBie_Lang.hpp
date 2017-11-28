@@ -10,7 +10,7 @@ namespace zyd2001::NewBie
     public:
         Interpreter();
         Interpreter(const std::string &name);
-        ~Interpreter();
+		~Interpreter() = default;
         bool interprete();
         bool setFile(const std::string &name);
     private:

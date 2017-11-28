@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <memory>
 #include <utility>
+#include <stack>
 #include <iostream>
 
 namespace zyd2001::NewBie
@@ -29,13 +30,12 @@ namespace zyd2001::NewBie
     enum UnaryType
     {
         MINUS,
-        NOT,
-        INCREMENT,
-        DECREMENT
+        NOT
     };
 
     enum ValueType
     {
+		NULL_TYPE,
         INT_TYPE,
         DOUBLE_TYPE,
         BOOL_TYPE,
@@ -45,13 +45,13 @@ namespace zyd2001::NewBie
     };
     
 #if defined(_MSC_VER)
-using String = std::basic_string<uint32_t>;
-#define U(str) reinterpret_cast<const uint32_t*>(U##str)
 using char_t = uint32_t;
+using string_t = std::basic_string<char_t>;
+#define U(str) reinterpret_cast<const char_t*>(U##str)
 #elif defined(__GNUC__)
 #define U(str) U##str
-using String = std::u32string;
 using char_t = char32_t;
+using string_t = std::basic_string<char_t>;
 #endif
 
     struct Value 
@@ -63,12 +63,14 @@ using char_t = char32_t;
 		template<typename T>
 		T &get() const { return *static_cast<T*>(content); }
 
+		Value();
+		Value(Value&&);
 		Value(ValueType, void*);
 		Value(const Value&);
 		Value(const int&);
 		Value(const double&);
 		Value(const bool&);
-		Value(const String&);
+		Value(const string_t&);
 		Value(const char_t*);
 		~Value();
 		void swap(Value &);
@@ -77,6 +79,7 @@ using char_t = char32_t;
 		Value operator*(const Value&) const;
 		Value operator/(const Value&) const;
 		Value &operator=(const Value&);
+		Value &operator=(Value&&);
 		bool operator==(const Value&) const;
 		bool operator!=(const Value&) const;
 		bool operator>(const Value&) const;
@@ -91,8 +94,11 @@ using char_t = char32_t;
 	std::ostream &operator<<(std::ostream&, Value&);
 	Value change(const Value&, ValueType);
 
+	using Identifier = std::string;
+
 	enum ExpressionType
 	{
+		NULL_EXPRESSION,
 		LITERAL_EXPRESSION,
 		IDENTIFIER_EXPRESSION,
 		BINARY_EXPRESSION,
@@ -102,49 +108,53 @@ using char_t = char32_t;
 		INDEX_EXPRESSION
 	};
 
-	struct Expression;
+    struct Expression
+    {
+		ExpressionType type;
+		void *content;
+		Expression();
+		Expression(ExpressionType, void*);
+		Expression(Expression &&);
+		Expression &operator=(Expression&&);
+		~Expression();
+    };
+
 
 	struct BinaryExpression
 	{
 		BinaryType type;
-		std::shared_ptr<Expression> lexp;
-		std::shared_ptr<Expression> rexp;
+		Expression &lexp;
+		Expression &rexp;
 	};
 
 	struct UnaryExpression
 	{
 		UnaryType type;
-		std::shared_ptr<Expression> exp;
+		Expression &exp;
 	};
 
 	struct FunctionCallExpression
 	{
-		std::string identifier;
+		Identifier &identifier;
 		std::vector<Expression> alist;
 	};
 
 	struct IndexExpression
 	{
-		std::shared_ptr<Expression> exp;
-		std::shared_ptr<Expression> index;
+		Expression &exp;
+		Expression &index;
 	};
 
-	typedef std::vector<Expression> ArrayExpression;
-	typedef std::string IdentifierExpression;
-	typedef Value LiteralExpression;
-
-    struct Expression
-    {
-		ExpressionType type;
-		void *content;
-		Expression(ExpressionType, void*);
-		~Expression();
-    };
+	using ArrayExpression = std::vector<Expression>;
+	using IdentifierExpression = std::string;
+	using LiteralExpression = Value;
 
 	enum StatementType
 	{
-		NULL_RESULT,
+		NULL_STATEMENT,
 		EXPRESSION_STATEMENT,
+		ASSIGNMENT_STATEMENT,
+		DECLARATION_STATEMENT,
 		FUNCTION_DEFINITION_STATEMENT,
 		CLASS_DEFINITION_STATEMENT,
 		BLOCK_STATEMENT,
@@ -163,12 +173,71 @@ using char_t = char32_t;
 	{
 		StatementType type;
 		void *content;
+		Statement();
 		Statement(StatementType, void*);
+		Statement(Statement &&);
+		Statement &operator=(Statement&&);
 		~Statement();
 	};
 
 	using StatementsList = std::vector<Statement>;
-	using VariablesList = std::vector<std::unordered_map<std::string, Value>>;
+
+	struct DeclarationStatementItem
+	{
+		Identifier &identifier;
+		Expression &initial_value;
+	};
+
+	struct DeclarationStatement
+	{
+		ValueType type;
+		std::vector<DeclarationStatementItem> items;
+	};
+
+	struct AssignmentStatement
+	{
+		Identifier &identifier;
+		Expression &value;
+	};
+
+	struct IfStatement
+	{
+		Expression &condition;
+		Statement &stat;
+		std::vector<IfStatement> elseif;
+		Statement &else_stat;
+	};
+
+	struct ForStatement
+	{
+		Expression &exp1;
+		Expression &exp2;
+		Expression &exp3;
+		Statement &stat;
+	};
+
+	struct ForeachStatement
+	{
+		Identifier &identifier;
+		Expression &exp;
+		Statement &stat;
+	};
+
+	using ExpressionStatement = Expression;
+	using BlockStatement = StatementsList;
+	using ReturnStatement = Expression;
+
+	struct Parameter
+	{
+		ValueType type;
+		Identifier &identifier;
+		Expression &default_value;
+	};
+	using ParametersList = std::vector<Parameter>;
+
+	using ArgumentsList = std::vector<Expression>;
+
+	using VariablesList = std::stack<std::unordered_map<std::string, Value>>;
 
 #define YY_DECL zyd2001::NewBie::Parser::symbol_type yyFlexLexer::yylex(zyd2001::NewBie::Interpreter::InterpreterImp &inter)
 //YY_DECL;
@@ -182,12 +251,11 @@ using char_t = char32_t;
         bool interprete();
 		bool setFile(const std::string &name);
 		int parse();
-        std::shared_ptr<Value> statement_result;
     private:
         std::unique_ptr<std::ifstream> file;
 		std::string filename;
         StatementsList statements_list;
-        VariablesList variables_list;
+        VariablesList vstack;
         std::vector<std::unique_ptr<void *>> handle_list;
     };
 }

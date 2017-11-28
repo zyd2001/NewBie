@@ -6,6 +6,18 @@ using namespace std;
 
 #define delete_cast(...) delete static_cast<__VA_ARGS__>(content)
 
+Expression::Expression() : type(NULL_EXPRESSION), content(nullptr) {}
+Expression::Expression(Expression &&e) : type(e.type), content(e.content)
+{
+	e.type = NULL_EXPRESSION;
+}
+Expression &Expression::operator=(Expression &&e)
+{
+	type = e.type;
+	content = e.content;
+	e.type = NULL_EXPRESSION;
+	return *this;
+}
 Expression::Expression(ExpressionType t, void *ptr) : type(t), content(ptr) {}
 Expression::~Expression()
 {
@@ -37,30 +49,46 @@ Expression::~Expression()
 	}
 }
 
+Statement::Statement() : type(NULL_STATEMENT), content(nullptr) {}
+Statement::Statement(Statement &&s) : type(s.type), content(s.content)
+{
+	s.type = NULL_STATEMENT;
+}
+Statement &Statement::operator=(Statement &&s)
+{
+	type = s.type;
+	content = s.content;
+	s.type = NULL_STATEMENT;
+	return *this;
+}
 Statement::Statement(StatementType t, void *ptr) : type(t), content(ptr) {}
 Statement::~Statement()
 {
 	switch (type)
 	{
-		case zyd2001::NewBie::NULL_RESULT:
-			break;
 		case zyd2001::NewBie::EXPRESSION_STATEMENT:
+			delete_cast(Expression*);
 			break;
 		case zyd2001::NewBie::FUNCTION_DEFINITION_STATEMENT:
 			break;
 		case zyd2001::NewBie::CLASS_DEFINITION_STATEMENT:
 			break;
 		case zyd2001::NewBie::BLOCK_STATEMENT:
+			delete_cast(StatementsList*);
 			break;
 		case zyd2001::NewBie::IF_STATEMENT:
+			delete_cast(IfStatement*);
 			break;
 		case zyd2001::NewBie::ELSE_STATEMENT:
 			break;
 		case zyd2001::NewBie::FOR_STATEMENT:
+			delete_cast(ForStatement*);
 			break;
 		case zyd2001::NewBie::FOREACH_STATEMENT:
+			delete_cast(ForeachStatement*);
 			break;
 		case zyd2001::NewBie::RETURN_STATEMENT:
+			delete_cast(ReturnStatement*);
 			break;
 		case zyd2001::NewBie::CONTINUE_STATEMENT:
 			break;

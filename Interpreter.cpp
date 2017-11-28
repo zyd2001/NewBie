@@ -8,16 +8,14 @@
 using namespace zyd2001::NewBie;
 using namespace std;
 
-#define I Interpreter::InterpreterImp
-
 Interpreter::Interpreter() : imp(new InterpreterImp()) {}
 Interpreter::Interpreter(const std::string &name) : imp(new InterpreterImp(name)) {}
 bool Interpreter::interprete() { return imp->interprete(); }
 bool Interpreter::setFile(const std::string &name) { return imp->setFile(name); }
 
-I::InterpreterImp() {}
-I::InterpreterImp(const std::string &name) : file(new ifstream(name)), filename(name) {}
-bool I::setFile(const std::string &name)
+Interpreter::InterpreterImp::InterpreterImp() {}
+Interpreter::InterpreterImp::InterpreterImp(const std::string &name) : file(new ifstream(name)), filename(name) {}
+bool Interpreter::InterpreterImp::setFile(const std::string &name)
 {
 	filename = name;
 	unique_ptr<ifstream> f(new ifstream(name));
@@ -31,12 +29,12 @@ bool I::setFile(const std::string &name)
 	return true;
 }
 
-bool I::interprete()
+bool Interpreter::InterpreterImp::interprete()
 {
 	return true;
 }
 
-//int I::parse()
+//int Interpreter::InterpreterImp::parse()
 //{
 //	unique_ptr<FlexLexer> lexer;
 //	if (file->is_open())
@@ -53,6 +51,9 @@ int main()
 	Value v2(U("哈哈"));
 	Value v3 = v1 + v2;
 	Value v4 = v3;
+	Value v5;
+	Value *v = new Value(std::move(v1));
+	v5 = Value(1);
 	v4 = v3 * 3;
 	cout << v3 << endl;
 	cout << v1 << endl;
