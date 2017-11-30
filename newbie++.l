@@ -2,14 +2,18 @@
 #include "NewBie_Lang.hpp"
 #include "NewBie.hpp"
 #include "NewBie_Parser.hpp"
+#include <codecvt>
+#include <locale>
 
 # undef yywrap
 # define yywrap() 1
 
+#define YY_DECL zyd2001::NewBie::Parser::symbol_type yylex(yyscan_t yyscanner, Parser::location_type &loc)
+YY_DECL;
+
 using namespace std;
 using namespace zyd2001::NewBie;
 string string_buffer, heredoc_tag;
-static location loc;
 #if defined(_MSC_VER)
 wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 #elif defined(__GNUC__)
@@ -17,7 +21,13 @@ wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 #endif
 
 %}
-%option noyywrap c++ yylineno nounistd
+%{
+# define YY_USER_ACTION  loc.columns (yyleng);
+    loc.step();
+%}
+%option noyywrap yylineno nounistd reentrant 
+%option header-file="NewBie_Flex.h"
+%option outfile="NewBie_Flex.cpp"
 %start LINE_COMMENT BLOCK_COMMENT STRING_LITERAL_STATE HEREDOC
 %%
 <INITIAL>"int"          return Parser::make_INT(loc);
@@ -85,7 +95,7 @@ wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 <INITIAL>"false" {       
     return Parser::make_BOOL_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(false)), loc);
 }
-<INITIAL>[ \t] ;
+<INITIAL>[ \t] loc.step();
 <INITIAL>[A-Za-z_][A-Za-z_0-9]* {
     return Parser::make_IDENTIFIER(new string(yytext), loc); 
 }
@@ -102,6 +112,8 @@ wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 <INITIAL>"//" {BEGIN LINE_COMMENT;}
 <INITIAL>"#" {BEGIN LINE_COMMENT;}
 <INITIAL>"<<<"[A-Za-z_]+[\r\n]+ {
+    loc.lines(yyleng);
+    loc.step();
     heredoc_tag = yytext;
     heredoc_tag.erase(heredoc_tag.find('\r'));
     heredoc_tag.erase(heredoc_tag.find('\n'));
@@ -123,14 +135,26 @@ wstring_convert<codecvt_utf8<char_t>, char_t> conv;
     string_buffer += yytext;
 }
 <HEREDOC>\n {
+    loc.lines(yyleng);
+    loc.step();
     string_buffer += yytext;
 }
 <LINE_COMMENT>. ;
-<LINE_COMMENT>\n {BEGIN INITIAL;}
-<BLOCK_COMMENT>\n ;
+<LINE_COMMENT>\n {
+    loc.lines(yyleng);
+    loc.step();
+    BEGIN INITIAL;
+}
+<BLOCK_COMMENT>\n {
+    loc.lines(yyleng);
+    loc.step();    
+}
 <BLOCK_COMMENT>. ;
 <BLOCK_COMMENT>"*/" {BEGIN INITIAL;}
-<STRING_LITERAL_STATE>\n ;
+<STRING_LITERAL_STATE>\n {
+    loc.lines(yyleng);
+    loc.step();
+}
 <STRING_LITERAL_STATE>\\n {
     string_buffer += '\n';
 }

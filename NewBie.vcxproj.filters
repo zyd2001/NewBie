@@ -21,7 +21,10 @@
     <ClInclude Include="NewBie_Lang.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FlexLexer.h">
+    <ClInclude Include="NewBie_Parser.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NewBie_Scanner.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -35,12 +38,15 @@
     <ClCompile Include="Base.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NewBie_Parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NewBie_Scanner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="newbie.yy">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="newbie.ll">
+    <None Include="test">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

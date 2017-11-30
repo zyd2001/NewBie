@@ -40,6 +40,7 @@ namespace zyd2001::NewBie
         DOUBLE_TYPE,
         BOOL_TYPE,
         STRING_TYPE,
+		VARIOUS_TYPE,
         ARRAY_TYPE,
         OBJECT_TYPE
     };
@@ -115,6 +116,11 @@ using string_t = std::basic_string<char_t>;
 		Expression();
 		Expression(ExpressionType, void*);
 		Expression(Expression &&);
+		Expression(const Expression &);
+
+		template<typename T>
+		T &get() const { return *static_cast<T*>(content); }
+
 		Expression &operator=(Expression&&);
 		~Expression();
     };
@@ -155,11 +161,8 @@ using string_t = std::basic_string<char_t>;
 		EXPRESSION_STATEMENT,
 		ASSIGNMENT_STATEMENT,
 		DECLARATION_STATEMENT,
-		FUNCTION_DEFINITION_STATEMENT,
-		CLASS_DEFINITION_STATEMENT,
 		BLOCK_STATEMENT,
 		IF_STATEMENT,
-		ELSE_STATEMENT,
 		FOR_STATEMENT,
 		FOREACH_STATEMENT,
 		RETURN_STATEMENT,
@@ -176,7 +179,12 @@ using string_t = std::basic_string<char_t>;
 		Statement();
 		Statement(StatementType, void*);
 		Statement(Statement &&);
+		Statement(const Statement &);
 		Statement &operator=(Statement&&);
+
+		template<typename T>
+		T &get() const { return *static_cast<T*>(content); }
+
 		~Statement();
 	};
 
@@ -185,13 +193,14 @@ using string_t = std::basic_string<char_t>;
 	struct DeclarationStatementItem
 	{
 		Identifier &identifier;
-		Expression &initial_value;
+		Expression initial_value;
 	};
+	using DeclarationStatementItemList = std::vector<DeclarationStatementItem>;
 
 	struct DeclarationStatement
 	{
 		ValueType type;
-		std::vector<DeclarationStatementItem> items;
+		DeclarationStatementItemList items;
 	};
 
 	struct AssignmentStatement
@@ -200,12 +209,18 @@ using string_t = std::basic_string<char_t>;
 		Expression &value;
 	};
 
+	struct ElseIf
+	{
+		Expression &condition;
+		Statement &stat;
+	};
+
 	struct IfStatement
 	{
 		Expression &condition;
 		Statement &stat;
-		std::vector<IfStatement> elseif;
-		Statement &else_stat;
+		std::vector<ElseIf> elseif;
+		Statement else_stat;
 	};
 
 	struct ForStatement
@@ -231,7 +246,7 @@ using string_t = std::basic_string<char_t>;
 	{
 		ValueType type;
 		Identifier &identifier;
-		Expression &default_value;
+		Expression &default_value; //only Value
 	};
 	using ParametersList = std::vector<Parameter>;
 
@@ -239,10 +254,7 @@ using string_t = std::basic_string<char_t>;
 
 	using VariablesList = std::stack<std::unordered_map<std::string, Value>>;
 
-#define YY_DECL zyd2001::NewBie::Parser::symbol_type yyFlexLexer::yylex(zyd2001::NewBie::Interpreter::InterpreterImp &inter)
-//YY_DECL;
-
-    class Interpreter::InterpreterImp
+    class InterpreterImp
     {
     public:
         InterpreterImp();
@@ -251,12 +263,14 @@ using string_t = std::basic_string<char_t>;
         bool interprete();
 		bool setFile(const std::string &name);
 		int parse();
-    private:
+
         std::unique_ptr<std::ifstream> file;
 		std::string filename;
         StatementsList statements_list;
         VariablesList vstack;
         std::vector<std::unique_ptr<void *>> handle_list;
+		Scanner scanner;
+		Parser parser;
     };
 }
 

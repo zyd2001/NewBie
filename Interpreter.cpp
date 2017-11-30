@@ -1,5 +1,6 @@
 #include "NewBie_Lang.hpp"
 #include "NewBie.hpp"
+#include "NewBie_Parser.hpp"
 #include <FlexLexer.h>
 
 #include <iostream>
@@ -13,9 +14,9 @@ Interpreter::Interpreter(const std::string &name) : imp(new InterpreterImp(name)
 bool Interpreter::interprete() { return imp->interprete(); }
 bool Interpreter::setFile(const std::string &name) { return imp->setFile(name); }
 
-Interpreter::InterpreterImp::InterpreterImp() {}
-Interpreter::InterpreterImp::InterpreterImp(const std::string &name) : file(new ifstream(name)), filename(name) {}
-bool Interpreter::InterpreterImp::setFile(const std::string &name)
+InterpreterImp::InterpreterImp() {}
+InterpreterImp::InterpreterImp(const std::string &name) : file(new ifstream(name)), filename(name) {}
+bool InterpreterImp::setFile(const std::string &name)
 {
 	filename = name;
 	unique_ptr<ifstream> f(new ifstream(name));
@@ -29,33 +30,23 @@ bool Interpreter::InterpreterImp::setFile(const std::string &name)
 	return true;
 }
 
-bool Interpreter::InterpreterImp::interprete()
+bool InterpreterImp::interprete()
 {
 	return true;
 }
 
-//int Interpreter::InterpreterImp::parse()
-//{
-//	unique_ptr<FlexLexer> lexer;
-//	if (file->is_open())
-//		lexer = make_unique<yyFlexLexer>(file.get(), cout);
-//	else
-//		lexer = make_unique<yyFlexLexer>();
-//	Parser parser(*this);
-//	return parser.parse();
-//}
+int InterpreterImp::parse()
+{
+	unique_ptr<yyFlexLexer> lexer;
+	if (file->is_open())
+		lexer = make_unique<yyFlexLexer>(file.get(), cout);
+	else
+		lexer = make_unique<yyFlexLexer>();
+	Parser parser(*this, lexer.get());
+	return parser.parse();
+}
 
 int main()
 {
-	Value v1(233);
-	Value v2(U("哈哈"));
-	Value v3 = v1 + v2;
-	Value v4 = v3;
-	Value v5;
-	Value *v = new Value(std::move(v1));
-	v5 = Value(1);
-	v4 = v3 * 3;
-	cout << v3 << endl;
-	cout << v1 << endl;
-	cout << boolalpha << (v1 == v2) << endl;
+	Interpreter inter("test");
 }

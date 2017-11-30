@@ -1,6 +1,6 @@
 %skeleton "lalr1.cc"
 %require "3.0.4"
-%defines "NewBie_Parser.hpp"
+%defines
 %define parser_class_name {Parser}
 
 %code requires
@@ -13,6 +13,7 @@
 {
     using namespace std;
     using namespace zyd2001::NewBie;
+    IfStatement *current_if;
 }
 
 %define api.namespace {zyd2001::NewBie}
@@ -21,8 +22,9 @@
 %define api.token.prefix {TOKEN_}
 %define parse.trace
 %define parse.error verbose
-%printer { yyoutput << $$ << " " << yylino << endl; } <*>;
-%param {zyd2001::NewBie::Interpreter::InterpreterImp &inter}
+%printer { yyoutput << $$ << " " << inter.scanner.lineno() << endl; } <*>;
+%parse-param {zyd2001::NewBie::InterpreterImp &inter}
+%lex-param {zyd2001::NewBie::Parser::location_type &loc}
 %locations
 %initial-action
 {
@@ -40,72 +42,99 @@
         LP RP LC RC LB RB SEMICOLON COMMA ASSIGN EXCLAMATION DOT
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
         INCREMENT DECREMENT PUBLIC PROTECTED PRIVATE REVERSE
-%type<zyd2001::NewBie::Expression> expression function_call_expression primary_expression expression_optional binary_expression unary_expression possible_array_expression
-                    index_expression parameter_list_item
-%type<zyd2001::NewBie::Statement> statement block function_definition_statement
+%type<zyd2001::NewBie::Expression> expression function_call_expression primary_expression expression_optional binary_expression unary_expression
+%type<zyd2001::NewBie::Statement> statement block
 %type<zyd2001::NewBie::StatementsList> statements_list
 %type<zyd2001::NewBie::ArgumentsList> arguments_list
 %type<zyd2001::NewBie::ParametersList> parameters_list
 %type<zyd2001::NewBie::ExpressionsList> expressions_list
 %type<zyd2001::NewBie::ValueType> type_tag
-%type<zyd2001::NewBie::Parameter> parameters_list_item
+%type<zyd2001::NewBie::Parameter> parameter
+%type<zyd2001::NewBie::DeclarationStatementItem> declaration_item
+%type<zyd2001::NewBie::DeclarationStatementItemList> declaration_item_list
 %%
     statements_list: statement
         {
-            $$ = nb_create_statement_list($1);
+            $$.push_back($1);
         }
         | statements_list statement
         {
-            $$ = nb_cat_statement_list($1, $2);
+            $1.push_back($2);
+            $$.swap($1);
         }
         ;
     statement: expression SEMICOLON
         {
-            $$ = Statement(EXPRESSION_STATEMENT, new Expression(std::move($1)));
+            $$ = Statement(EXPRESSION_STATEMENT, new ExpressionStatement(std::move($1)));
+        }
+        | IDENTIFIER ASSIGN expression
+        {
+            $$ = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){$1, $3});
+        }
+        | type_tag declaration_item_list
+        {
+            $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){$1, $2});
         }
         | IF LP expression RP statement
         {
-            $$ = nb_create_if_statement($3, $5);
+            current_if = new (IfStatement){$3, $5};
+            $$ = Statement(IF_STATEMENT, current_if);
         }
         | ELSE statement
         {
-            $$ = nb_cat_else_statement($2);
+            current_if->else_stat = std::move($2);
+            $$ = Statement();
         }
         | ELSEIF LP expression RP statement
         {
-            $$ = nb_cat_elseif_statement($3, $5);
-        }
-        | FOR LP IDENTIFIER IN possible_array_expression RP statement
-        {
-            $$ = nb_create_foreach_statement($3, $5, $7, 0);
-        }
-        | FOR LP IDENTIFIER IN REVERSE possible_array_expression RP statement
-        {
-            $$ = nb_create_foreach_statement($3, $6, $8, 1);
+            current_if->elseif.push_back({$3, $5});
+            $$ = Statement();
         }
         | FOR LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional RP statement
         {
-            $$ = nb_create_for_statement($3, $5, $7, $9);
+            $$ = Statement(FOR_STATEMENT, new (ForStatement){$3, $5, $7, $9});
         }
         | RETURN expression SEMICOLON
         {
-            $$ = nb_create_return_statement($2);
+            $$ = Statement(RETURN_STATEMENT, new ReturnStatement($2));
         }
         | CONTINUE SEMICOLON
         {
-            $$ = nb_create_continue_statement();
+            $$ = Statement(CONTINUE_STATEMENT, nullptr);
         }
         | BREAK SEMICOLON
         {
-            $$ = nb_create_break_statement();
+            $$ = Statement(BREAK_STATEMENT, nullptr);
+        }
+        | type_tag IDENTIFIER LP parameters_list RP block
+        {
+            $$ = Statement();
         }
         | block
-        | function_definition_statement
+        ;
+    declaration_item: IDENTIFIER 
+        {
+            $$ = {$1};
+        }
+        | IDENTIFIER ASSIGN expression
+        {
+            $$ = {$1, $3};
+        }
+        ;
+    declaration_item_list: declaration_item
+        {
+            $$.push_back($1);
+        }
+        | declaration_item_list declaration_item
+        {
+            $1.push_back($2);
+            $$.swap($1);
+        }
         ;
     expression: binary_expression
         | unary_expression
         | primary_expression
-        | index_expression
+        | function_call_expression
         | IDENTIFIER
         {
             $$ = Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression($1));
@@ -123,69 +152,69 @@
         ;
     binary_expression: expression ADD expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({ADD, $1, $3}));
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){ADD, $1, $3});
         }
         | expression SUB expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({SUB, $1, $3}));         
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){SUB, $1, $3});         
         }
         | expression MUL expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({MUL, $1, $3}));
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){MUL, $1, $3});
         }
         | expression DIV expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({DIV, $1, $3}));
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){DIV, $1, $3});
         }
         | expression MOD expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({MOD, $1, $3}));
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){MOD, $1, $3});
         }
         | expression EQ expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({EQ, $1, $3}));
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){EQ, $1, $3});
         }
         | expression NE expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({NE, $1, $3}));
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){NE, $1, $3});
         }
         | expression GT expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({GT, $1, $3}));
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){GT, $1, $3});
         }
         | expression GE expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({GE, $1, $3}));
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){GE, $1, $3});
         }
         | expression LT expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({LT, $1, $3}));
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){LT, $1, $3});
         }
         | expression LE expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({LE, $1, $3}));
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){LE, $1, $3});
         }
         | expression LOGICAL_AND expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({AND, $1, $3}));
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){AND, $1, $3});
         }
         | expression LOGICAL_OR expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new BinaryExpression({OR, $1, $3}));
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){OR, $1, $3});
         }
         ;
     unary_expression: SUB expression %prec UMINUS
         {
-            $$ = Expression(UNARY_EXPRESSION, new UnaryExpression({MINUS, $2}));
+            $$ = Expression(UNARY_EXPRESSION, new (UnaryExpression){MINUS, $2});
         }
         | EXCLAMATION expression %prec UMINUS
         {
-            $$ = Expression(UNARY_EXPRESSION, new UnaryExpression({NOT, $2}));
+            $$ = Expression(UNARY_EXPRESSION, new (UnaryExpression){NOT, $2});
         }
         ;
     function_call_expression: IDENTIFIER LP arguments_list RP
         {
-            $$ = Expression(FUNCTION_CALL_EXPRESSION, new FunctionCallExpression({$1, $3}));
+            $$ = Expression(FUNCTION_CALL_EXPRESSION, new (FunctionCallExpression){$1, $3});
         }
         ;
     primary_expression: INT_LITERAL
@@ -201,11 +230,6 @@
         {
             $1.push_back($3);
             $$.swap($1);
-        }
-        ;
-    function_definition_statement: type_tag IDENTIFIER LP parameters_list RP block
-        {
-            $$ = nb_create_function_definition_statement($1, $2, $4, $6);
         }
         ;
     type_tag: INT
@@ -235,11 +259,11 @@
         ;
     block: LC statements_list RC
         {
-            $$ = nb_create_block_statement($2);
+            $$ = Statement(BLOCK_STATEMENT, new BlockStatement($2));
         }
         | LC RC
         {
-            $$ = nb_create_block_statement(NULL);
+            $$ = Statement(BLOCK_STATEMENT, new BlockStatement());
         }
         ;
     arguments_list: /* empty */
@@ -256,7 +280,7 @@
             $$.swap($1);
         }
         ;
-    parameter_list_item: type_tag IDENTIFIER primary_expression
+    parameter: type_tag IDENTIFIER primary_expression
         {
             $$ = {$1, $2, $3};
         }
@@ -265,13 +289,13 @@
         {
             $$;
         }
-        | parameter_list_item
+        | parameter
         {
             $$.push_back($1);
         }
-        | parameters_list COMMA parameter_list_item
+        | parameters_list COMMA parameter
         {
-            $1.push_back($1);
+            $1.push_back($3);
             $$.swap($1);
         }
         ;

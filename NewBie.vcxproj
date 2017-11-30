@@ -119,18 +119,20 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="FlexLexer.h" />
     <ClInclude Include="NewBie.hpp" />
     <ClInclude Include="NewBie_Lang.hpp" />
+    <ClInclude Include="NewBie_Parser.hpp" />
+    <ClInclude Include="NewBie_Scanner.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Base.cpp" />
+    <ClCompile Include="NewBie_Parser.cpp" />
+    <ClCompile Include="NewBie_Scanner.cpp" />
     <ClCompile Include="Value.cpp" />
     <ClCompile Include="Interpreter.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="newbie.ll" />
-    <None Include="newbie.yy" />
+    <None Include="test" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

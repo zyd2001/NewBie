@@ -5,6 +5,7 @@
 
 namespace zyd2001::NewBie
 {
+	class InterpreterImp;
     class Interpreter
     {
     public:
@@ -14,7 +15,6 @@ namespace zyd2001::NewBie
         bool interprete();
         bool setFile(const std::string &name);
     private:
-        class InterpreterImp;
         std::unique_ptr<InterpreterImp> imp;
     };
 }
