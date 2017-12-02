@@ -8,6 +8,15 @@
 #include <stack>
 #include <iostream>
 
+/*For flex and bison*/
+typedef void* yyscan_t;
+void yyrestart(FILE *input_file, yyscan_t yyscanner);
+int yylex_init(yyscan_t* scanner);
+int yylex_destroy(yyscan_t yyscanner);
+void yyset_in(FILE * _in_str, yyscan_t yyscanner);
+int yyget_lineno(yyscan_t yyscanner);
+int yyget_column(yyscan_t yyscanner);
+
 namespace zyd2001::NewBie
 {
     enum BinaryType
@@ -192,7 +201,7 @@ using string_t = std::basic_string<char_t>;
 
 	struct DeclarationStatementItem
 	{
-		Identifier &identifier;
+		Identifier identifier;
 		Expression initial_value;
 	};
 	using DeclarationStatementItemList = std::vector<DeclarationStatementItem>;
@@ -245,9 +254,10 @@ using string_t = std::basic_string<char_t>;
 	struct Parameter
 	{
 		ValueType type;
-		Identifier &identifier;
-		Expression &default_value; //only Value
+		Identifier identifier;
+		Expression default_value; //only Value
 	};
+
 	using ParametersList = std::vector<Parameter>;
 
 	using ArgumentsList = std::vector<Expression>;
@@ -259,18 +269,15 @@ using string_t = std::basic_string<char_t>;
     public:
         InterpreterImp();
         InterpreterImp(const std::string &name);
-        ~InterpreterImp();
+		~InterpreterImp() = default;
         bool interprete();
 		bool setFile(const std::string &name);
 		int parse();
 
-        std::unique_ptr<std::ifstream> file;
 		std::string filename;
         StatementsList statements_list;
         VariablesList vstack;
         std::vector<std::unique_ptr<void *>> handle_list;
-		Scanner scanner;
-		Parser parser;
     };
 }
 

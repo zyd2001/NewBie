@@ -50,7 +50,7 @@
 #  endif
 # endif
 
-#line 19 "newbie++.y" // location.cc:296
+#line 20 "newbie++.y" // location.cc:296
 namespace zyd2001 { namespace NewBie {
 #line 56 "position.hh" // location.cc:296
   /// Abstract a position.
@@ -174,7 +174,7 @@ namespace zyd2001 { namespace NewBie {
     return ostr << pos.line << '.' << pos.column;
   }
 
-#line 19 "newbie++.y" // location.cc:296
+#line 20 "newbie++.y" // location.cc:296
 } } // zyd2001::NewBie
 #line 180 "position.hh" // location.cc:296
 #endif // !YY_YY_POSITION_HH_INCLUDED

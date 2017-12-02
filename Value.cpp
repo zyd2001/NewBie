@@ -12,9 +12,9 @@ using namespace std;
 #define replace(...) do {delete_cast(__VA_ARGS__); content = ptr;} while(0)
 
 #if defined(_MSC_VER)
-wstring_convert<codecvt_utf8<char_t>, char_t> conv;
+static wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 #elif defined(__GNUC__)
-wstring_convert<codecvt_utf8<char_t>, char_t> conv;
+static wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 #endif
 
 Value::Value() : type(NULL_TYPE), content(nullptr) {}

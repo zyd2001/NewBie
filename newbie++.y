@@ -14,6 +14,7 @@
     using namespace std;
     using namespace zyd2001::NewBie;
     IfStatement *current_if;
+    zyd2001::NewBie::Parser::symbol_type yylex(yyscan_t yyscanner);
 }
 
 %define api.namespace {zyd2001::NewBie}
@@ -22,9 +23,8 @@
 %define api.token.prefix {TOKEN_}
 %define parse.trace
 %define parse.error verbose
-%printer { yyoutput << $$ << " " << inter.scanner.lineno() << endl; } <*>;
 %parse-param {zyd2001::NewBie::InterpreterImp &inter}
-%lex-param {zyd2001::NewBie::Parser::location_type &loc}
+%param {yyscan_t scanner}
 %locations
 %initial-action
 {
@@ -38,7 +38,8 @@
 %nonassoc UMINUS
 %token <zyd2001::NewBie::Expression> INT_LITERAL STRING_LITERAL DOUBLE_LITERAL BOOL_LITERAL
 %token <std::string>     IDENTIFIER
-%token INT DOUBLE BOOL STRING ARRAY VAR IF ELSE ELSEIF FOR IN CLASS RETURN BREAK CONTINUE
+%token END  0  "end of file"
+        INT DOUBLE BOOL STRING ARRAY VAR IF ELSE ELSEIF FOR IN CLASS RETURN BREAK CONTINUE
         LP RP LC RC LB RB SEMICOLON COMMA ASSIGN EXCLAMATION DOT
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
         INCREMENT DECREMENT PUBLIC PROTECTED PRIVATE REVERSE
@@ -300,3 +301,8 @@
         }
         ;
 %%
+
+void Parser::error(const location_type& l, const std::string& m)
+{
+	std::cerr << l << " " << m << endl;
+}

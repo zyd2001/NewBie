@@ -1,34 +1,33 @@
 %{
 #include "NewBie_Lang.hpp"
 #include "NewBie.hpp"
-#include "NewBie_Parser.hpp"
+#include "Parser.hpp"
+#include "location.hh"
 #include <codecvt>
 #include <locale>
-
-# undef yywrap
-# define yywrap() 1
-
-#define YY_DECL zyd2001::NewBie::Parser::symbol_type yylex(yyscan_t yyscanner, Parser::location_type &loc)
-YY_DECL;
 
 using namespace std;
 using namespace zyd2001::NewBie;
 string string_buffer, heredoc_tag;
 #if defined(_MSC_VER)
-wstring_convert<codecvt_utf8<char_t>, char_t> conv;
+static wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 #elif defined(__GNUC__)
-wstring_convert<codecvt_utf8<char_t>, char_t> conv;
+static wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 #endif
+static zyd2001::NewBie::location loc;
+
+#define YY_DECL Parser::symbol_type yylex(yyscan_t yyscanner)
 
 %}
+
 %{
-# define YY_USER_ACTION  loc.columns (yyleng);
-    loc.step();
+# define YY_USER_ACTION loc.step(); loc.columns (yyleng);
 %}
-%option noyywrap yylineno nounistd reentrant 
-%option header-file="NewBie_Flex.h"
-%option outfile="NewBie_Flex.cpp"
+
+%option noyywrap yylineno reentrant nounistd batch never-interactive
+%option outfile="Scanner.cpp"
 %start LINE_COMMENT BLOCK_COMMENT STRING_LITERAL_STATE HEREDOC
+
 %%
 <INITIAL>"int"          return Parser::make_INT(loc);
 <INITIAL>"double"       return Parser::make_DOUBLE(loc);
@@ -37,8 +36,6 @@ wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 <INITIAL>"array"        return Parser::make_ARRAY(loc);
 <INITIAL>"string"       return Parser::make_STRING(loc);
 <INITIAL>"var"          return Parser::make_VAR(loc);
-<INITIAL>"function"     return Parser::make_FUNC(loc);
-<INITIAL>"func"         return Parser::make_FUNC(loc);
 <INITIAL>"if"           return Parser::make_IF(loc);
 <INITIAL>"else"         return Parser::make_ELSE(loc);
 <INITIAL>"elseif"       return Parser::make_ELSEIF(loc);
@@ -97,7 +94,7 @@ wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 }
 <INITIAL>[ \t] loc.step();
 <INITIAL>[A-Za-z_][A-Za-z_0-9]* {
-    return Parser::make_IDENTIFIER(new string(yytext), loc); 
+    return Parser::make_IDENTIFIER(Identifier(yytext), loc); 
 }
 <INITIAL>[1-9][0-9]*|"0" {
     return Parser::make_INT_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(stoi(yytext))), loc);
@@ -177,4 +174,5 @@ wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 <STRING_LITERAL_STATE>. {
     string_buffer += yytext;
 }
+<<EOF>> return Parser::make_END(loc);
 %%

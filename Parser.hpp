@@ -31,21 +31,21 @@
 // version 2.2 of Bison.
 
 /**
- ** \file NewBie_Parser.hpp
+ ** \file Parser.hpp
  ** Define the zyd2001::NewBie::parser class.
  */
 
 // C++ LALR(1) parser skeleton written by Akim Demaille.
 
-#ifndef YY_YY_NEWBIE_PARSER_HPP_INCLUDED
-# define YY_YY_NEWBIE_PARSER_HPP_INCLUDED
+#ifndef YY_YY_PARSER_HPP_INCLUDED
+# define YY_YY_PARSER_HPP_INCLUDED
 // //                    "%code requires" blocks.
 #line 7 "newbie++.y" // lalr1.cc:377
 
 #include "NewBie_Lang.hpp"
 #include "NewBie.hpp"
 
-#line 49 "NewBie_Parser.hpp" // lalr1.cc:377
+#line 49 "Parser.hpp" // lalr1.cc:377
 
 
 # include <cstdlib> // std::abort
@@ -120,9 +120,9 @@
 # define YYDEBUG 1
 #endif
 
-#line 19 "newbie++.y" // lalr1.cc:377
+#line 20 "newbie++.y" // lalr1.cc:377
 namespace zyd2001 { namespace NewBie {
-#line 126 "NewBie_Parser.hpp" // lalr1.cc:377
+#line 126 "Parser.hpp" // lalr1.cc:377
 
 
 
@@ -330,6 +330,7 @@ namespace zyd2001 { namespace NewBie {
     {
       enum yytokentype
       {
+        TOKEN_END = 0,
         TOKEN_LOGICAL_AND = 258,
         TOKEN_LOGICAL_OR = 259,
         TOKEN_EQ = 260,
@@ -510,6 +511,10 @@ namespace zyd2001 { namespace NewBie {
     typedef basic_symbol<by_type> symbol_type;
 
     // Symbol constructors declarations.
+    static inline
+    symbol_type
+    make_END (const location_type& l);
+
     static inline
     symbol_type
     make_LOGICAL_AND (const location_type& l);
@@ -736,7 +741,7 @@ namespace zyd2001 { namespace NewBie {
 
 
     /// Build a parser object.
-    Parser (zyd2001::NewBie::InterpreterImp &inter_yyarg);
+    Parser (zyd2001::NewBie::InterpreterImp &inter_yyarg, yyscan_t scanner_yyarg);
     virtual ~Parser ();
 
     /// Parse.
@@ -950,6 +955,7 @@ namespace zyd2001 { namespace NewBie {
 
     // User arguments.
     zyd2001::NewBie::InterpreterImp &inter;
+    yyscan_t scanner;
   };
 
   // Symbol number corresponding to token number t.
@@ -1444,6 +1450,12 @@ namespace zyd2001 { namespace NewBie {
   }
   // Implementation of make_symbol for each symbol type.
   Parser::symbol_type
+  Parser::make_END (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_END, l);
+  }
+
+  Parser::symbol_type
   Parser::make_LOGICAL_AND (const location_type& l)
   {
     return symbol_type (token::TOKEN_LOGICAL_AND, l);
@@ -1780,11 +1792,11 @@ namespace zyd2001 { namespace NewBie {
   }
 
 
-#line 19 "newbie++.y" // lalr1.cc:377
+#line 20 "newbie++.y" // lalr1.cc:377
 } } // zyd2001::NewBie
-#line 1786 "NewBie_Parser.hpp" // lalr1.cc:377
+#line 1798 "Parser.hpp" // lalr1.cc:377
 
 
 
 
-#endif // !YY_YY_NEWBIE_PARSER_HPP_INCLUDED
+#endif // !YY_YY_PARSER_HPP_INCLUDED
