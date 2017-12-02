@@ -14,10 +14,21 @@ Expression::Expression(Expression &&e) : type(e.type), content(e.content)
 }
 Expression &Expression::operator=(Expression &&e)
 {
-	type = e.type;
-	content = e.content;
-	e.type = NULL_EXPRESSION;
+	this->swap(e);
 	return *this;
+}
+Expression &Expression::operator=(const Expression &e)
+{
+	if (this == &e)
+		return *this;
+	Expression temp(e);
+	this->swap(temp);
+	return *this;
+}
+void zyd2001::NewBie::Expression::swap(Expression &e)
+{
+	std::swap(type, e.type);
+	std::swap(content, e.content);
 }
 Expression::Expression(const Expression &e) : type(e.type)
 {
@@ -163,10 +174,21 @@ Statement::Statement(const Statement &s) : type(s.type)
 }
 Statement &Statement::operator=(Statement &&s)
 {
-	type = s.type;
-	content = s.content;
-	s.type = NULL_STATEMENT;
+	this->swap(s);
 	return *this;
+}
+Statement & zyd2001::NewBie::Statement::operator=(const Statement &s)
+{
+	if (this == &s)
+		return *this;
+	Statement temp(s);
+	this->swap(temp);
+	return *this;
+}
+void zyd2001::NewBie::Statement::swap(Statement &s)
+{
+	std::swap(type, s.type);
+	std::swap(content, s.content);
 }
 Statement::Statement(StatementType t, void *ptr) : type(t), content(ptr) {}
 Statement::~Statement()
@@ -175,6 +197,12 @@ Statement::~Statement()
 	{
 		case zyd2001::NewBie::EXPRESSION_STATEMENT:
 			delete_cast(Expression*);
+			break;
+		case zyd2001::NewBie::DECLARATION_STATEMENT:
+			delete_cast(DeclarationStatement*);
+			break;
+		case zyd2001::NewBie::ASSIGNMENT_STATEMENT:
+			delete_cast(AssignmentStatement*);
 			break;
 		case zyd2001::NewBie::BLOCK_STATEMENT:
 			delete_cast(StatementsList*);

@@ -46,5 +46,11 @@
     <None Include="test">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="newbie++.y">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="newbie++.l">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

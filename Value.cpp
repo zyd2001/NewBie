@@ -92,14 +92,10 @@ Value::~Value()
 	}
 }
 
-void zyd2001::NewBie::Value::swap(Value &other)
+void Value::swap(Value &other)
 {
-	ValueType type_t = type;
-	type = other.type;
-	other.type = type_t;
-	void *ptr_t = content;
-	content = other.content;
-	other.content = ptr_t;
+	std::swap(type, other.type);
+	std::swap(content, other.content);
 }
 
 Value Value::operator+(const Value &v) const
@@ -198,9 +194,7 @@ Value &zyd2001::NewBie::Value::operator=(const Value &v)
 
 Value &zyd2001::NewBie::Value::operator=(Value &&v)
 {
-	type = v.type;
-	content = v.content;
-	v.type = NULL_TYPE;
+	this->swap(v);
 	return *this;
 }
 

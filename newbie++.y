@@ -1,6 +1,7 @@
 %skeleton "lalr1.cc"
 %require "3.0.4"
-%defines
+%defines "Parser.hpp"
+%output "Parser.cpp"
 %define parser_class_name {Parser}
 
 %code requires
@@ -14,7 +15,7 @@
     using namespace std;
     using namespace zyd2001::NewBie;
     IfStatement *current_if;
-    zyd2001::NewBie::Parser::symbol_type yylex(yyscan_t yyscanner);
+	Parser::symbol_type yylex(yyscan_t yyscanner);
 }
 
 %define api.namespace {zyd2001::NewBie}
@@ -54,6 +55,11 @@
 %type<zyd2001::NewBie::DeclarationStatementItem> declaration_item
 %type<zyd2001::NewBie::DeclarationStatementItemList> declaration_item_list
 %%
+    eof: statements_list END
+		{
+			inter.statements_list = std::move($1);
+		}
+		;
     statements_list: statement
         {
             $$.push_back($1);
@@ -68,11 +74,11 @@
         {
             $$ = Statement(EXPRESSION_STATEMENT, new ExpressionStatement(std::move($1)));
         }
-        | IDENTIFIER ASSIGN expression
+        | IDENTIFIER ASSIGN expression SEMICOLON
         {
             $$ = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){$1, $3});
         }
-        | type_tag declaration_item_list
+        | type_tag declaration_item_list SEMICOLON
         {
             $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){$1, $2});
         }
@@ -126,9 +132,9 @@
         {
             $$.push_back($1);
         }
-        | declaration_item_list declaration_item
+        | declaration_item_list COMMA declaration_item
         {
-            $1.push_back($2);
+            $1.push_back($3);
             $$.swap($1);
         }
         ;

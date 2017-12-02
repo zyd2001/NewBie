@@ -24,7 +24,7 @@ static zyd2001::NewBie::location loc;
 # define YY_USER_ACTION loc.step(); loc.columns (yyleng);
 %}
 
-%option noyywrap yylineno reentrant nounistd batch never-interactive
+%option noyywrap yylineno reentrant nounistd never-interactive
 %option outfile="Scanner.cpp"
 %start LINE_COMMENT BLOCK_COMMENT STRING_LITERAL_STATE HEREDOC
 
@@ -108,6 +108,7 @@ static zyd2001::NewBie::location loc;
 <INITIAL>"/*" {BEGIN BLOCK_COMMENT;}
 <INITIAL>"//" {BEGIN LINE_COMMENT;}
 <INITIAL>"#" {BEGIN LINE_COMMENT;}
+<INITIAL>\n {loc.lines(yyleng); loc.step();}
 <INITIAL>"<<<"[A-Za-z_]+[\r\n]+ {
     loc.lines(yyleng);
     loc.step();

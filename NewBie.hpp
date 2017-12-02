@@ -126,11 +126,13 @@ using string_t = std::basic_string<char_t>;
 		Expression(ExpressionType, void*);
 		Expression(Expression &&);
 		Expression(const Expression &);
+		Expression &operator=(Expression&&);
+		Expression &operator=(const Expression&);
+		void swap(Expression &);
 
 		template<typename T>
 		T &get() const { return *static_cast<T*>(content); }
 
-		Expression &operator=(Expression&&);
 		~Expression();
     };
 
@@ -190,6 +192,8 @@ using string_t = std::basic_string<char_t>;
 		Statement(Statement &&);
 		Statement(const Statement &);
 		Statement &operator=(Statement&&);
+		Statement &operator=(const Statement &);
+		void swap(Statement &);
 
 		template<typename T>
 		T &get() const { return *static_cast<T*>(content); }

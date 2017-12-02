@@ -40,7 +40,7 @@
 #ifndef YY_YY_PARSER_HPP_INCLUDED
 # define YY_YY_PARSER_HPP_INCLUDED
 // //                    "%code requires" blocks.
-#line 7 "newbie++.y" // lalr1.cc:377
+#line 8 "newbie++.y" // lalr1.cc:377
 
 #include "NewBie_Lang.hpp"
 #include "NewBie.hpp"
@@ -120,7 +120,7 @@
 # define YYDEBUG 1
 #endif
 
-#line 20 "newbie++.y" // lalr1.cc:377
+#line 21 "newbie++.y" // lalr1.cc:377
 namespace zyd2001 { namespace NewBie {
 #line 126 "Parser.hpp" // lalr1.cc:377
 
@@ -944,9 +944,9 @@ namespace zyd2001 { namespace NewBie {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 322,     ///< Last index in yytable_.
-      yynnts_ = 16,  ///< Number of nonterminal symbols.
-      yyfinal_ = 47, ///< Termination state number.
+      yylast_ = 374,     ///< Last index in yytable_.
+      yynnts_ = 17,  ///< Number of nonterminal symbols.
+      yyfinal_ = 48, ///< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
       yyntokens_ = 59  ///< Number of tokens.
@@ -1037,15 +1037,15 @@ namespace zyd2001 { namespace NewBie {
         value.copy< std::string > (other.value);
         break;
 
-      case 72: // arguments_list
+      case 73: // arguments_list
         value.copy< zyd2001::NewBie::ArgumentsList > (other.value);
         break;
 
-      case 62: // declaration_item
+      case 63: // declaration_item
         value.copy< zyd2001::NewBie::DeclarationStatementItem > (other.value);
         break;
 
-      case 63: // declaration_item_list
+      case 64: // declaration_item_list
         value.copy< zyd2001::NewBie::DeclarationStatementItemList > (other.value);
         break;
 
@@ -1053,33 +1053,33 @@ namespace zyd2001 { namespace NewBie {
       case 18: // STRING_LITERAL
       case 19: // DOUBLE_LITERAL
       case 20: // BOOL_LITERAL
-      case 64: // expression
-      case 65: // expression_optional
-      case 66: // binary_expression
-      case 67: // unary_expression
-      case 68: // function_call_expression
-      case 69: // primary_expression
+      case 65: // expression
+      case 66: // expression_optional
+      case 67: // binary_expression
+      case 68: // unary_expression
+      case 69: // function_call_expression
+      case 70: // primary_expression
         value.copy< zyd2001::NewBie::Expression > (other.value);
         break;
 
-      case 73: // parameter
+      case 74: // parameter
         value.copy< zyd2001::NewBie::Parameter > (other.value);
         break;
 
-      case 74: // parameters_list
+      case 75: // parameters_list
         value.copy< zyd2001::NewBie::ParametersList > (other.value);
         break;
 
-      case 61: // statement
-      case 71: // block
+      case 62: // statement
+      case 72: // block
         value.copy< zyd2001::NewBie::Statement > (other.value);
         break;
 
-      case 60: // statements_list
+      case 61: // statements_list
         value.copy< zyd2001::NewBie::StatementsList > (other.value);
         break;
 
-      case 70: // type_tag
+      case 71: // type_tag
         value.copy< zyd2001::NewBie::ValueType > (other.value);
         break;
 
@@ -1104,15 +1104,15 @@ namespace zyd2001 { namespace NewBie {
         value.copy< std::string > (v);
         break;
 
-      case 72: // arguments_list
+      case 73: // arguments_list
         value.copy< zyd2001::NewBie::ArgumentsList > (v);
         break;
 
-      case 62: // declaration_item
+      case 63: // declaration_item
         value.copy< zyd2001::NewBie::DeclarationStatementItem > (v);
         break;
 
-      case 63: // declaration_item_list
+      case 64: // declaration_item_list
         value.copy< zyd2001::NewBie::DeclarationStatementItemList > (v);
         break;
 
@@ -1120,33 +1120,33 @@ namespace zyd2001 { namespace NewBie {
       case 18: // STRING_LITERAL
       case 19: // DOUBLE_LITERAL
       case 20: // BOOL_LITERAL
-      case 64: // expression
-      case 65: // expression_optional
-      case 66: // binary_expression
-      case 67: // unary_expression
-      case 68: // function_call_expression
-      case 69: // primary_expression
+      case 65: // expression
+      case 66: // expression_optional
+      case 67: // binary_expression
+      case 68: // unary_expression
+      case 69: // function_call_expression
+      case 70: // primary_expression
         value.copy< zyd2001::NewBie::Expression > (v);
         break;
 
-      case 73: // parameter
+      case 74: // parameter
         value.copy< zyd2001::NewBie::Parameter > (v);
         break;
 
-      case 74: // parameters_list
+      case 75: // parameters_list
         value.copy< zyd2001::NewBie::ParametersList > (v);
         break;
 
-      case 61: // statement
-      case 71: // block
+      case 62: // statement
+      case 72: // block
         value.copy< zyd2001::NewBie::Statement > (v);
         break;
 
-      case 60: // statements_list
+      case 61: // statements_list
         value.copy< zyd2001::NewBie::StatementsList > (v);
         break;
 
-      case 70: // type_tag
+      case 71: // type_tag
         value.copy< zyd2001::NewBie::ValueType > (v);
         break;
 
@@ -1265,15 +1265,15 @@ namespace zyd2001 { namespace NewBie {
         value.template destroy< std::string > ();
         break;
 
-      case 72: // arguments_list
+      case 73: // arguments_list
         value.template destroy< zyd2001::NewBie::ArgumentsList > ();
         break;
 
-      case 62: // declaration_item
+      case 63: // declaration_item
         value.template destroy< zyd2001::NewBie::DeclarationStatementItem > ();
         break;
 
-      case 63: // declaration_item_list
+      case 64: // declaration_item_list
         value.template destroy< zyd2001::NewBie::DeclarationStatementItemList > ();
         break;
 
@@ -1281,33 +1281,33 @@ namespace zyd2001 { namespace NewBie {
       case 18: // STRING_LITERAL
       case 19: // DOUBLE_LITERAL
       case 20: // BOOL_LITERAL
-      case 64: // expression
-      case 65: // expression_optional
-      case 66: // binary_expression
-      case 67: // unary_expression
-      case 68: // function_call_expression
-      case 69: // primary_expression
+      case 65: // expression
+      case 66: // expression_optional
+      case 67: // binary_expression
+      case 68: // unary_expression
+      case 69: // function_call_expression
+      case 70: // primary_expression
         value.template destroy< zyd2001::NewBie::Expression > ();
         break;
 
-      case 73: // parameter
+      case 74: // parameter
         value.template destroy< zyd2001::NewBie::Parameter > ();
         break;
 
-      case 74: // parameters_list
+      case 75: // parameters_list
         value.template destroy< zyd2001::NewBie::ParametersList > ();
         break;
 
-      case 61: // statement
-      case 71: // block
+      case 62: // statement
+      case 72: // block
         value.template destroy< zyd2001::NewBie::Statement > ();
         break;
 
-      case 60: // statements_list
+      case 61: // statements_list
         value.template destroy< zyd2001::NewBie::StatementsList > ();
         break;
 
-      case 70: // type_tag
+      case 71: // type_tag
         value.template destroy< zyd2001::NewBie::ValueType > ();
         break;
 
@@ -1338,15 +1338,15 @@ namespace zyd2001 { namespace NewBie {
         value.move< std::string > (s.value);
         break;
 
-      case 72: // arguments_list
+      case 73: // arguments_list
         value.move< zyd2001::NewBie::ArgumentsList > (s.value);
         break;
 
-      case 62: // declaration_item
+      case 63: // declaration_item
         value.move< zyd2001::NewBie::DeclarationStatementItem > (s.value);
         break;
 
-      case 63: // declaration_item_list
+      case 64: // declaration_item_list
         value.move< zyd2001::NewBie::DeclarationStatementItemList > (s.value);
         break;
 
@@ -1354,33 +1354,33 @@ namespace zyd2001 { namespace NewBie {
       case 18: // STRING_LITERAL
       case 19: // DOUBLE_LITERAL
       case 20: // BOOL_LITERAL
-      case 64: // expression
-      case 65: // expression_optional
-      case 66: // binary_expression
-      case 67: // unary_expression
-      case 68: // function_call_expression
-      case 69: // primary_expression
+      case 65: // expression
+      case 66: // expression_optional
+      case 67: // binary_expression
+      case 68: // unary_expression
+      case 69: // function_call_expression
+      case 70: // primary_expression
         value.move< zyd2001::NewBie::Expression > (s.value);
         break;
 
-      case 73: // parameter
+      case 74: // parameter
         value.move< zyd2001::NewBie::Parameter > (s.value);
         break;
 
-      case 74: // parameters_list
+      case 75: // parameters_list
         value.move< zyd2001::NewBie::ParametersList > (s.value);
         break;
 
-      case 61: // statement
-      case 71: // block
+      case 62: // statement
+      case 72: // block
         value.move< zyd2001::NewBie::Statement > (s.value);
         break;
 
-      case 60: // statements_list
+      case 61: // statements_list
         value.move< zyd2001::NewBie::StatementsList > (s.value);
         break;
 
-      case 70: // type_tag
+      case 71: // type_tag
         value.move< zyd2001::NewBie::ValueType > (s.value);
         break;
 
@@ -1792,7 +1792,7 @@ namespace zyd2001 { namespace NewBie {
   }
 
 
-#line 20 "newbie++.y" // lalr1.cc:377
+#line 21 "newbie++.y" // lalr1.cc:377
 } } // zyd2001::NewBie
 #line 1798 "Parser.hpp" // lalr1.cc:377
 
