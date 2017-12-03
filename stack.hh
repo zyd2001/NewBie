@@ -40,9 +40,9 @@
 
 # include <vector>
 
-#line 21 "newbie++.y" // stack.hh:132
+
 namespace zyd2001 { namespace NewBie {
-#line 46 "stack.hh" // stack.hh:132
+
   template <class T, class S = std::vector<T> >
   class stack
   {
@@ -150,8 +150,8 @@ namespace zyd2001 { namespace NewBie {
     unsigned int range_;
   };
 
-#line 21 "newbie++.y" // stack.hh:132
+
 } } // zyd2001::NewBie
-#line 156 "stack.hh" // stack.hh:132
+
 
 #endif // !YY_YY_STACK_HH_INCLUDED

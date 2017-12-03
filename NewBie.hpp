@@ -140,26 +140,26 @@ using string_t = std::basic_string<char_t>;
 	struct BinaryExpression
 	{
 		BinaryType type;
-		Expression &lexp;
-		Expression &rexp;
+		Expression lexp;
+		Expression rexp;
 	};
 
 	struct UnaryExpression
 	{
 		UnaryType type;
-		Expression &exp;
+		Expression exp;
 	};
 
 	struct FunctionCallExpression
 	{
-		Identifier &identifier;
+		Identifier identifier;
 		std::vector<Expression> alist;
 	};
 
 	struct IndexExpression
 	{
-		Expression &exp;
-		Expression &index;
+		Expression exp;
+		Expression index;
 	};
 
 	using ArrayExpression = std::vector<Expression>;
@@ -218,37 +218,37 @@ using string_t = std::basic_string<char_t>;
 
 	struct AssignmentStatement
 	{
-		Identifier &identifier;
-		Expression &value;
+		Identifier identifier;
+		Expression value;
 	};
 
 	struct ElseIf
 	{
-		Expression &condition;
-		Statement &stat;
+		Expression condition;
+		Statement stat;
 	};
 
 	struct IfStatement
 	{
-		Expression &condition;
-		Statement &stat;
+		Expression condition;
+		Statement stat;
 		std::vector<ElseIf> elseif;
 		Statement else_stat;
 	};
 
 	struct ForStatement
 	{
-		Expression &exp1;
-		Expression &exp2;
-		Expression &exp3;
-		Statement &stat;
+		Expression exp1;
+		Expression exp2;
+		Expression exp3;
+		Statement stat;
 	};
 
 	struct ForeachStatement
 	{
-		Identifier &identifier;
-		Expression &exp;
-		Statement &stat;
+		Identifier identifier;
+		Expression exp;
+		Statement stat;
 	};
 
 	using ExpressionStatement = Expression;

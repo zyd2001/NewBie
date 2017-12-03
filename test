@@ -1,2 +1,4 @@
-int a = 0
-//asd;
+if (a == 55)
+{
+	print(a);
+}

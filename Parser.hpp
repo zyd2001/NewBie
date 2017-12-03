@@ -40,12 +40,12 @@
 #ifndef YY_YY_PARSER_HPP_INCLUDED
 # define YY_YY_PARSER_HPP_INCLUDED
 // //                    "%code requires" blocks.
-#line 8 "newbie++.y" // lalr1.cc:377
+
 
 #include "NewBie_Lang.hpp"
 #include "NewBie.hpp"
 
-#line 49 "Parser.hpp" // lalr1.cc:377
+
 
 
 # include <cstdlib> // std::abort
@@ -120,9 +120,9 @@
 # define YYDEBUG 1
 #endif
 
-#line 21 "newbie++.y" // lalr1.cc:377
+
 namespace zyd2001 { namespace NewBie {
-#line 126 "Parser.hpp" // lalr1.cc:377
+
 
 
 
@@ -1792,9 +1792,9 @@ namespace zyd2001 { namespace NewBie {
   }
 
 
-#line 21 "newbie++.y" // lalr1.cc:377
+
 } } // zyd2001::NewBie
-#line 1798 "Parser.hpp" // lalr1.cc:377
+
 
 
 

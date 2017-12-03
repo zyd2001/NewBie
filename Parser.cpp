@@ -33,7 +33,7 @@
 
 // First part of user declarations.
 
-#line 37 "Parser.cpp" // lalr1.cc:404
+
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -47,16 +47,16 @@
 
 // User implementation prologue.
 
-#line 51 "Parser.cpp" // lalr1.cc:412
+
 // Unqualified %code blocks.
-#line 14 "newbie++.y" // lalr1.cc:413
+
 
     using namespace std;
     using namespace zyd2001::NewBie;
     IfStatement *current_if;
 	Parser::symbol_type yylex(yyscan_t yyscanner);
 
-#line 60 "Parser.cpp" // lalr1.cc:413
+
 
 
 #ifndef YY_
@@ -140,9 +140,9 @@
 #define YYERROR         goto yyerrorlab
 #define YYRECOVERING()  (!!yyerrstatus_)
 
-#line 21 "newbie++.y" // lalr1.cc:479
+
 namespace zyd2001 { namespace NewBie {
-#line 146 "Parser.cpp" // lalr1.cc:479
+
 
   /* Return YYSTR after stripping away unnecessary quotes and
      backslashes, so that it's suitable for yyerror.  The heuristic is
@@ -511,12 +511,12 @@ namespace zyd2001 { namespace NewBie {
 
 
     // User initialization code.
-    #line 31 "newbie++.y" // lalr1.cc:741
+    
 {
     yyla.location.begin.filename = yyla.location.end.filename = &inter.filename;
 }
 
-#line 520 "Parser.cpp" // lalr1.cc:741
+
 
     /* Initialize the stack.  The initial state will be set in
        yynewstate, since the latter expects the semantical and the
@@ -674,430 +674,502 @@ namespace zyd2001 { namespace NewBie {
           switch (yyn)
             {
   case 2:
-#line 59 "newbie++.y" // lalr1.cc:859
+
     {
 			inter.statements_list = std::move(yystack_[1].value.as< zyd2001::NewBie::StatementsList > ());
 		}
-#line 682 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 3:
-#line 64 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::StatementsList > ().push_back(yystack_[0].value.as< zyd2001::NewBie::Statement > ());
         }
-#line 690 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 4:
-#line 68 "newbie++.y" // lalr1.cc:859
+
     {
             yystack_[1].value.as< zyd2001::NewBie::StatementsList > ().push_back(yystack_[0].value.as< zyd2001::NewBie::Statement > ());
             yylhs.value.as< zyd2001::NewBie::StatementsList > ().swap(yystack_[1].value.as< zyd2001::NewBie::StatementsList > ());
         }
-#line 699 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 5:
-#line 74 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(EXPRESSION_STATEMENT, new ExpressionStatement(std::move(yystack_[1].value.as< zyd2001::NewBie::Expression > ())));
         }
-#line 707 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 6:
-#line 78 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){yystack_[3].value.as< std::string > (), yystack_[1].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){std::move(yystack_[3].value.as< std::string > ()), std::move(yystack_[1].value.as< zyd2001::NewBie::Expression > ())});
         }
-#line 715 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 7:
-#line 82 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){yystack_[2].value.as< zyd2001::NewBie::ValueType > (), yystack_[1].value.as< zyd2001::NewBie::DeclarationStatementItemList > ()});
+            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){std::move(yystack_[2].value.as< zyd2001::NewBie::ValueType > ()), std::move(yystack_[1].value.as< zyd2001::NewBie::DeclarationStatementItemList > ())});
         }
-#line 723 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 8:
-#line 86 "newbie++.y" // lalr1.cc:859
+
     {
-            current_if = new (IfStatement){yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Statement > ()};
+            current_if = new (IfStatement){std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Statement > ())};
             yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(IF_STATEMENT, current_if);
         }
-#line 732 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 9:
-#line 91 "newbie++.y" // lalr1.cc:859
+
     {
             current_if->else_stat = std::move(yystack_[0].value.as< zyd2001::NewBie::Statement > ());
             yylhs.value.as< zyd2001::NewBie::Statement > () = Statement();
         }
-#line 741 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 10:
-#line 96 "newbie++.y" // lalr1.cc:859
+
     {
-            current_if->elseif.push_back({yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Statement > ()});
+            current_if->elseif.push_back({std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Statement > ())});
             yylhs.value.as< zyd2001::NewBie::Statement > () = Statement();
         }
-#line 750 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 11:
-#line 101 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(FOR_STATEMENT, new (ForStatement){yystack_[6].value.as< zyd2001::NewBie::Expression > (), yystack_[4].value.as< zyd2001::NewBie::Expression > (), yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Statement > ()});
+            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(FOR_STATEMENT, new (ForStatement){std::move(yystack_[6].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[4].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Statement > ())});
         }
-#line 758 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 12:
-#line 105 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(RETURN_STATEMENT, new ReturnStatement(yystack_[1].value.as< zyd2001::NewBie::Expression > ()));
+            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(RETURN_STATEMENT, new ReturnStatement(std::move(yystack_[1].value.as< zyd2001::NewBie::Expression > ())));
         }
-#line 766 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 13:
-#line 109 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(CONTINUE_STATEMENT, nullptr);
         }
-#line 774 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 14:
-#line 113 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(BREAK_STATEMENT, nullptr);
         }
-#line 782 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 15:
-#line 117 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::Statement > () = Statement();
         }
-#line 790 "Parser.cpp" // lalr1.cc:859
+
+    break;
+
+  case 16:
+
+    {
+            yylhs.value.as< zyd2001::NewBie::Statement > () = std::move(yystack_[0].value.as< zyd2001::NewBie::Statement > ());
+        }
+
     break;
 
   case 17:
-#line 123 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::DeclarationStatementItem > () = {yystack_[0].value.as< std::string > ()};
+            yylhs.value.as< zyd2001::NewBie::DeclarationStatementItem > () = {std::move(yystack_[0].value.as< std::string > ())};
         }
-#line 798 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 18:
-#line 127 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::DeclarationStatementItem > () = {yystack_[2].value.as< std::string > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()};
+            yylhs.value.as< zyd2001::NewBie::DeclarationStatementItem > () = {std::move(yystack_[2].value.as< std::string > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())};
         }
-#line 806 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 19:
-#line 132 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::DeclarationStatementItemList > ().push_back(yystack_[0].value.as< zyd2001::NewBie::DeclarationStatementItem > ());
         }
-#line 814 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 20:
-#line 136 "newbie++.y" // lalr1.cc:859
+
     {
             yystack_[2].value.as< zyd2001::NewBie::DeclarationStatementItemList > ().push_back(yystack_[0].value.as< zyd2001::NewBie::DeclarationStatementItem > ());
             yylhs.value.as< zyd2001::NewBie::DeclarationStatementItemList > ().swap(yystack_[2].value.as< zyd2001::NewBie::DeclarationStatementItemList > ());
         }
-#line 823 "Parser.cpp" // lalr1.cc:859
+
+    break;
+
+  case 21:
+
+    {
+            yylhs.value.as< zyd2001::NewBie::Expression > () = std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
+        }
+
+    break;
+
+  case 22:
+
+    {
+            yylhs.value.as< zyd2001::NewBie::Expression > () = std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
+        }
+
+    break;
+
+  case 23:
+
+    {
+            yylhs.value.as< zyd2001::NewBie::Expression > () = std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
+        }
+
+    break;
+
+  case 24:
+
+    {
+            yylhs.value.as< zyd2001::NewBie::Expression > () = std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
+        }
+
     break;
 
   case 25:
-#line 146 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression(yystack_[0].value.as< std::string > ()));
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression(std::move(yystack_[0].value.as< std::string > ())));
         }
-#line 831 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 26:
-#line 150 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::Expression > () = std::move(yystack_[1].value.as< zyd2001::NewBie::Expression > ());
         }
-#line 839 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 27:
-#line 155 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::Expression > () = Expression();
         }
-#line 847 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 29:
-#line 161 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){ADD, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){ADD, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
         }
-#line 855 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 30:
-#line 165 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){SUB, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});         
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){SUB, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
         }
-#line 863 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 31:
-#line 169 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){MUL, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){MUL, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
         }
-#line 871 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 32:
-#line 173 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){DIV, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){DIV, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
         }
-#line 879 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 33:
-#line 177 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){MOD, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){MOD, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
         }
-#line 887 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 34:
-#line 181 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){EQ, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){EQ, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
         }
-#line 895 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 35:
-#line 185 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){NE, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){NE, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
         }
-#line 903 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 36:
-#line 189 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){GT, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){GT, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
         }
-#line 911 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 37:
-#line 193 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){GE, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){GE, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
         }
-#line 919 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 38:
-#line 197 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){LT, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){LT, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
         }
-#line 927 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 39:
-#line 201 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){LE, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){LE, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
         }
-#line 935 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 40:
-#line 205 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){AND, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){AND, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
         }
-#line 943 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 41:
-#line 209 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){OR, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){OR, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
         }
-#line 951 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 42:
-#line 214 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(UNARY_EXPRESSION, new (UnaryExpression){MINUS, yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(UNARY_EXPRESSION, new (UnaryExpression){MINUS, std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
         }
-#line 959 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 43:
-#line 218 "newbie++.y" // lalr1.cc:859
+
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(UNARY_EXPRESSION, new (UnaryExpression){NOT, yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(UNARY_EXPRESSION, new (UnaryExpression){NOT, std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
         }
-#line 967 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 44:
-#line 223 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(FUNCTION_CALL_EXPRESSION, new (FunctionCallExpression){yystack_[3].value.as< std::string > (), yystack_[1].value.as< zyd2001::NewBie::ArgumentsList > ()});
         }
-#line 975 "Parser.cpp" // lalr1.cc:859
+
+    break;
+
+  case 45:
+
+    {
+            yylhs.value.as< zyd2001::NewBie::Expression > () = std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
+        }
+
+    break;
+
+  case 46:
+
+    {
+            yylhs.value.as< zyd2001::NewBie::Expression > () = std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
+        }
+
+    break;
+
+  case 47:
+
+    {
+            yylhs.value.as< zyd2001::NewBie::Expression > () = std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
+        }
+
+    break;
+
+  case 48:
+
+    {
+            yylhs.value.as< zyd2001::NewBie::Expression > () = std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
+        }
+
     break;
 
   case 49:
-#line 243 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::ValueType > () = INT_TYPE;
         }
-#line 983 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 50:
-#line 247 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::ValueType > () = DOUBLE_TYPE;
         }
-#line 991 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 51:
-#line 251 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::ValueType > () = BOOL_TYPE;
         }
-#line 999 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 52:
-#line 255 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::ValueType > () = STRING_TYPE;
         }
-#line 1007 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 53:
-#line 259 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::ValueType > () = ARRAY_TYPE;
         }
-#line 1015 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 54:
-#line 263 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::ValueType > () = VARIOUS_TYPE;
         }
-#line 1023 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 55:
-#line 268 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(BLOCK_STATEMENT, new BlockStatement(yystack_[1].value.as< zyd2001::NewBie::StatementsList > ()));
         }
-#line 1031 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 56:
-#line 272 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(BLOCK_STATEMENT, new BlockStatement());
         }
-#line 1039 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 57:
-#line 277 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::ArgumentsList > ();
         }
-#line 1047 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 58:
-#line 281 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::ArgumentsList > ().push_back(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
         }
-#line 1055 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 59:
-#line 285 "newbie++.y" // lalr1.cc:859
+
     {
             yystack_[2].value.as< zyd2001::NewBie::ArgumentsList > ().push_back(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
             yylhs.value.as< zyd2001::NewBie::ArgumentsList > ().swap(yystack_[2].value.as< zyd2001::NewBie::ArgumentsList > ());
         }
-#line 1064 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 60:
-#line 291 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::Parameter > () = {yystack_[2].value.as< zyd2001::NewBie::ValueType > (), yystack_[1].value.as< std::string > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()};
         }
-#line 1072 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 61:
-#line 296 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::ParametersList > ();
         }
-#line 1080 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 62:
-#line 300 "newbie++.y" // lalr1.cc:859
+
     {
             yylhs.value.as< zyd2001::NewBie::ParametersList > ().push_back(yystack_[0].value.as< zyd2001::NewBie::Parameter > ());
         }
-#line 1088 "Parser.cpp" // lalr1.cc:859
+
     break;
 
   case 63:
-#line 304 "newbie++.y" // lalr1.cc:859
+
     {
             yystack_[2].value.as< zyd2001::NewBie::ParametersList > ().push_back(yystack_[0].value.as< zyd2001::NewBie::Parameter > ());
             yylhs.value.as< zyd2001::NewBie::ParametersList > ().swap(yystack_[2].value.as< zyd2001::NewBie::ParametersList > ());
         }
-#line 1097 "Parser.cpp" // lalr1.cc:859
+
     break;
 
 
-#line 1101 "Parser.cpp" // lalr1.cc:859
+
             default:
               break;
             }
@@ -1560,13 +1632,13 @@ namespace zyd2001 { namespace NewBie {
   const unsigned short int
   Parser::yyrline_[] =
   {
-       0,    58,    58,    63,    67,    73,    77,    81,    85,    90,
-      95,   100,   104,   108,   112,   116,   120,   122,   126,   131,
-     135,   141,   142,   143,   144,   145,   149,   155,   158,   160,
-     164,   168,   172,   176,   180,   184,   188,   192,   196,   200,
-     204,   208,   213,   217,   222,   227,   228,   229,   230,   242,
-     246,   250,   254,   258,   262,   267,   271,   277,   280,   284,
-     290,   296,   299,   303
+       0,    59,    59,    64,    68,    74,    78,    82,    86,    91,
+      96,   101,   105,   109,   113,   117,   121,   126,   130,   135,
+     139,   145,   149,   153,   157,   161,   165,   171,   174,   176,
+     180,   184,   188,   192,   196,   200,   204,   208,   212,   216,
+     220,   224,   229,   233,   238,   243,   247,   251,   255,   270,
+     274,   278,   282,   286,   290,   295,   299,   305,   308,   312,
+     318,   324,   327,   331
   };
 
   // Print the state stack on the debug stream.
@@ -1599,10 +1671,10 @@ namespace zyd2001 { namespace NewBie {
 #endif // YYDEBUG
 
 
-#line 21 "newbie++.y" // lalr1.cc:1167
+
 } } // zyd2001::NewBie
-#line 1605 "Parser.cpp" // lalr1.cc:1167
-#line 309 "newbie++.y" // lalr1.cc:1168
+
+
 
 
 void Parser::error(const location_type& l, const std::string& m)

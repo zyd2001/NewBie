@@ -40,9 +40,9 @@
 
 # include "position.hh"
 
-#line 21 "newbie++.y" // location.cc:296
+
 namespace zyd2001 { namespace NewBie {
-#line 46 "location.hh" // location.cc:296
+
   /// Abstract a location.
   class location
   {
@@ -186,7 +186,7 @@ namespace zyd2001 { namespace NewBie {
     return ostr;
   }
 
-#line 21 "newbie++.y" // location.cc:296
+
 } } // zyd2001::NewBie
-#line 192 "location.hh" // location.cc:296
+
 #endif // !YY_YY_LOCATION_HH_INCLUDED
