@@ -7,6 +7,7 @@
 #include <utility>
 #include <stack>
 #include <iostream>
+#include <tuple>
 
 /*For flex and bison*/
 typedef void* yyscan_t;
@@ -88,6 +89,7 @@ using string_t = std::basic_string<char_t>;
 		Value operator-(const Value&) const;
 		Value operator*(const Value&) const;
 		Value operator/(const Value&) const;
+		Value operator%(const Value&) const;
 		Value &operator=(const Value&);
 		Value &operator=(Value&&);
 		bool operator==(const Value&) const;
@@ -96,6 +98,8 @@ using string_t = std::basic_string<char_t>;
 		bool operator>=(const Value&) const;
 		bool operator<(const Value&) const;
 		bool operator<=(const Value&) const;
+		bool operator&&(const Value&) const;
+		bool operator||(const Value&) const;
 		bool operator!() const;
 		Value operator-() const;
 		friend std::ostream &operator<<(std::ostream&, Value&);
@@ -104,7 +108,7 @@ using string_t = std::basic_string<char_t>;
 	std::ostream &operator<<(std::ostream&, Value&);
 	Value change(const Value&, ValueType);
 
-	using Identifier = std::string;
+	using Identifier = string_t;
 
 	enum ExpressionType
 	{
@@ -163,7 +167,7 @@ using string_t = std::basic_string<char_t>;
 	};
 
 	using ArrayExpression = std::vector<Expression>;
-	using IdentifierExpression = std::string;
+	using IdentifierExpression = string_t;
 	using LiteralExpression = Value;
 
 	enum StatementType
@@ -266,7 +270,7 @@ using string_t = std::basic_string<char_t>;
 
 	using ArgumentsList = std::vector<Expression>;
 
-	using VariablesList = std::stack<std::unordered_map<std::string, Value>>;
+	using VariablesList = std::stack<std::vector<std::unordered_map<Identifier, Value>>>;
 
     class InterpreterImp
     {
@@ -274,13 +278,17 @@ using string_t = std::basic_string<char_t>;
         InterpreterImp();
         InterpreterImp(const std::string &name);
 		~InterpreterImp() = default;
-        bool interprete();
 		bool setFile(const std::string &name);
 		int parse();
+        bool run();
+		StatementType execute(const Statement &, std::vector<std::unordered_map<Identifier, Value>>&);
+		Value evaluate(const Expression &);
+		int interpret(const StatementsList &);
+		void err();
 
 		std::string filename;
         StatementsList statements_list;
-        VariablesList vstack;
+        VariablesList variables_stack;
         std::vector<std::unique_ptr<void *>> handle_list;
     };
 }

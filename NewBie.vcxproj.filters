@@ -41,6 +41,12 @@
     <ClCompile Include="Scanner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Run.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Evaluate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="test">

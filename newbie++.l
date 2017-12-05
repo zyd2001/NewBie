@@ -94,7 +94,7 @@ static zyd2001::NewBie::location loc;
 }
 <INITIAL>[ \t] loc.step();
 <INITIAL>[A-Za-z_][A-Za-z_0-9]* {
-    return Parser::make_IDENTIFIER(Identifier(yytext), loc); 
+    return Parser::make_IDENTIFIER(Identifier(conv.from_bytes(yytext)), loc); 
 }
 <INITIAL>[1-9][0-9]*|"0" {
     return Parser::make_INT_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(stoi(yytext))), loc);

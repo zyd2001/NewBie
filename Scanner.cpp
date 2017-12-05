@@ -1241,7 +1241,7 @@ case 61:
 YY_RULE_SETUP
 #line 96 "newbie++.l"
 {
-    return Parser::make_IDENTIFIER(Identifier(yytext), loc); 
+    return Parser::make_IDENTIFIER(Identifier(conv.from_bytes(yytext)), loc); 
 }
 	YY_BREAK
 case 62:

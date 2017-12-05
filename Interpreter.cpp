@@ -10,7 +10,7 @@ using namespace std;
 
 Interpreter::Interpreter() : imp(new InterpreterImp()) {}
 Interpreter::Interpreter(const std::string &name) : imp(new InterpreterImp(name)) {}
-bool Interpreter::interprete() { return imp->interprete(); }
+bool Interpreter::run() { return imp->run(); }
 bool Interpreter::setFile(const std::string &name) { return imp->setFile(name); }
 
 int zyd2001::NewBie::Interpreter::parse()
@@ -24,11 +24,6 @@ InterpreterImp::InterpreterImp(const std::string &name) : filename(name) {}
 bool InterpreterImp::setFile(const std::string &name)
 {
 	filename = name;
-	return true;
-}
-
-bool InterpreterImp::interprete()
-{
 	return true;
 }
 
@@ -49,4 +44,9 @@ int main()
 {
 	Interpreter inter("test");
 	inter.parse();
+	vector<int> a = { 1, 2, 3, 4, 5, 6 };
+	auto iter = a.rbegin();
+	iter += 2;
+	auto i = distance(iter, a.rend());
+	auto b = *iter == a[i - 1];
 }

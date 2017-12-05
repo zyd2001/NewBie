@@ -269,17 +269,14 @@ namespace zyd2001 { namespace NewBie {
     /// An auxiliary type to compute the largest semantic type.
     union union_type
     {
-      // IDENTIFIER
-      char dummy1[sizeof(std::string)];
-
       // arguments_list
-      char dummy2[sizeof(zyd2001::NewBie::ArgumentsList)];
+      char dummy1[sizeof(zyd2001::NewBie::ArgumentsList)];
 
       // declaration_item
-      char dummy3[sizeof(zyd2001::NewBie::DeclarationStatementItem)];
+      char dummy2[sizeof(zyd2001::NewBie::DeclarationStatementItem)];
 
       // declaration_item_list
-      char dummy4[sizeof(zyd2001::NewBie::DeclarationStatementItemList)];
+      char dummy3[sizeof(zyd2001::NewBie::DeclarationStatementItemList)];
 
       // INT_LITERAL
       // STRING_LITERAL
@@ -291,7 +288,10 @@ namespace zyd2001 { namespace NewBie {
       // unary_expression
       // function_call_expression
       // primary_expression
-      char dummy5[sizeof(zyd2001::NewBie::Expression)];
+      char dummy4[sizeof(zyd2001::NewBie::Expression)];
+
+      // IDENTIFIER
+      char dummy5[sizeof(zyd2001::NewBie::Identifier)];
 
       // parameter
       char dummy6[sizeof(zyd2001::NewBie::Parameter)];
@@ -424,8 +424,6 @@ namespace zyd2001 { namespace NewBie {
 
   basic_symbol (typename Base::kind_type t, const location_type& l);
 
-  basic_symbol (typename Base::kind_type t, const std::string v, const location_type& l);
-
   basic_symbol (typename Base::kind_type t, const zyd2001::NewBie::ArgumentsList v, const location_type& l);
 
   basic_symbol (typename Base::kind_type t, const zyd2001::NewBie::DeclarationStatementItem v, const location_type& l);
@@ -433,6 +431,8 @@ namespace zyd2001 { namespace NewBie {
   basic_symbol (typename Base::kind_type t, const zyd2001::NewBie::DeclarationStatementItemList v, const location_type& l);
 
   basic_symbol (typename Base::kind_type t, const zyd2001::NewBie::Expression v, const location_type& l);
+
+  basic_symbol (typename Base::kind_type t, const zyd2001::NewBie::Identifier v, const location_type& l);
 
   basic_symbol (typename Base::kind_type t, const zyd2001::NewBie::Parameter v, const location_type& l);
 
@@ -589,7 +589,7 @@ namespace zyd2001 { namespace NewBie {
 
     static inline
     symbol_type
-    make_IDENTIFIER (const std::string& v, const location_type& l);
+    make_IDENTIFIER (const zyd2001::NewBie::Identifier& v, const location_type& l);
 
     static inline
     symbol_type
@@ -1033,10 +1033,6 @@ namespace zyd2001 { namespace NewBie {
   {
       switch (other.type_get ())
     {
-      case 21: // IDENTIFIER
-        value.copy< std::string > (other.value);
-        break;
-
       case 73: // arguments_list
         value.copy< zyd2001::NewBie::ArgumentsList > (other.value);
         break;
@@ -1060,6 +1056,10 @@ namespace zyd2001 { namespace NewBie {
       case 69: // function_call_expression
       case 70: // primary_expression
         value.copy< zyd2001::NewBie::Expression > (other.value);
+        break;
+
+      case 21: // IDENTIFIER
+        value.copy< zyd2001::NewBie::Identifier > (other.value);
         break;
 
       case 74: // parameter
@@ -1100,10 +1100,6 @@ namespace zyd2001 { namespace NewBie {
     (void) v;
       switch (this->type_get ())
     {
-      case 21: // IDENTIFIER
-        value.copy< std::string > (v);
-        break;
-
       case 73: // arguments_list
         value.copy< zyd2001::NewBie::ArgumentsList > (v);
         break;
@@ -1127,6 +1123,10 @@ namespace zyd2001 { namespace NewBie {
       case 69: // function_call_expression
       case 70: // primary_expression
         value.copy< zyd2001::NewBie::Expression > (v);
+        break;
+
+      case 21: // IDENTIFIER
+        value.copy< zyd2001::NewBie::Identifier > (v);
         break;
 
       case 74: // parameter
@@ -1166,13 +1166,6 @@ namespace zyd2001 { namespace NewBie {
   {}
 
   template <typename Base>
-  Parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const std::string v, const location_type& l)
-    : Base (t)
-    , value (v)
-    , location (l)
-  {}
-
-  template <typename Base>
   Parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const zyd2001::NewBie::ArgumentsList v, const location_type& l)
     : Base (t)
     , value (v)
@@ -1195,6 +1188,13 @@ namespace zyd2001 { namespace NewBie {
 
   template <typename Base>
   Parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const zyd2001::NewBie::Expression v, const location_type& l)
+    : Base (t)
+    , value (v)
+    , location (l)
+  {}
+
+  template <typename Base>
+  Parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const zyd2001::NewBie::Identifier v, const location_type& l)
     : Base (t)
     , value (v)
     , location (l)
@@ -1261,10 +1261,6 @@ namespace zyd2001 { namespace NewBie {
     // Type destructor.
     switch (yytype)
     {
-      case 21: // IDENTIFIER
-        value.template destroy< std::string > ();
-        break;
-
       case 73: // arguments_list
         value.template destroy< zyd2001::NewBie::ArgumentsList > ();
         break;
@@ -1288,6 +1284,10 @@ namespace zyd2001 { namespace NewBie {
       case 69: // function_call_expression
       case 70: // primary_expression
         value.template destroy< zyd2001::NewBie::Expression > ();
+        break;
+
+      case 21: // IDENTIFIER
+        value.template destroy< zyd2001::NewBie::Identifier > ();
         break;
 
       case 74: // parameter
@@ -1334,10 +1334,6 @@ namespace zyd2001 { namespace NewBie {
     super_type::move(s);
       switch (this->type_get ())
     {
-      case 21: // IDENTIFIER
-        value.move< std::string > (s.value);
-        break;
-
       case 73: // arguments_list
         value.move< zyd2001::NewBie::ArgumentsList > (s.value);
         break;
@@ -1361,6 +1357,10 @@ namespace zyd2001 { namespace NewBie {
       case 69: // function_call_expression
       case 70: // primary_expression
         value.move< zyd2001::NewBie::Expression > (s.value);
+        break;
+
+      case 21: // IDENTIFIER
+        value.move< zyd2001::NewBie::Identifier > (s.value);
         break;
 
       case 74: // parameter
@@ -1564,7 +1564,7 @@ namespace zyd2001 { namespace NewBie {
   }
 
   Parser::symbol_type
-  Parser::make_IDENTIFIER (const std::string& v, const location_type& l)
+  Parser::make_IDENTIFIER (const zyd2001::NewBie::Identifier& v, const location_type& l)
   {
     return symbol_type (token::TOKEN_IDENTIFIER, v, l);
   }

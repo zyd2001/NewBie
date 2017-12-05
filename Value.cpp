@@ -83,7 +83,7 @@ Value::~Value()
 			delete_cast(string_t*);
 			break;
 		case zyd2001::NewBie::ARRAY_TYPE:
-			delete_cast(unordered_map<std::string, Value>*);
+			delete_cast(unordered_map<Identifier, Value>*);
 			break;
 		case zyd2001::NewBie::OBJECT_TYPE:
 			break;
@@ -183,6 +183,11 @@ Value zyd2001::NewBie::Value::operator/(const Value &v) const
 	}
 }
 
+Value zyd2001::NewBie::Value::operator%(const Value &v) const
+{
+	return Value(INT_TYPE, new int(get<int>() % -v.get<int>()));
+}
+
 Value &zyd2001::NewBie::Value::operator=(const Value &v)
 {
 	if (this == &v)
@@ -245,6 +250,22 @@ bool zyd2001::NewBie::Value::operator<(const Value &v) const
 bool zyd2001::NewBie::Value::operator<=(const Value &v) const
 {
 	compare_value(<=)
+}
+
+bool zyd2001::NewBie::Value::operator&&(const Value &v) const
+{
+	Value first(*this), second(v);
+	first.change_type(BOOL_TYPE);
+	second.change_type(BOOL_TYPE);
+	return first.get<bool>() && second.get<bool>();
+}
+
+bool zyd2001::NewBie::Value::operator||(const Value &v) const
+{
+	Value first(*this), second(v);
+	first.change_type(BOOL_TYPE);
+	second.change_type(BOOL_TYPE);
+	return first.get<bool>() || second.get<bool>();
 }
 
 bool zyd2001::NewBie::Value::operator!() const

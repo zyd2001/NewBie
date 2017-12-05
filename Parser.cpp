@@ -255,10 +255,6 @@ namespace zyd2001 { namespace NewBie {
   {
       switch (that.type_get ())
     {
-      case 21: // IDENTIFIER
-        value.move< std::string > (that.value);
-        break;
-
       case 73: // arguments_list
         value.move< zyd2001::NewBie::ArgumentsList > (that.value);
         break;
@@ -282,6 +278,10 @@ namespace zyd2001 { namespace NewBie {
       case 69: // function_call_expression
       case 70: // primary_expression
         value.move< zyd2001::NewBie::Expression > (that.value);
+        break;
+
+      case 21: // IDENTIFIER
+        value.move< zyd2001::NewBie::Identifier > (that.value);
         break;
 
       case 74: // parameter
@@ -320,10 +320,6 @@ namespace zyd2001 { namespace NewBie {
     state = that.state;
       switch (that.type_get ())
     {
-      case 21: // IDENTIFIER
-        value.copy< std::string > (that.value);
-        break;
-
       case 73: // arguments_list
         value.copy< zyd2001::NewBie::ArgumentsList > (that.value);
         break;
@@ -347,6 +343,10 @@ namespace zyd2001 { namespace NewBie {
       case 69: // function_call_expression
       case 70: // primary_expression
         value.copy< zyd2001::NewBie::Expression > (that.value);
+        break;
+
+      case 21: // IDENTIFIER
+        value.copy< zyd2001::NewBie::Identifier > (that.value);
         break;
 
       case 74: // parameter
@@ -606,10 +606,6 @@ namespace zyd2001 { namespace NewBie {
          when using variants.  */
         switch (yyr1_[yyn])
     {
-      case 21: // IDENTIFIER
-        yylhs.value.build< std::string > ();
-        break;
-
       case 73: // arguments_list
         yylhs.value.build< zyd2001::NewBie::ArgumentsList > ();
         break;
@@ -633,6 +629,10 @@ namespace zyd2001 { namespace NewBie {
       case 69: // function_call_expression
       case 70: // primary_expression
         yylhs.value.build< zyd2001::NewBie::Expression > ();
+        break;
+
+      case 21: // IDENTIFIER
+        yylhs.value.build< zyd2001::NewBie::Identifier > ();
         break;
 
       case 74: // parameter
@@ -709,7 +709,7 @@ namespace zyd2001 { namespace NewBie {
   case 6:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){std::move(yystack_[3].value.as< std::string > ()), std::move(yystack_[1].value.as< zyd2001::NewBie::Expression > ())});
+            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){std::move(yystack_[3].value.as< zyd2001::NewBie::Identifier > ()), std::move(yystack_[1].value.as< zyd2001::NewBie::Expression > ())});
         }
 
     break;
@@ -800,7 +800,7 @@ namespace zyd2001 { namespace NewBie {
   case 17:
 
     {
-            yylhs.value.as< zyd2001::NewBie::DeclarationStatementItem > () = {std::move(yystack_[0].value.as< std::string > ())};
+            yylhs.value.as< zyd2001::NewBie::DeclarationStatementItem > () = {std::move(yystack_[0].value.as< zyd2001::NewBie::Identifier > ())};
         }
 
     break;
@@ -808,7 +808,7 @@ namespace zyd2001 { namespace NewBie {
   case 18:
 
     {
-            yylhs.value.as< zyd2001::NewBie::DeclarationStatementItem > () = {std::move(yystack_[2].value.as< std::string > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())};
+            yylhs.value.as< zyd2001::NewBie::DeclarationStatementItem > () = {std::move(yystack_[2].value.as< zyd2001::NewBie::Identifier > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())};
         }
 
     break;
@@ -865,7 +865,7 @@ namespace zyd2001 { namespace NewBie {
   case 25:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression(std::move(yystack_[0].value.as< std::string > ())));
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression(std::move(yystack_[0].value.as< zyd2001::NewBie::Identifier > ())));
         }
 
     break;
@@ -1009,7 +1009,7 @@ namespace zyd2001 { namespace NewBie {
   case 44:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(FUNCTION_CALL_EXPRESSION, new (FunctionCallExpression){yystack_[3].value.as< std::string > (), yystack_[1].value.as< zyd2001::NewBie::ArgumentsList > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(FUNCTION_CALL_EXPRESSION, new (FunctionCallExpression){yystack_[3].value.as< zyd2001::NewBie::Identifier > (), yystack_[1].value.as< zyd2001::NewBie::ArgumentsList > ()});
         }
 
     break;
@@ -1138,7 +1138,7 @@ namespace zyd2001 { namespace NewBie {
   case 60:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Parameter > () = {yystack_[2].value.as< zyd2001::NewBie::ValueType > (), yystack_[1].value.as< std::string > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()};
+            yylhs.value.as< zyd2001::NewBie::Parameter > () = {yystack_[2].value.as< zyd2001::NewBie::ValueType > (), yystack_[1].value.as< zyd2001::NewBie::Identifier > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()};
         }
 
     break;
