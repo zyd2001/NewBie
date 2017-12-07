@@ -27,6 +27,8 @@ Value::Value(const Value &v) : type(v.type)
 {
 	switch (type)
 	{
+		case VARIOUS_TYPE:
+			various = true;
 		case zyd2001::NewBie::INT_TYPE:
 		{
 			int *ptr = new int(v.get<int>());
@@ -83,7 +85,7 @@ Value::~Value()
 			delete_cast(string_t*);
 			break;
 		case zyd2001::NewBie::ARRAY_TYPE:
-			delete_cast(unordered_map<Identifier, Value>*);
+			delete_cast(map<Identifier, Value>*);
 			break;
 		case zyd2001::NewBie::OBJECT_TYPE:
 			break;
@@ -299,8 +301,10 @@ Value zyd2001::NewBie::change(const Value &v, ValueType t)
 	return val;
 }
 
-void Value::change_type(ValueType t)
+Value &Value::change_type(ValueType t)
 {
+	if (t == VARIOUS_TYPE)
+		this->various = true;
 	switch (type)
 	{
 		case zyd2001::NewBie::INT_TYPE:
@@ -428,6 +432,7 @@ void Value::change_type(ValueType t)
 			break;
 	}
 	type = t;
+	return *this;
 }
 
 ostream &zyd2001::NewBie::operator<<(ostream &out, Value &v)

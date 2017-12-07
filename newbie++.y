@@ -15,7 +15,7 @@
     using namespace std;
     using namespace zyd2001::NewBie;
     IfStatement *current_if;
-	Parser::symbol_type yylex(yyscan_t yyscanner);
+	Parser::symbol_type yylex(zyd2001::NewBie::InterpreterImp &inter, yyscan_t yyscanner);
 }
 
 %no-lines
@@ -25,7 +25,7 @@
 %define api.token.prefix {TOKEN_}
 %define parse.trace
 %define parse.error verbose
-%parse-param {zyd2001::NewBie::InterpreterImp &inter}
+%param {zyd2001::NewBie::InterpreterImp &inter}
 %param {yyscan_t scanner}
 %locations
 %initial-action
@@ -41,7 +41,7 @@
 %token <zyd2001::NewBie::Expression> INT_LITERAL STRING_LITERAL DOUBLE_LITERAL BOOL_LITERAL
 %token <zyd2001::NewBie::Identifier>     IDENTIFIER
 %token END  0  "end of file"
-        INT DOUBLE BOOL STRING ARRAY VAR IF ELSE ELSEIF FOR IN CLASS RETURN BREAK CONTINUE
+        INT DOUBLE BOOL STRING ARRAY VAR GLOBAL IF ELSE ELSEIF FOR IN CLASS RETURN BREAK CONTINUE
         LP RP LC RC LB RB SEMICOLON COMMA ASSIGN EXCLAMATION DOT
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
         INCREMENT DECREMENT PUBLIC PROTECTED PRIVATE REVERSE
@@ -73,20 +73,24 @@
         ;
     statement: expression SEMICOLON
         {
-            $$ = Statement(EXPRESSION_STATEMENT, new ExpressionStatement(std::move($1)));
+            $$ = Statement(EXPRESSION_STATEMENT, new ExpressionStatement(std::move($1)), yyget_lineno(scanner));
         }
         | IDENTIFIER ASSIGN expression SEMICOLON
         {
-            $$ = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){std::move($1), std::move($3)});
+            $$ = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){std::move($1), std::move($3)}, yyget_lineno(scanner));
         }
         | type_tag declaration_item_list SEMICOLON
         {
-            $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){std::move($1), std::move($2)});
+            $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){std::move($1), std::move($2), false}, yyget_lineno(scanner));
+        }
+		| GLOBAL type_tag declaration_item_list SEMICOLON
+        {
+            $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){std::move($2), std::move($3), true}, yyget_lineno(scanner));
         }
         | IF LP expression RP statement
         {
             current_if = new (IfStatement){std::move($3), std::move($5)};
-            $$ = Statement(IF_STATEMENT, current_if);
+            $$ = Statement(IF_STATEMENT, current_if, yyget_lineno(scanner));
         }
         | ELSE statement
         {
@@ -100,19 +104,19 @@
         }
         | FOR LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional RP statement
         {
-            $$ = Statement(FOR_STATEMENT, new (ForStatement){std::move($3), std::move($5), std::move($7), std::move($9)});
+            $$ = Statement(FOR_STATEMENT, new (ForStatement){std::move($3), std::move($5), std::move($7), std::move($9)}, yyget_lineno(scanner));
         }
         | RETURN expression SEMICOLON
         {
-            $$ = Statement(RETURN_STATEMENT, new ReturnStatement(std::move($2)));
+            $$ = Statement(RETURN_STATEMENT, new ReturnStatement(std::move($2)), yyget_lineno(scanner));
         }
         | CONTINUE SEMICOLON
         {
-            $$ = Statement(CONTINUE_STATEMENT, nullptr);
+            $$ = Statement(CONTINUE_STATEMENT, nullptr, yyget_lineno(scanner));
         }
         | BREAK SEMICOLON
         {
-            $$ = Statement(BREAK_STATEMENT, nullptr);
+            $$ = Statement(BREAK_STATEMENT, nullptr, yyget_lineno(scanner));
         }
         | type_tag IDENTIFIER LP parameters_list RP block
         {
@@ -294,11 +298,11 @@
         ;
     block: LC statements_list RC
         {
-            $$ = Statement(BLOCK_STATEMENT, new BlockStatement($2));
+            $$ = Statement(BLOCK_STATEMENT, new BlockStatement($2), yyget_lineno(scanner));
         }
         | LC RC
         {
-            $$ = Statement(BLOCK_STATEMENT, new BlockStatement());
+            $$ = Statement(BLOCK_STATEMENT, new BlockStatement(), yyget_lineno(scanner));
         }
         ;
     arguments_list: /* empty */
@@ -338,5 +342,5 @@
 
 void Parser::error(const location_type& l, const std::string& m)
 {
-	std::cerr << l << " " << m << endl;
+	std::cerr << "At file " << l.begin.filename  << " " << l << " " << m << endl;
 }

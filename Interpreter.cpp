@@ -12,6 +12,7 @@ Interpreter::Interpreter() : imp(new InterpreterImp()) {}
 Interpreter::Interpreter(const std::string &name) : imp(new InterpreterImp(name)) {}
 bool Interpreter::run() { return imp->run(); }
 bool Interpreter::setFile(const std::string &name) { return imp->setFile(name); }
+bool Interpreter::changeSetting(const string &key, int value) { return imp->changeSetting(key, value); };
 
 int zyd2001::NewBie::Interpreter::parse()
 {
@@ -25,6 +26,18 @@ bool InterpreterImp::setFile(const std::string &name)
 {
 	filename = name;
 	return true;
+}
+
+bool InterpreterImp::changeSetting(const std::string &key, int value)
+{
+	auto dest = settings.find(key);
+	if (dest == settings.end())
+		return false;
+	else
+	{
+		dest->second = value;
+		return true;
+	}
 }
 
 int InterpreterImp::parse()
@@ -44,9 +57,4 @@ int main()
 {
 	Interpreter inter("test");
 	inter.parse();
-	vector<int> a = { 1, 2, 3, 4, 5, 6 };
-	auto iter = a.rbegin();
-	iter += 2;
-	auto i = distance(iter, a.rend());
-	auto b = *iter == a[i - 1];
 }

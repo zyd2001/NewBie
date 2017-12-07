@@ -106,11 +106,11 @@ Expression::~Expression()
 }
 
 Statement::Statement() : type(NULL_STATEMENT), content(nullptr) {}
-Statement::Statement(Statement &&s) : type(s.type), content(s.content)
+Statement::Statement(Statement &&s) : type(s.type), content(s.content), lineno(s.lineno)
 {
 	s.type = NULL_STATEMENT;
 }
-Statement::Statement(const Statement &s) : type(s.type)
+Statement::Statement(const Statement &s) : type(s.type), lineno(s.lineno)
 {
 	switch (type)
 	{
@@ -189,8 +189,9 @@ void zyd2001::NewBie::Statement::swap(Statement &s)
 {
 	std::swap(type, s.type);
 	std::swap(content, s.content);
+	std::swap(lineno, s.lineno);
 }
-Statement::Statement(StatementType t, void *ptr) : type(t), content(ptr) {}
+Statement::Statement(StatementType t, void *ptr, int l) : type(t), content(ptr), lineno(l) {}
 Statement::~Statement()
 {
 	switch (type)

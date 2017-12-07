@@ -16,7 +16,7 @@ static wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 #endif
 static zyd2001::NewBie::location loc;
 
-#define YY_DECL Parser::symbol_type yylex(yyscan_t yyscanner)
+#define YY_DECL Parser::symbol_type yylex(zyd2001::NewBie::InterpreterImp &inter, yyscan_t yyscanner)
 
 %}
 
@@ -36,6 +36,7 @@ static zyd2001::NewBie::location loc;
 <INITIAL>"array"        return Parser::make_ARRAY(loc);
 <INITIAL>"string"       return Parser::make_STRING(loc);
 <INITIAL>"var"          return Parser::make_VAR(loc);
+<INITIAL>"global"		return Parser::make_GLOBAL(loc);
 <INITIAL>"if"           return Parser::make_IF(loc);
 <INITIAL>"else"         return Parser::make_ELSE(loc);
 <INITIAL>"elseif"       return Parser::make_ELSEIF(loc);
@@ -51,8 +52,8 @@ static zyd2001::NewBie::location loc;
 <INITIAL>"class"        return Parser::make_CLASS(loc);
 <INITIAL>"("            return Parser::make_LP(loc);
 <INITIAL>")"            return Parser::make_RP(loc);
-<INITIAL>"{"            return Parser::make_LC(loc);
-<INITIAL>"}"            return Parser::make_RC(loc);
+<INITIAL>"{"            {inter.level++; return Parser::make_LC(loc);}
+<INITIAL>"}"            {inter.level--; return Parser::make_RC(loc);}
 <INITIAL>"["            return Parser::make_LB(loc);
 <INITIAL>"]"            return Parser::make_RB(loc);
 <INITIAL>";"            return Parser::make_SEMICOLON(loc);

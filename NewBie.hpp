@@ -8,6 +8,7 @@
 #include <stack>
 #include <iostream>
 #include <tuple>
+#include <map>
 
 /*For flex and bison*/
 typedef void* yyscan_t;
@@ -68,11 +69,12 @@ using string_t = std::basic_string<char_t>;
     struct Value 
     {
         ValueType type;
+		bool various = false;
 		void *content;
-		void change_type(ValueType);
 
 		template<typename T>
 		T &get() const { return *static_cast<T*>(content); }
+		Value &change_type(ValueType);
 
 		Value();
 		Value(Value&&);
@@ -191,8 +193,10 @@ using string_t = std::basic_string<char_t>;
 	{
 		StatementType type;
 		void *content;
+		unsigned long lineno;
+
 		Statement();
-		Statement(StatementType, void*);
+		Statement(StatementType, void*, int);
 		Statement(Statement &&);
 		Statement(const Statement &);
 		Statement &operator=(Statement&&);
@@ -212,12 +216,14 @@ using string_t = std::basic_string<char_t>;
 		Identifier identifier;
 		Expression initial_value;
 	};
+
 	using DeclarationStatementItemList = std::vector<DeclarationStatementItem>;
 
 	struct DeclarationStatement
 	{
 		ValueType type;
 		DeclarationStatementItemList items;
+		bool global;
 	};
 
 	struct AssignmentStatement
@@ -270,7 +276,7 @@ using string_t = std::basic_string<char_t>;
 
 	using ArgumentsList = std::vector<Expression>;
 
-	using VariablesList = std::stack<std::vector<std::unordered_map<Identifier, Value>>>;
+	using VariablesStack = std::stack<std::vector<std::unordered_map<Identifier, Value>>>;
 
     class InterpreterImp
     {
@@ -279,17 +285,28 @@ using string_t = std::basic_string<char_t>;
         InterpreterImp(const std::string &name);
 		~InterpreterImp() = default;
 		bool setFile(const std::string &name);
+		bool changeSetting(const std::string &, int);
+
 		int parse();
+
         bool run();
-		StatementType execute(const Statement &, std::vector<std::unordered_map<Identifier, Value>>&);
+		StatementType execute(const Statement &);
 		Value evaluate(const Expression &);
 		int interpret(const StatementsList &);
 		void err();
+		int checkExist(const Identifier &id, std::vector<std::unordered_map<Identifier, Value>> &v);
 
+		/*parsing time variables*/
+		int level = 0;
 		std::string filename;
+
+		/*runtime variables*/
         StatementsList statements_list;
-        VariablesList variables_stack;
+        VariablesStack variables_stack;
+		Value temp_variable;
+		std::unordered_map<Identifier, Value> *global_variables;
         std::vector<std::unique_ptr<void *>> handle_list;
+		std::unordered_map<std::string, int> settings;
     };
 }
 

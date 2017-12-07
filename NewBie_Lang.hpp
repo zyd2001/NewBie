@@ -15,6 +15,7 @@ namespace zyd2001::NewBie
         bool run();
         bool setFile(const std::string &name);
 		int parse();
+		bool changeSetting(const std::string &, int);
     private:
         std::unique_ptr<InterpreterImp> imp;
     };
