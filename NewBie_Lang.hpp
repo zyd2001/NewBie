@@ -5,17 +5,17 @@
 
 namespace zyd2001::NewBie
 {
-	class InterpreterImp;
+    class InterpreterImp;
     class Interpreter
     {
     public:
         Interpreter();
         Interpreter(const std::string &name);
-		~Interpreter() = default;
+        ~Interpreter() = default;
         bool run();
         bool setFile(const std::string &name);
-		int parse();
-		bool changeSetting(const std::string &, int);
+        int parse();
+        bool changeSetting(const std::string &, int);
     private:
         std::unique_ptr<InterpreterImp> imp;
     };
