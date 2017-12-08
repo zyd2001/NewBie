@@ -20,11 +20,13 @@ wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 Value::Value() : type(NULL_TYPE), content(nullptr) {}
 Value::Value(Value &&v) : type(v.type), various(v.various), content(v.content)
 {
+    //cout << "move ctor" << endl;
     v.type = NULL_TYPE;
 }
 Value::Value(ValueType t, void *c) : type(t), content(c) {}
 Value::Value(const Value &v) : type(v.type), various(v.various)
 {
+    //cout << "copy ctor" << endl;
     switch (type)
     {
         case zyd2001::NewBie::INT_TYPE:
@@ -200,6 +202,7 @@ Value zyd2001::NewBie::Value::operator%(const Value &v) const
 
 Value &zyd2001::NewBie::Value::operator=(const Value &v)
 {
+    //cout << "copy operator" << endl;
     if (this == &v)
         return *this;
     Value temp(v);
@@ -209,6 +212,7 @@ Value &zyd2001::NewBie::Value::operator=(const Value &v)
 
 Value &zyd2001::NewBie::Value::operator=(Value &&v)
 {
+    //cout << "move operator" << endl;
     this->swap(v);
     return *this;
 }

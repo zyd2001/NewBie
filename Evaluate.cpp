@@ -121,10 +121,10 @@ Value InterpreterImp::evaluate(const Expression &e)
                         else
                             err();
                         DeclarationStatementItemList item;
-                        item.emplace_back(std::move(DeclarationStatementItem{ std::move(iter->identifier), std::move(val) }));
+                        item.emplace_back(std::move(DeclarationStatementItem{ std::move(iter->identifier), val }));
                         Statement temp(DECLARATION_STATEMENT, new (DeclarationStatement)\
                             {iter->type, item, false}, -1); //construct a assignment statement to assign parameter
-                        temp_slist.emplace_back(std::move(temp));
+                        temp_slist.emplace_back(temp);
                     }
                     variables_stack.push(vector<VariablesMap>());
                     variables_stack.top().push_back(VariablesMap());

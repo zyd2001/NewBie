@@ -676,7 +676,7 @@ namespace zyd2001 { namespace NewBie {
   case 2:
 
     {
-			inter.statements_list = std::move(yystack_[1].value.as< zyd2001::NewBie::StatementsList > ());
+			inter.statements_list = yystack_[1].value.as< zyd2001::NewBie::StatementsList > ();
 		}
 
     break;
@@ -684,7 +684,7 @@ namespace zyd2001 { namespace NewBie {
   case 3:
 
     {
-            yylhs.value.as< zyd2001::NewBie::StatementsList > ().emplace_back(std::move(yystack_[0].value.as< zyd2001::NewBie::Statement > ()));
+            yylhs.value.as< zyd2001::NewBie::StatementsList > ().emplace_back(yystack_[0].value.as< zyd2001::NewBie::Statement > ());
         }
 
     break;
@@ -692,7 +692,7 @@ namespace zyd2001 { namespace NewBie {
   case 4:
 
     {
-            yystack_[1].value.as< zyd2001::NewBie::StatementsList > ().emplace_back(std::move(yystack_[0].value.as< zyd2001::NewBie::Statement > ()));
+            yystack_[1].value.as< zyd2001::NewBie::StatementsList > ().emplace_back(yystack_[0].value.as< zyd2001::NewBie::Statement > ());
             yylhs.value.as< zyd2001::NewBie::StatementsList > ().swap(yystack_[1].value.as< zyd2001::NewBie::StatementsList > ());
         }
 
@@ -701,7 +701,7 @@ namespace zyd2001 { namespace NewBie {
   case 5:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(EXPRESSION_STATEMENT, new ExpressionStatement(std::move(yystack_[1].value.as< zyd2001::NewBie::Expression > ())), yyget_lineno(scanner));
+            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(EXPRESSION_STATEMENT, new ExpressionStatement(yystack_[1].value.as< zyd2001::NewBie::Expression > ()), yyget_lineno(scanner));
         }
 
     break;
@@ -709,7 +709,7 @@ namespace zyd2001 { namespace NewBie {
   case 6:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){std::move(yystack_[3].value.as< zyd2001::NewBie::Identifier > ()), std::move(yystack_[1].value.as< zyd2001::NewBie::Expression > ())}, yyget_lineno(scanner));
+            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){std::move(yystack_[3].value.as< zyd2001::NewBie::Identifier > ()), yystack_[1].value.as< zyd2001::NewBie::Expression > ()}, yyget_lineno(scanner));
         }
 
     break;
@@ -733,7 +733,7 @@ namespace zyd2001 { namespace NewBie {
   case 9:
 
     {
-            current_if = new (IfStatement){std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Statement > ())};
+            current_if = new (IfStatement){yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Statement > ()};
             yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(IF_STATEMENT, current_if, yyget_lineno(scanner));
         }
 
@@ -742,7 +742,7 @@ namespace zyd2001 { namespace NewBie {
   case 10:
 
     {
-            current_if->else_stat = std::move(yystack_[0].value.as< zyd2001::NewBie::Statement > ());
+            current_if->else_stat = yystack_[0].value.as< zyd2001::NewBie::Statement > ();
             yylhs.value.as< zyd2001::NewBie::Statement > () = Statement();
         }
 
@@ -751,7 +751,8 @@ namespace zyd2001 { namespace NewBie {
   case 11:
 
     {
-            current_if->elseif.push_back({std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Statement > ())});
+            ElseIf e = {yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Statement > ()};
+            current_if->elseif.emplace_back(e);
             yylhs.value.as< zyd2001::NewBie::Statement > () = Statement();
         }
 
@@ -760,7 +761,7 @@ namespace zyd2001 { namespace NewBie {
   case 12:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(FOR_STATEMENT, new (ForStatement){std::move(yystack_[6].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[4].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Statement > ())}, yyget_lineno(scanner));
+            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(FOR_STATEMENT, new (ForStatement){yystack_[6].value.as< zyd2001::NewBie::Expression > (), yystack_[4].value.as< zyd2001::NewBie::Expression > (), yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Statement > ()}, yyget_lineno(scanner));
         }
 
     break;
@@ -768,7 +769,7 @@ namespace zyd2001 { namespace NewBie {
   case 13:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(RETURN_STATEMENT, new ReturnStatement(std::move(yystack_[1].value.as< zyd2001::NewBie::Expression > ())), yyget_lineno(scanner));
+            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(RETURN_STATEMENT, new ReturnStatement(yystack_[1].value.as< zyd2001::NewBie::Expression > ()), yyget_lineno(scanner));
         }
 
     break;
@@ -806,7 +807,7 @@ namespace zyd2001 { namespace NewBie {
   case 17:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Statement > () = std::move(yystack_[0].value.as< zyd2001::NewBie::Statement > ());
+            yylhs.value.as< zyd2001::NewBie::Statement > () = yystack_[0].value.as< zyd2001::NewBie::Statement > ();
         }
 
     break;
@@ -830,7 +831,7 @@ namespace zyd2001 { namespace NewBie {
   case 20:
 
     {
-            yylhs.value.as< zyd2001::NewBie::DeclarationStatementItem > () = {std::move(yystack_[2].value.as< zyd2001::NewBie::Identifier > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())};
+            yylhs.value.as< zyd2001::NewBie::DeclarationStatementItem > () = {std::move(yystack_[2].value.as< zyd2001::NewBie::Identifier > ()), yystack_[0].value.as< zyd2001::NewBie::Expression > ()};
         }
 
     break;
@@ -855,7 +856,7 @@ namespace zyd2001 { namespace NewBie {
   case 23:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
+            yylhs.value.as< zyd2001::NewBie::Expression > () = yystack_[0].value.as< zyd2001::NewBie::Expression > ();
         }
 
     break;
@@ -863,7 +864,7 @@ namespace zyd2001 { namespace NewBie {
   case 24:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
+            yylhs.value.as< zyd2001::NewBie::Expression > () = yystack_[0].value.as< zyd2001::NewBie::Expression > ();
         }
 
     break;
@@ -871,7 +872,7 @@ namespace zyd2001 { namespace NewBie {
   case 25:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
+            yylhs.value.as< zyd2001::NewBie::Expression > () = yystack_[0].value.as< zyd2001::NewBie::Expression > ();
         }
 
     break;
@@ -879,7 +880,7 @@ namespace zyd2001 { namespace NewBie {
   case 26:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
+            yylhs.value.as< zyd2001::NewBie::Expression > () = yystack_[0].value.as< zyd2001::NewBie::Expression > ();
         }
 
     break;
@@ -895,7 +896,7 @@ namespace zyd2001 { namespace NewBie {
   case 28:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = std::move(yystack_[1].value.as< zyd2001::NewBie::Expression > ());
+            yylhs.value.as< zyd2001::NewBie::Expression > () = yystack_[1].value.as< zyd2001::NewBie::Expression > ();
         }
 
     break;
@@ -911,7 +912,7 @@ namespace zyd2001 { namespace NewBie {
   case 31:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){ADD, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){ADD, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -919,7 +920,7 @@ namespace zyd2001 { namespace NewBie {
   case 32:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){SUB, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){SUB, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -927,7 +928,7 @@ namespace zyd2001 { namespace NewBie {
   case 33:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){MUL, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){MUL, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -935,7 +936,7 @@ namespace zyd2001 { namespace NewBie {
   case 34:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){DIV, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){DIV, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -943,7 +944,7 @@ namespace zyd2001 { namespace NewBie {
   case 35:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){MOD, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){MOD, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -951,7 +952,7 @@ namespace zyd2001 { namespace NewBie {
   case 36:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){EQ, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){EQ, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -959,7 +960,7 @@ namespace zyd2001 { namespace NewBie {
   case 37:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){NE, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){NE, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -967,7 +968,7 @@ namespace zyd2001 { namespace NewBie {
   case 38:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){GT, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){GT, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -975,7 +976,7 @@ namespace zyd2001 { namespace NewBie {
   case 39:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){GE, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){GE, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -983,7 +984,7 @@ namespace zyd2001 { namespace NewBie {
   case 40:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){LT, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){LT, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -991,7 +992,7 @@ namespace zyd2001 { namespace NewBie {
   case 41:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){LE, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){LE, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -999,7 +1000,7 @@ namespace zyd2001 { namespace NewBie {
   case 42:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){AND, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){AND, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -1007,7 +1008,7 @@ namespace zyd2001 { namespace NewBie {
   case 43:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){OR, std::move(yystack_[2].value.as< zyd2001::NewBie::Expression > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){OR, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -1015,7 +1016,7 @@ namespace zyd2001 { namespace NewBie {
   case 44:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(UNARY_EXPRESSION, new (UnaryExpression){MINUS, std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(UNARY_EXPRESSION, new (UnaryExpression){MINUS, yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -1023,7 +1024,7 @@ namespace zyd2001 { namespace NewBie {
   case 45:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(UNARY_EXPRESSION, new (UnaryExpression){NOT, std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ())});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(UNARY_EXPRESSION, new (UnaryExpression){NOT, yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -1039,7 +1040,7 @@ namespace zyd2001 { namespace NewBie {
   case 47:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
+            yylhs.value.as< zyd2001::NewBie::Expression > () = yystack_[0].value.as< zyd2001::NewBie::Expression > ();
         }
 
     break;
@@ -1047,7 +1048,7 @@ namespace zyd2001 { namespace NewBie {
   case 48:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
+            yylhs.value.as< zyd2001::NewBie::Expression > () = yystack_[0].value.as< zyd2001::NewBie::Expression > ();
         }
 
     break;
@@ -1055,7 +1056,7 @@ namespace zyd2001 { namespace NewBie {
   case 49:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
+            yylhs.value.as< zyd2001::NewBie::Expression > () = yystack_[0].value.as< zyd2001::NewBie::Expression > ();
         }
 
     break;
@@ -1063,7 +1064,7 @@ namespace zyd2001 { namespace NewBie {
   case 50:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
+            yylhs.value.as< zyd2001::NewBie::Expression > () = yystack_[0].value.as< zyd2001::NewBie::Expression > ();
         }
 
     break;
@@ -1143,7 +1144,7 @@ namespace zyd2001 { namespace NewBie {
   case 60:
 
     {
-            yylhs.value.as< zyd2001::NewBie::ArgumentsList > ().emplace_back(std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ()));
+            yylhs.value.as< zyd2001::NewBie::ArgumentsList > ().emplace_back(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
         }
 
     break;
@@ -1151,7 +1152,7 @@ namespace zyd2001 { namespace NewBie {
   case 61:
 
     {
-            yystack_[2].value.as< zyd2001::NewBie::ArgumentsList > ().emplace_back(std::move(yystack_[0].value.as< zyd2001::NewBie::Expression > ()));
+            yystack_[2].value.as< zyd2001::NewBie::ArgumentsList > ().emplace_back(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
             yylhs.value.as< zyd2001::NewBie::ArgumentsList > ().swap(yystack_[2].value.as< zyd2001::NewBie::ArgumentsList > ());
         }
 
@@ -1674,12 +1675,12 @@ namespace zyd2001 { namespace NewBie {
   Parser::yyrline_[] =
   {
        0,    60,    60,    65,    69,    75,    79,    83,    87,    91,
-      96,   101,   106,   110,   114,   118,   122,   132,   136,   141,
-     145,   150,   154,   160,   164,   168,   172,   176,   180,   186,
-     189,   191,   195,   199,   203,   207,   211,   215,   219,   223,
-     227,   231,   235,   239,   244,   248,   253,   258,   262,   266,
-     270,   285,   289,   293,   297,   301,   305,   310,   314,   320,
-     323,   327,   333,   337,   343,   346,   350
+      96,   101,   107,   111,   115,   119,   123,   133,   137,   142,
+     146,   151,   155,   161,   165,   169,   173,   177,   181,   187,
+     190,   192,   196,   200,   204,   208,   212,   216,   220,   224,
+     228,   232,   236,   240,   245,   249,   254,   259,   263,   267,
+     271,   286,   290,   294,   298,   302,   306,   311,   315,   321,
+     324,   328,   334,   338,   344,   347,   351
   };
 
   // Print the state stack on the debug stream.

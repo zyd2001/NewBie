@@ -59,26 +59,26 @@
 %%
     eof: statements_list END
 		{
-			inter.statements_list = std::move($1);
+			inter.statements_list = $1;
 		}
 		;
     statements_list: statement
         {
-            $$.emplace_back(std::move($1));
+            $$.emplace_back($1);
         }
         | statements_list statement
         {
-            $1.emplace_back(std::move($2));
+            $1.emplace_back($2);
             $$.swap($1);
         }
         ;
     statement: expression SEMICOLON
         {
-            $$ = Statement(EXPRESSION_STATEMENT, new ExpressionStatement(std::move($1)), yyget_lineno(scanner));
+            $$ = Statement(EXPRESSION_STATEMENT, new ExpressionStatement($1), yyget_lineno(scanner));
         }
         | IDENTIFIER ASSIGN expression SEMICOLON
         {
-            $$ = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){std::move($1), std::move($3)}, yyget_lineno(scanner));
+            $$ = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){std::move($1), $3}, yyget_lineno(scanner));
         }
         | type_tag declaration_item_list SEMICOLON
         {
@@ -90,26 +90,27 @@
         }
         | IF LP expression RP statement
         {
-            current_if = new (IfStatement){std::move($3), std::move($5)};
+            current_if = new (IfStatement){$3, $5};
             $$ = Statement(IF_STATEMENT, current_if, yyget_lineno(scanner));
         }
         | ELSE statement
         {
-            current_if->else_stat = std::move($2);
+            current_if->else_stat = $2;
             $$ = Statement();
         }
         | ELSEIF LP expression RP statement
         {
-            current_if->elseif.push_back({std::move($3), std::move($5)});
+            ElseIf e = {$3, $5};
+            current_if->elseif.emplace_back(e);
             $$ = Statement();
         }
         | FOR LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional RP statement
         {
-            $$ = Statement(FOR_STATEMENT, new (ForStatement){std::move($3), std::move($5), std::move($7), std::move($9)}, yyget_lineno(scanner));
+            $$ = Statement(FOR_STATEMENT, new (ForStatement){$3, $5, $7, $9}, yyget_lineno(scanner));
         }
         | RETURN expression SEMICOLON
         {
-            $$ = Statement(RETURN_STATEMENT, new ReturnStatement(std::move($2)), yyget_lineno(scanner));
+            $$ = Statement(RETURN_STATEMENT, new ReturnStatement($2), yyget_lineno(scanner));
         }
         | CONTINUE SEMICOLON
         {
@@ -131,7 +132,7 @@
         }
         | block
         {
-            $$ = std::move($1);
+            $$ = $1;
         }
         | PRINT IDENTIFIER SEMICOLON
         {
@@ -144,7 +145,7 @@
         }
         | IDENTIFIER ASSIGN expression
         {
-            $$ = {std::move($1), std::move($3)};
+            $$ = {std::move($1), $3};
         }
         ;
     declaration_item_list: declaration_item
@@ -159,19 +160,19 @@
         ;
     expression: binary_expression
         {
-            $$ = std::move($1);
+            $$ = $1;
         }
         | unary_expression
         {
-            $$ = std::move($1);
+            $$ = $1;
         }
         | primary_expression
         {
-            $$ = std::move($1);
+            $$ = $1;
         }
         | function_call_expression
         {
-            $$ = std::move($1);
+            $$ = $1;
         }
         | IDENTIFIER
         {
@@ -179,7 +180,7 @@
         }
         | LP expression RP
         {
-            $$ = std::move($2);
+            $$ = $2;
         }
         ;
     expression_optional: /* empty */
@@ -190,64 +191,64 @@
         ;
     binary_expression: expression ADD expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){ADD, std::move($1), std::move($3)});
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){ADD, $1, $3});
         }
         | expression SUB expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){SUB, std::move($1), std::move($3)});
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){SUB, $1, $3});
         }
         | expression MUL expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){MUL, std::move($1), std::move($3)});
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){MUL, $1, $3});
         }
         | expression DIV expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){DIV, std::move($1), std::move($3)});
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){DIV, $1, $3});
         }
         | expression MOD expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){MOD, std::move($1), std::move($3)});
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){MOD, $1, $3});
         }
         | expression EQ expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){EQ, std::move($1), std::move($3)});
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){EQ, $1, $3});
         }
         | expression NE expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){NE, std::move($1), std::move($3)});
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){NE, $1, $3});
         }
         | expression GT expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){GT, std::move($1), std::move($3)});
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){GT, $1, $3});
         }
         | expression GE expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){GE, std::move($1), std::move($3)});
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){GE, $1, $3});
         }
         | expression LT expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){LT, std::move($1), std::move($3)});
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){LT, $1, $3});
         }
         | expression LE expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){LE, std::move($1), std::move($3)});
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){LE, $1, $3});
         }
         | expression LOGICAL_AND expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){AND, std::move($1), std::move($3)});
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){AND, $1, $3});
         }
         | expression LOGICAL_OR expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){OR, std::move($1), std::move($3)});
+            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){OR, $1, $3});
         }
         ;
     unary_expression: SUB expression %prec UMINUS
         {
-            $$ = Expression(UNARY_EXPRESSION, new (UnaryExpression){MINUS, std::move($2)});
+            $$ = Expression(UNARY_EXPRESSION, new (UnaryExpression){MINUS, $2});
         }
         | EXCLAMATION expression %prec UMINUS
         {
-            $$ = Expression(UNARY_EXPRESSION, new (UnaryExpression){NOT, std::move($2)});
+            $$ = Expression(UNARY_EXPRESSION, new (UnaryExpression){NOT, $2});
         }
         ;
     function_call_expression: IDENTIFIER LP arguments_list RP
@@ -257,28 +258,28 @@
         ;
     primary_expression: INT_LITERAL
         {
-            $$ = std::move($1);
+            $$ = $1;
         }
         | DOUBLE_LITERAL
         {
-            $$ = std::move($1);
+            $$ = $1;
         }
         | STRING_LITERAL
         {
-            $$ = std::move($1);
+            $$ = $1;
         }
         | BOOL_LITERAL
         {
-            $$ = std::move($1);
+            $$ = $1;
         }
         ;
     expressions_list: expression
         {
-            $$.emplace_back(std::move($1));
+            $$.emplace_back($1);
         }
         | expressions_list COMMA expression
         {
-            $1.emplace_back(std::move($3));
+            $1.emplace_back($3);
             $$.swap($1);
         }
         ;
@@ -322,11 +323,11 @@
         }
         | expression
         {
-            $$.emplace_back(std::move($1));
+            $$.emplace_back($1);
         }
         | arguments_list COMMA expression
         {
-            $1.emplace_back(std::move($3));
+            $1.emplace_back($3);
             $$.swap($1);
         }
         ;
