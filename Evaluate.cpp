@@ -20,6 +20,8 @@ Value InterpreterImp::evaluate(const Expression &e)
             }
             else
             {
+                if (res == 0)
+                    return global_variables.at(e.get<IdentifierExpression>());
                 return variables_stack.top()[res - 1].at(e.get<IdentifierExpression>());
             }
             break;
@@ -95,16 +97,19 @@ Value InterpreterImp::evaluate(const Expression &e)
                 err();
             else
             {
-                auto f = variables_stack.top()[res].at(fce.identifier);
-                if (f.type != FUNCTION_TYPE)
+                Value *f;
+                if (res == 0)
+                    f = &global_variables.at(fce.identifier);
+                else
+                    f = &variables_stack.top()[res - 1].at(fce.identifier);
+                if (f->type != FUNCTION_TYPE)
                     err();
                 else
                 {
-                    Function func = f.get<Function>();
-                    variables_stack.push(vector<VariablesMap>());
-                    VariablesMap vmap = variables_stack.top().back();
+                    Function func = f->get<Function>();
 
                     //initialize the function local variables
+                    StatementsList temp_slist;
                     auto argument = fce.alist.cbegin();
                     for (auto iter = func.plist.cbegin(); iter != func.plist.cend(); iter++)
                     {
@@ -115,8 +120,18 @@ Value InterpreterImp::evaluate(const Expression &e)
                             val.content = new LiteralExpression(evaluate(iter->default_value_exp));
                         else
                             err();
-                        Statement temp(ASSIGNMENT_STATEMENT, new (AssignmentStatement){std::move(iter->identifier), std::move(val)}, -1); //construct a assignment statement to assign parameter
-                        execute(temp, false, false);
+                        DeclarationStatementItemList item;
+                        item.emplace_back(std::move(DeclarationStatementItem{ std::move(iter->identifier), std::move(val) }));
+                        Statement temp(DECLARATION_STATEMENT, new (DeclarationStatement)\
+                            {iter->type, item, false}, -1); //construct a assignment statement to assign parameter
+                        temp_slist.emplace_back(std::move(temp));
+                    }
+                    variables_stack.push(vector<VariablesMap>());
+                    variables_stack.top().push_back(VariablesMap());
+                    VariablesMap vmap = variables_stack.top().back();
+                    for (auto &s : temp_slist)
+                    {
+                        execute(s, false, false);
                     }
 
                     execute(func.body, true, false);

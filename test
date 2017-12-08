@@ -2,5 +2,11 @@ var a = 55;
 if (a == 55)
 {
     a = "asd";
+    print(a);
 }
-__print__ a;
+
+int print(var v)
+{
+    __print__ v;
+    return 1;
+}

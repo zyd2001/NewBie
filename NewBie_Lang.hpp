@@ -12,10 +12,10 @@ namespace zyd2001::NewBie
         Interpreter();
         Interpreter(const std::string &name);
         ~Interpreter() = default;
-        bool run();
         bool setFile(const std::string &name);
-        int parse();
         bool changeSetting(const std::string &, int);
+        bool run();
+        int parse();
     private:
         std::unique_ptr<InterpreterImp> imp;
     };

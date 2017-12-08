@@ -42,10 +42,6 @@ bool InterpreterImp::changeSetting(const std::string &key, int value)
 
 int InterpreterImp::parse()
 {
-    //for function definition
-    variables_stack.push(vector<VariablesMap>());
-    variables_stack.top().push_back(VariablesMap());
-
     yyscan_t scanner;
     yylex_init(&scanner);
     FILE *fp = fopen(filename.c_str(), "r");

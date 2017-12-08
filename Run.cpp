@@ -10,9 +10,8 @@ bool InterpreterImp::run()
     {
         throw runtime_error("No AST");
     }
-
-    //set the global variables map to the lowest level of variables map
-    global_variables = &variables_stack.top().back();
+    variables_stack.push(vector<VariablesMap>());
+    variables_stack.top().push_back(VariablesMap());
     if (false) //according to the setting
         variables_stack.top().push_back(VariablesMap());
     interpret(statements_list, false, false);
@@ -59,7 +58,7 @@ int InterpreterImp::interpret(const StatementsList &s, bool isFunc, bool isLoop)
     return 1;
 }
 
-int InterpreterImp::checkExist(const Identifier &id) //check all scope
+int InterpreterImp::checkExist(const Identifier &id) //check all scope, 0 for global
 {
     vector<VariablesMap> &v = variables_stack.top();
     for (auto i = v.size(); i > 0; i--)
@@ -71,11 +70,11 @@ int InterpreterImp::checkExist(const Identifier &id) //check all scope
             continue;
     }
     //when in function
-    auto result = global_variables->find(id);
-    if (result != global_variables->cend())
+    auto result = global_variables.find(id);
+    if (result != global_variables.cend())
     	return 0;
     else
-    return -1;
+        return -1;
 }
 
 void InterpreterImp::err() { cerr << "Error occured at " << current_lineno << endl; }
@@ -98,16 +97,22 @@ StatementType InterpreterImp::execute(const Statement &s, bool isFunc, bool isLo
             }
             else
             {
+                Value *target;
+                if (res == 0)
+                    target = &global_variables.at(as.identifier);
+                else
+                    target = &v[res - 1].at(as.identifier);
                 Value &&val = evaluate(as.value);
-                Value &target = v[res - 1].at(as.identifier);
-                if (!target.various && target.type != val.type)
+                if (!target->various && target->type != val.type)
                 {
                     //if the variable isn't various type and the value's type assigned isn't match, error
                     err();
                 }
-                else
+                else 
                 {
-                    target = val;
+                    if (target->various)
+                        val.various = true;
+                    *target = val;
                 }
             }
             break;
@@ -122,7 +127,7 @@ StatementType InterpreterImp::execute(const Statement &s, bool isFunc, bool isLo
                 {
                     VariablesMap *vmap;
                     if (ds.global)
-                        vmap = global_variables;
+                        vmap = &global_variables;
                     else
                         vmap = &v.back();
                     if (iter.initial_value.type != NULL_EXPRESSION)

@@ -64,11 +64,11 @@
 		;
     statements_list: statement
         {
-            $$.push_back($1);
+            $$.emplace_back(std::move($1));
         }
         | statements_list statement
         {
-            $1.push_back($2);
+            $1.emplace_back(std::move($2));
             $$.swap($1);
         }
         ;
@@ -121,7 +121,7 @@
         }
         | type_tag IDENTIFIER LP parameters_list RP block
         {
-            VariablesMap &vmap = inter.variables_stack.top().back();
+            VariablesMap &vmap = inter.global_variables;
             auto result = vmap.find($2);
             if (result != vmap.cend())
                 inter.err();
@@ -149,11 +149,11 @@
         ;
     declaration_item_list: declaration_item
         {
-            $$.push_back($1);
+            $$.emplace_back(std::move($1));
         }
         | declaration_item_list COMMA declaration_item
         {
-            $1.push_back($3);
+            $1.emplace_back(std::move($3));
             $$.swap($1);
         }
         ;
@@ -274,11 +274,11 @@
         ;
     expressions_list: expression
         {
-            $$.push_back($1);
+            $$.emplace_back(std::move($1));
         }
         | expressions_list COMMA expression
         {
-            $1.push_back($3);
+            $1.emplace_back(std::move($3));
             $$.swap($1);
         }
         ;
@@ -309,7 +309,7 @@
         ;
     block: LC statements_list RC
         {
-            $$ = Statement(BLOCK_STATEMENT, new BlockStatement($2), yyget_lineno(scanner));
+            $$ = Statement(BLOCK_STATEMENT, new BlockStatement(std::move($2)), yyget_lineno(scanner));
         }
         | LC RC
         {
@@ -322,15 +322,19 @@
         }
         | expression
         {
-            $$.push_back($1);
+            $$.emplace_back(std::move($1));
         }
         | arguments_list COMMA expression
         {
-            $1.push_back($3);
+            $1.emplace_back(std::move($3));
             $$.swap($1);
         }
         ;
-    parameter: type_tag IDENTIFIER primary_expression
+    parameter: type_tag IDENTIFIER
+        {
+            $$ = {$1, $2};
+        }
+        | type_tag IDENTIFIER primary_expression
         {
             $$ = {$1, $2, $3};
         }
@@ -341,11 +345,11 @@
         }
         | parameter
         {
-            $$.push_back($1);
+            $$.emplace_back(std::move($1));
         }
         | parameters_list COMMA parameter
         {
-            $1.push_back($3);
+            $1.emplace_back(std::move($3));
             $$.swap($1);
         }
         ;

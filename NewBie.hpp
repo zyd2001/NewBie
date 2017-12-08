@@ -298,15 +298,15 @@ namespace zyd2001::NewBie
     class InterpreterImp
     {
     public:
+        /* public api */
         InterpreterImp();
         InterpreterImp(const std::string &name);
         ~InterpreterImp() = default;
+        int parse();
+        bool run();
         bool setFile(const std::string &name);
         bool changeSetting(const std::string &, int);
 
-        int parse();
-
-        bool run();
         StatementType execute(const Statement &, bool, bool);
         Value evaluate(const Expression &);
         int interpret(const StatementsList &, bool, bool);
@@ -322,7 +322,7 @@ namespace zyd2001::NewBie
         StatementsList statements_list;
         VariablesStack variables_stack;
         Value temp_variable;
-        VariablesMap *global_variables;
+        VariablesMap global_variables;
         std::vector<std::unique_ptr<void *>> handle_list;
         std::unordered_map<std::string, int> settings;
     };
