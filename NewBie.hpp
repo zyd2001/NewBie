@@ -52,6 +52,7 @@ namespace zyd2001::NewBie
         STRING_TYPE,
         VARIOUS_TYPE,
         ARRAY_TYPE,
+        FUNCTION_TYPE,
         OBJECT_TYPE
     };
 
@@ -64,6 +65,8 @@ namespace zyd2001::NewBie
     using char_t = char32_t;
     using string_t = std::basic_string<char_t>;
 #endif
+
+    using Identifier = string_t;
 
     struct Value
     {
@@ -109,7 +112,8 @@ namespace zyd2001::NewBie
     std::ostream &operator<<(std::ostream&, Value&);
     Value change(const Value&, ValueType);
 
-    using Identifier = string_t;
+    using Array = std::vector<Value>;
+    using VariablesMap = std::unordered_map<Identifier, Value>;
 
     enum ExpressionType
     {
@@ -183,7 +187,8 @@ namespace zyd2001::NewBie
         FOREACH_STATEMENT,
         RETURN_STATEMENT,
         CONTINUE_STATEMENT,
-        BREAK_STATEMENT
+        BREAK_STATEMENT,
+        DEBUG_STATEMENT
     };
 
     using ExpressionsList = std::vector<Expression>;
@@ -268,14 +273,27 @@ namespace zyd2001::NewBie
     {
         ValueType type;
         Identifier identifier;
-        Expression default_value; //only Value
+        Expression default_value_exp; //only Value
     };
 
     using ParametersList = std::vector<Parameter>;
 
     using ArgumentsList = std::vector<Expression>;
 
-    using VariablesStack = std::stack<std::vector<std::unordered_map<Identifier, Value>>>;
+    using VariablesStack = std::stack<std::vector<VariablesMap>>;
+
+    struct Function
+    {
+        ValueType return_type;
+        ParametersList plist;
+        Statement body;
+    };
+    struct Object
+    {
+        bool Root;
+        Identifier type;
+        VariablesMap local_variables;
+    };
 
     class InterpreterImp
     {
@@ -293,17 +311,18 @@ namespace zyd2001::NewBie
         Value evaluate(const Expression &);
         int interpret(const StatementsList &, bool, bool);
         void err();
-        int checkExist(const Identifier &id, std::vector<std::unordered_map<Identifier, Value>> &v);
+        int checkExist(const Identifier &);
 
         /*parsing time variables*/
         int level = 0;
         std::string filename;
 
         /*runtime variables*/
+        int current_lineno;
         StatementsList statements_list;
         VariablesStack variables_stack;
         Value temp_variable;
-        std::unordered_map<Identifier, Value> *global_variables;
+        VariablesMap *global_variables;
         std::vector<std::unique_ptr<void *>> handle_list;
         std::unordered_map<std::string, int> settings;
     };

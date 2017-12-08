@@ -45,6 +45,7 @@
         LP RP LC RC LB RB SEMICOLON COMMA ASSIGN EXCLAMATION DOT
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
         INCREMENT DECREMENT PUBLIC PROTECTED PRIVATE REVERSE
+        PRINT
 %type<zyd2001::NewBie::Expression> expression function_call_expression primary_expression expression_optional binary_expression unary_expression
 %type<zyd2001::NewBie::Statement> statement block
 %type<zyd2001::NewBie::StatementsList> statements_list
@@ -120,11 +121,21 @@
         }
         | type_tag IDENTIFIER LP parameters_list RP block
         {
+            VariablesMap &vmap = inter.variables_stack.top().back();
+            auto result = vmap.find($2);
+            if (result != vmap.cend())
+                inter.err();
+            else
+                vmap[$2] = Value(FUNCTION_TYPE, new (Function){$1, $4, $6});
             $$ = Statement();
         }
         | block
         {
             $$ = std::move($1);
+        }
+        | PRINT IDENTIFIER SEMICOLON
+        {
+            $$ = Statement(DEBUG_STATEMENT, new Identifier(std::move($2)), yyget_lineno(scanner));
         }
         ;
     declaration_item: IDENTIFIER 
@@ -342,5 +353,5 @@
 
 void Parser::error(const location_type& l, const std::string& m)
 {
-	std::cerr << "At file " << l.begin.filename  << " " << l << " " << m << endl;
+	std::cerr << "At file " << inter.filename  << " " << l << " " << m << endl;
 }

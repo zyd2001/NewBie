@@ -12,23 +12,21 @@ using namespace std;
 #define replace(...) do {delete_cast(__VA_ARGS__); content = ptr;} while(0)
 
 #if defined(_MSC_VER)
-static wstring_convert<codecvt_utf8<char_t>, char_t> conv;
+wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 #elif defined(__GNUC__)
-static wstring_convert<codecvt_utf8<char_t>, char_t> conv;
+wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 #endif
 
 Value::Value() : type(NULL_TYPE), content(nullptr) {}
-Value::Value(Value &&v) : type(v.type), content(v.content)
+Value::Value(Value &&v) : type(v.type), various(v.various), content(v.content)
 {
     v.type = NULL_TYPE;
 }
 Value::Value(ValueType t, void *c) : type(t), content(c) {}
-Value::Value(const Value &v) : type(v.type)
+Value::Value(const Value &v) : type(v.type), various(v.various)
 {
     switch (type)
     {
-        case VARIOUS_TYPE:
-            various = true;
         case zyd2001::NewBie::INT_TYPE:
         {
             int *ptr = new int(v.get<int>());
@@ -57,6 +55,12 @@ Value::Value(const Value &v) : type(v.type)
             break;
         case zyd2001::NewBie::OBJECT_TYPE:
             break;
+        case FUNCTION_TYPE:
+        {
+            Function *ptr = new Function(v.get<Function>());
+            content = ptr;
+            break;
+        }
         default:
             break;
     }
@@ -85,9 +89,12 @@ Value::~Value()
             delete_cast(string_t*);
             break;
         case zyd2001::NewBie::ARRAY_TYPE:
-            delete_cast(vector<Value>*);
+            delete_cast(Array*);
             break;
         case zyd2001::NewBie::OBJECT_TYPE:
+            break;
+        case FUNCTION_TYPE:
+            delete_cast(Function*);
             break;
         default:
             break;
@@ -98,6 +105,7 @@ void Value::swap(Value &other)
 {
     std::swap(type, other.type);
     std::swap(content, other.content);
+    std::swap(various, other.various);
 }
 
 Value Value::operator+(const Value &v) const
@@ -226,32 +234,32 @@ else \
 
 bool zyd2001::NewBie::Value::operator==(const Value &v) const
 {
-    compare_value(== )
+    compare_value(==)
 }
 
 bool zyd2001::NewBie::Value::operator!=(const Value &v) const
 {
-    compare_value(!= )
+    compare_value(!=)
 }
 
 bool zyd2001::NewBie::Value::operator>(const Value &v) const
 {
-    compare_value(> )
+    compare_value(>)
 }
 
 bool zyd2001::NewBie::Value::operator>=(const Value &v) const
 {
-    compare_value(>= )
+    compare_value(>=)
 }
 
 bool zyd2001::NewBie::Value::operator<(const Value &v) const
 {
-    compare_value(< )
+    compare_value(<)
 }
 
 bool zyd2001::NewBie::Value::operator<=(const Value &v) const
 {
-    compare_value(<= )
+    compare_value(<=)
 }
 
 bool zyd2001::NewBie::Value::operator&&(const Value &v) const
@@ -304,7 +312,10 @@ Value zyd2001::NewBie::change(const Value &v, ValueType t)
 Value &Value::change_type(ValueType t)
 {
     if (t == VARIOUS_TYPE)
+    {
         this->various = true;
+        return *this;
+    }
     switch (type)
     {
         case zyd2001::NewBie::INT_TYPE:

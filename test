@@ -1,4 +1,6 @@
+var a = 55;
 if (a == 55)
 {
-	print(a);
+    a = "asd";
 }
+__print__ a;

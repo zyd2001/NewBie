@@ -11,13 +11,10 @@ bool InterpreterImp::run()
         throw runtime_error("No AST");
     }
 
-    //initialize the environment
-    variables_stack.push(vector<unordered_map<Identifier, Value>>());
-    variables_stack.top().push_back(unordered_map<Identifier, Value>());
     //set the global variables map to the lowest level of variables map
     global_variables = &variables_stack.top().back();
     if (false) //according to the setting
-        variables_stack.top().push_back(unordered_map<Identifier, Value>());
+        variables_stack.top().push_back(VariablesMap());
     interpret(statements_list, false, false);
     variables_stack.pop();
     return true;
@@ -62,8 +59,9 @@ int InterpreterImp::interpret(const StatementsList &s, bool isFunc, bool isLoop)
     return 1;
 }
 
-int InterpreterImp::checkExist(const Identifier &id, std::vector<std::unordered_map<Identifier, Value>> &v)
+int InterpreterImp::checkExist(const Identifier &id) //check all scope
 {
+    vector<VariablesMap> &v = variables_stack.top();
     for (auto i = v.size(); i > 0; i--)
     {
         auto result = v[i - 1].find(id);
@@ -72,16 +70,18 @@ int InterpreterImp::checkExist(const Identifier &id, std::vector<std::unordered_
         else
             continue;
     }
-    //auto result = global_variables->find(id);
-    //if (result != global_variables->cend())
-    //	return 0;
-    //else
+    //when in function
+    auto result = global_variables->find(id);
+    if (result != global_variables->cend())
+    	return 0;
+    else
     return -1;
 }
 
-void InterpreterImp::err() {}
+void InterpreterImp::err() { cerr << "Error occured at " << current_lineno << endl; }
 StatementType InterpreterImp::execute(const Statement &s, bool isFunc, bool isLoop)
 {
+    current_lineno = s.lineno;
     auto &v = variables_stack.top();
     switch (s.type)
     {
@@ -91,7 +91,7 @@ StatementType InterpreterImp::execute(const Statement &s, bool isFunc, bool isLo
         case zyd2001::NewBie::ASSIGNMENT_STATEMENT:
         {
             AssignmentStatement &as = s.get<AssignmentStatement>();
-            int res = checkExist(as.identifier, v);
+            int res = checkExist(as.identifier);
             if (res == -1)
             {
                 err();
@@ -99,8 +99,7 @@ StatementType InterpreterImp::execute(const Statement &s, bool isFunc, bool isLo
             else
             {
                 Value &&val = evaluate(as.value);
-                auto result = v[res - 1].find(as.identifier);
-                Value &target = result->second;
+                Value &target = v[res - 1].at(as.identifier);
                 if (!target.various && target.type != val.type)
                 {
                     //if the variable isn't various type and the value's type assigned isn't match, error
@@ -118,14 +117,10 @@ StatementType InterpreterImp::execute(const Statement &s, bool isFunc, bool isLo
             DeclarationStatement &ds = s.get<DeclarationStatement>();
             for (auto &iter : ds.items)
             {
-                int res = checkExist(iter.identifier, v);
+                int res = checkExist(iter.identifier);
                 if (res == -1)
                 {
-                    err();
-                }
-                else
-                {
-                    unordered_map<Identifier, Value> *vmap;
+                    VariablesMap *vmap;
                     if (ds.global)
                         vmap = global_variables;
                     else
@@ -135,11 +130,15 @@ StatementType InterpreterImp::execute(const Statement &s, bool isFunc, bool isLo
                     else
                         (*vmap)[iter.identifier] = Value(ds.type);
                 }
+                else
+                {
+                    err();
+                }
             }
             break;
         }
         case zyd2001::NewBie::BLOCK_STATEMENT:
-            v.push_back(unordered_map<Identifier, Value>());
+            v.push_back(VariablesMap());
             interpret(s.get<BlockStatement>(), isFunc, isLoop);
             v.pop_back();
             break;
@@ -190,6 +189,19 @@ StatementType InterpreterImp::execute(const Statement &s, bool isFunc, bool isLo
             break;
         case zyd2001::NewBie::BREAK_STATEMENT:
             break;
+        case DEBUG_STATEMENT:
+        {
+            Identifier &id = s.get<Identifier>();
+            int res = checkExist(id);
+            if (res == -1)
+            {
+                err();
+            }
+            else
+            {
+                cout << variables_stack.top()[res - 1].at(id) << endl;
+            }
+        }
         default:
             break;
     }

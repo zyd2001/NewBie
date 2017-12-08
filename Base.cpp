@@ -168,6 +168,12 @@ Statement::Statement(const Statement &s) : type(s.type), lineno(s.lineno)
             break;
         case zyd2001::NewBie::BREAK_STATEMENT:
             break;
+        case DEBUG_STATEMENT:
+        {
+            Identifier *ptr = new Identifier(s.get<Identifier>());
+            content = ptr;
+            break;
+        }
         default:
             break;
     }
@@ -224,6 +230,8 @@ Statement::~Statement()
             break;
         case zyd2001::NewBie::BREAK_STATEMENT:
             break;
+        case DEBUG_STATEMENT:
+            delete_cast(Identifier*);
         default:
             break;
     }

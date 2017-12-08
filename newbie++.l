@@ -10,9 +10,9 @@ using namespace std;
 using namespace zyd2001::NewBie;
 string string_buffer, heredoc_tag;
 #if defined(_MSC_VER)
-static wstring_convert<codecvt_utf8<char_t>, char_t> conv;
+extern wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 #elif defined(__GNUC__)
-static wstring_convert<codecvt_utf8<char_t>, char_t> conv;
+extern wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 #endif
 static zyd2001::NewBie::location loc;
 
@@ -50,6 +50,7 @@ static zyd2001::NewBie::location loc;
 <INITIAL>"continue"     return Parser::make_CONTINUE(loc);
 <INITIAL>"return"       return Parser::make_RETURN(loc);
 <INITIAL>"class"        return Parser::make_CLASS(loc);
+<INITIAL>"__print__"    return Parser::make_PRINT(loc);
 <INITIAL>"("            return Parser::make_LP(loc);
 <INITIAL>")"            return Parser::make_RP(loc);
 <INITIAL>"{"            {inter.level++; return Parser::make_LC(loc);}
@@ -122,10 +123,12 @@ static zyd2001::NewBie::location loc;
     if(heredoc_tag == (yytext + 3))
     {
         BEGIN INITIAL;
-        if (string_buffer.empty())
+        string temp;
+        swap(temp, string_buffer);
+        if (temp.empty())
             return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(string_t())), loc);
         else
-            return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(string_t(conv.from_bytes(string_buffer)))), loc);
+            return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(conv.from_bytes(temp))), loc);
     }
     else
         string_buffer += yytext;
@@ -164,13 +167,13 @@ static zyd2001::NewBie::location loc;
     BEGIN INITIAL;
     string temp;
     swap(temp, string_buffer);
-    if (string_buffer.empty())
+    if (temp.empty())
     {
         return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(string_t())), loc);
     }
     else
     {
-        return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(string_t(conv.from_bytes(string_buffer)))), loc);
+        return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(conv.from_bytes(temp))), loc);
     }
 }
 <STRING_LITERAL_STATE>. {
