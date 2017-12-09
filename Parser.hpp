@@ -955,7 +955,7 @@ namespace zyd2001 { namespace NewBie {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 460,     ///< Last index in yytable_.
+      yylast_ = 473,     ///< Last index in yytable_.
       yynnts_ = 18,  ///< Number of nonterminal symbols.
       yyfinal_ = 52, ///< Termination state number.
       yyterror_ = 1,

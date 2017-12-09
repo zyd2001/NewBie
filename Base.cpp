@@ -244,7 +244,7 @@ Statement::~Statement()
             case zyd2001::NewBie::BREAK_STATEMENT:
                 break;
             case DEBUG_STATEMENT:
-                delete_cast(Identifier*);
+                delete_cast(DebugStatement*);
             default:
                 break;
         }

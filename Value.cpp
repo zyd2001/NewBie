@@ -191,13 +191,13 @@ Value zyd2001::NewBie::Value::operator/(const Value &v) const
     }
     else
     {
-        return Value(INT_TYPE, new int(get<int>() / -v.get<int>()));
+        return Value(INT_TYPE, new int(get<int>() / v.get<int>()));
     }
 }
 
 Value zyd2001::NewBie::Value::operator%(const Value &v) const
 {
-    return Value(INT_TYPE, new int(get<int>() % -v.get<int>()));
+    return Value(INT_TYPE, new int(get<int>() % v.get<int>()));
 }
 
 Value &zyd2001::NewBie::Value::operator=(const Value &v)

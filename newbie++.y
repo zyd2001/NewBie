@@ -134,9 +134,9 @@
         {
             $$ = $1;
         }
-        | PRINT IDENTIFIER SEMICOLON
+        | PRINT expression SEMICOLON
         {
-            $$ = Statement(DEBUG_STATEMENT, new Identifier(std::move($2)), yyget_lineno(scanner));
+            $$ = Statement(DEBUG_STATEMENT, new DebugStatement($2), yyget_lineno(scanner));
         }
         ;
     declaration_item: IDENTIFIER 

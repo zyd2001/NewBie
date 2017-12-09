@@ -271,6 +271,7 @@ namespace zyd2001::NewBie
     using ExpressionStatement = Expression;
     using BlockStatement = StatementsList;
     using ReturnStatement = Expression;
+    using DebugStatement = Expression;
 
     struct Parameter
     {

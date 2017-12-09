@@ -234,16 +234,9 @@ StatementType InterpreterImp::execute(const Statement &s)
             break;
         case DEBUG_STATEMENT:
         {
-            Identifier &id = s.get<Identifier>();
-            int res = checkExist(id);
-            if (res == -1)
-            {
-                err();
-            }
-            else
-            {
-                cout << variables_stack.top()[res - 1].at(id) << endl;
-            }
+            Value val = evaluate(s.get<DebugStatement>());
+            cout << val << endl;
+            break;
         }
         default:
             break;
