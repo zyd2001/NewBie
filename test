@@ -1,13 +1,10 @@
-var a = -111;
-var b = -a;
-print(ten());
+int result = negten(false);
+__print__ result;
 
-int print(var a)
+int negten(bool is)
 {
-    __print__ a;
-}
-
-int ten()
-{
-    return 10;
+    if (!is)
+        return -10;
+    else
+        return 10;
 }

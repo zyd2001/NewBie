@@ -158,6 +158,12 @@
             $$.swap($1);
         }
         ;
+    class_definition: CLASS IDENTIFIER block
+        {
+            
+        }
+        | CLASS IDENTIFIER block
+        ;
     expression: binary_expression
         {
             $$ = $1;

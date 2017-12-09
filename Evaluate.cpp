@@ -81,8 +81,10 @@ Value InterpreterImp::evaluate(const Expression &e)
             switch (ue.type)
             {
                 case zyd2001::NewBie::MINUS:
+                    return -evaluate(ue.exp);
                     break;
                 case zyd2001::NewBie::NOT:
+                    return !evaluate(ue.exp);
                     break;
                 default:
                     break;
