@@ -114,21 +114,34 @@ static zyd2001::NewBie::location loc;
 <INITIAL>"<<<"[A-Za-z_]+[\r\n]+ {
     loc.lines(yyleng);
     loc.step();
-    heredoc_tag = yytext;
-    heredoc_tag.erase(heredoc_tag.find('\r'));
-    heredoc_tag.erase(heredoc_tag.find('\n'));
+    heredoc_tag += yytext + 3;
+    auto _n = heredoc_tag.find('\r');
+    if (_n != string::npos)
+        heredoc_tag.erase(_n);
+    auto _r = heredoc_tag.find('\n');
+    if (_r != string::npos)
+        heredoc_tag.erase(_r);
     BEGIN HEREDOC;
 }
 <HEREDOC>^">>>"[A-Za-z_]+/";" {
     if(heredoc_tag == (yytext + 3))
     {
         BEGIN INITIAL;
+        heredoc_tag.clear();
         string temp;
         swap(temp, string_buffer);
         if (temp.empty())
             return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(string_t())), loc);
         else
+        {
+            auto _n = temp.rfind('\n');
+            if (_n != string::npos)
+                temp.erase(_n);
+            auto _r = temp.rfind('\r');
+            if (_r != string::npos)
+                temp.erase(_r);
             return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(conv.from_bytes(temp))), loc);
+        }
     }
     else
         string_buffer += yytext;

@@ -1314,9 +1314,13 @@ YY_RULE_SETUP
 {
     loc.lines(yyleng);
     loc.step();
-    heredoc_tag = yytext;
-    heredoc_tag.erase(heredoc_tag.find('\r'));
-    heredoc_tag.erase(heredoc_tag.find('\n'));
+    heredoc_tag += yytext + 3;
+    auto _n = heredoc_tag.find('\r');
+    if (_n != string::npos)
+        heredoc_tag.erase(_n);
+    auto _r = heredoc_tag.find('\n');
+    if (_r != string::npos)
+        heredoc_tag.erase(_r);
     BEGIN HEREDOC;
 }
 	YY_BREAK
@@ -1325,17 +1329,26 @@ case 72:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 122 "newbie++.l"
+#line 126 "newbie++.l"
 {
     if(heredoc_tag == (yytext + 3))
     {
         BEGIN INITIAL;
+        heredoc_tag.clear();
         string temp;
         swap(temp, string_buffer);
         if (temp.empty())
             return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(string_t())), loc);
         else
+        {
+            auto _n = temp.rfind('\n');
+            if (_n != string::npos)
+                temp.erase(_n);
+            auto _r = temp.rfind('\r');
+            if (_r != string::npos)
+                temp.erase(_r);
             return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(conv.from_bytes(temp))), loc);
+        }
     }
     else
         string_buffer += yytext;
@@ -1343,7 +1356,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 136 "newbie++.l"
+#line 149 "newbie++.l"
 {
     string_buffer += yytext;
 }
@@ -1351,7 +1364,7 @@ YY_RULE_SETUP
 case 74:
 /* rule 74 can match eol */
 YY_RULE_SETUP
-#line 139 "newbie++.l"
+#line 152 "newbie++.l"
 {
     loc.lines(yyleng);
     loc.step();
@@ -1360,13 +1373,13 @@ YY_RULE_SETUP
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 144 "newbie++.l"
+#line 157 "newbie++.l"
 ;
 	YY_BREAK
 case 76:
 /* rule 76 can match eol */
 YY_RULE_SETUP
-#line 145 "newbie++.l"
+#line 158 "newbie++.l"
 {
     loc.lines(yyleng);
     loc.step();
@@ -1376,7 +1389,7 @@ YY_RULE_SETUP
 case 77:
 /* rule 77 can match eol */
 YY_RULE_SETUP
-#line 150 "newbie++.l"
+#line 163 "newbie++.l"
 {
     loc.lines(yyleng);
     loc.step();    
@@ -1384,18 +1397,18 @@ YY_RULE_SETUP
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 154 "newbie++.l"
+#line 167 "newbie++.l"
 ;
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 155 "newbie++.l"
+#line 168 "newbie++.l"
 {BEGIN INITIAL;}
 	YY_BREAK
 case 80:
 /* rule 80 can match eol */
 YY_RULE_SETUP
-#line 156 "newbie++.l"
+#line 169 "newbie++.l"
 {
     loc.lines(yyleng);
     loc.step();
@@ -1403,21 +1416,21 @@ YY_RULE_SETUP
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 160 "newbie++.l"
+#line 173 "newbie++.l"
 {
     string_buffer += '\n';
 }
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 163 "newbie++.l"
+#line 176 "newbie++.l"
 {
     string_buffer += '\"';
 }
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 166 "newbie++.l"
+#line 179 "newbie++.l"
 {
     BEGIN INITIAL;
     string temp;
@@ -1434,7 +1447,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 179 "newbie++.l"
+#line 192 "newbie++.l"
 {
     string_buffer += yytext;
 }
@@ -1444,15 +1457,15 @@ case YY_STATE_EOF(LINE_COMMENT):
 case YY_STATE_EOF(BLOCK_COMMENT):
 case YY_STATE_EOF(STRING_LITERAL_STATE):
 case YY_STATE_EOF(HEREDOC):
-#line 182 "newbie++.l"
+#line 195 "newbie++.l"
 return Parser::make_END(loc);
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 183 "newbie++.l"
+#line 196 "newbie++.l"
 ECHO;
 	YY_BREAK
-#line 1455 "Scanner.cpp"
+#line 1468 "Scanner.cpp"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2633,5 +2646,5 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 183 "newbie++.l"
+#line 196 "newbie++.l"
 

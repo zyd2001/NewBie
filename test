@@ -1,10 +1,7 @@
-int result = negten(false);
-__print__ result;
+var str = <<<STR
+asd
+测试\n\n
+test
+>>>STR;
 
-int negten(bool is)
-{
-    if (!is)
-        return -10;
-    else
-        return 10;
-}
+__print__ str;
