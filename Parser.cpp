@@ -255,7 +255,7 @@ namespace zyd2001 { namespace NewBie {
   {
       switch (that.type_get ())
     {
-      case 75: // arguments_list
+      case 76: // arguments_list
         value.move< zyd2001::NewBie::ArgumentsList > (that.value);
         break;
 
@@ -273,10 +273,10 @@ namespace zyd2001 { namespace NewBie {
       case 20: // BOOL_LITERAL
       case 67: // expression
       case 68: // expression_optional
-      case 69: // binary_expression
-      case 70: // unary_expression
-      case 71: // function_call_expression
-      case 72: // primary_expression
+      case 70: // binary_expression
+      case 71: // unary_expression
+      case 72: // function_call_expression
+      case 73: // primary_expression
         value.move< zyd2001::NewBie::Expression > (that.value);
         break;
 
@@ -284,16 +284,17 @@ namespace zyd2001 { namespace NewBie {
         value.move< zyd2001::NewBie::Identifier > (that.value);
         break;
 
-      case 76: // parameter
+      case 77: // parameter
         value.move< zyd2001::NewBie::Parameter > (that.value);
         break;
 
-      case 77: // parameters_list
+      case 78: // parameters_list
         value.move< zyd2001::NewBie::ParametersList > (that.value);
         break;
 
       case 64: // statement
-      case 74: // block
+      case 69: // statement_optional
+      case 75: // block
         value.move< zyd2001::NewBie::Statement > (that.value);
         break;
 
@@ -301,7 +302,7 @@ namespace zyd2001 { namespace NewBie {
         value.move< zyd2001::NewBie::StatementsList > (that.value);
         break;
 
-      case 73: // type_tag
+      case 74: // type_tag
         value.move< zyd2001::NewBie::ValueType > (that.value);
         break;
 
@@ -320,7 +321,7 @@ namespace zyd2001 { namespace NewBie {
     state = that.state;
       switch (that.type_get ())
     {
-      case 75: // arguments_list
+      case 76: // arguments_list
         value.copy< zyd2001::NewBie::ArgumentsList > (that.value);
         break;
 
@@ -338,10 +339,10 @@ namespace zyd2001 { namespace NewBie {
       case 20: // BOOL_LITERAL
       case 67: // expression
       case 68: // expression_optional
-      case 69: // binary_expression
-      case 70: // unary_expression
-      case 71: // function_call_expression
-      case 72: // primary_expression
+      case 70: // binary_expression
+      case 71: // unary_expression
+      case 72: // function_call_expression
+      case 73: // primary_expression
         value.copy< zyd2001::NewBie::Expression > (that.value);
         break;
 
@@ -349,16 +350,17 @@ namespace zyd2001 { namespace NewBie {
         value.copy< zyd2001::NewBie::Identifier > (that.value);
         break;
 
-      case 76: // parameter
+      case 77: // parameter
         value.copy< zyd2001::NewBie::Parameter > (that.value);
         break;
 
-      case 77: // parameters_list
+      case 78: // parameters_list
         value.copy< zyd2001::NewBie::ParametersList > (that.value);
         break;
 
       case 64: // statement
-      case 74: // block
+      case 69: // statement_optional
+      case 75: // block
         value.copy< zyd2001::NewBie::Statement > (that.value);
         break;
 
@@ -366,7 +368,7 @@ namespace zyd2001 { namespace NewBie {
         value.copy< zyd2001::NewBie::StatementsList > (that.value);
         break;
 
-      case 73: // type_tag
+      case 74: // type_tag
         value.copy< zyd2001::NewBie::ValueType > (that.value);
         break;
 
@@ -606,7 +608,7 @@ namespace zyd2001 { namespace NewBie {
          when using variants.  */
         switch (yyr1_[yyn])
     {
-      case 75: // arguments_list
+      case 76: // arguments_list
         yylhs.value.build< zyd2001::NewBie::ArgumentsList > ();
         break;
 
@@ -624,10 +626,10 @@ namespace zyd2001 { namespace NewBie {
       case 20: // BOOL_LITERAL
       case 67: // expression
       case 68: // expression_optional
-      case 69: // binary_expression
-      case 70: // unary_expression
-      case 71: // function_call_expression
-      case 72: // primary_expression
+      case 70: // binary_expression
+      case 71: // unary_expression
+      case 72: // function_call_expression
+      case 73: // primary_expression
         yylhs.value.build< zyd2001::NewBie::Expression > ();
         break;
 
@@ -635,16 +637,17 @@ namespace zyd2001 { namespace NewBie {
         yylhs.value.build< zyd2001::NewBie::Identifier > ();
         break;
 
-      case 76: // parameter
+      case 77: // parameter
         yylhs.value.build< zyd2001::NewBie::Parameter > ();
         break;
 
-      case 77: // parameters_list
+      case 78: // parameters_list
         yylhs.value.build< zyd2001::NewBie::ParametersList > ();
         break;
 
       case 64: // statement
-      case 74: // block
+      case 69: // statement_optional
+      case 75: // block
         yylhs.value.build< zyd2001::NewBie::Statement > ();
         break;
 
@@ -652,7 +655,7 @@ namespace zyd2001 { namespace NewBie {
         yylhs.value.build< zyd2001::NewBie::StatementsList > ();
         break;
 
-      case 73: // type_tag
+      case 74: // type_tag
         yylhs.value.build< zyd2001::NewBie::ValueType > ();
         break;
 
@@ -761,7 +764,7 @@ namespace zyd2001 { namespace NewBie {
   case 12:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(FOR_STATEMENT, new (ForStatement){yystack_[6].value.as< zyd2001::NewBie::Expression > (), yystack_[4].value.as< zyd2001::NewBie::Expression > (), yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Statement > ()}, yyget_lineno(scanner));
+            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(FOR_STATEMENT, new (ForStatement){yystack_[6].value.as< zyd2001::NewBie::Statement > (), yystack_[4].value.as< zyd2001::NewBie::Expression > (), yystack_[2].value.as< zyd2001::NewBie::Statement > (), yystack_[0].value.as< zyd2001::NewBie::Statement > ()}, yyget_lineno(scanner));
         }
 
     break;
@@ -909,10 +912,18 @@ namespace zyd2001 { namespace NewBie {
 
     break;
 
+  case 30:
+
+    {
+            yylhs.value.as< zyd2001::NewBie::Expression > () = yystack_[0].value.as< zyd2001::NewBie::Expression > ();
+        }
+
+    break;
+
   case 31:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){ADD, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement();
         }
 
     break;
@@ -920,7 +931,7 @@ namespace zyd2001 { namespace NewBie {
   case 32:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){SUB, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(EXPRESSION_STATEMENT, new ExpressionStatement(yystack_[0].value.as< zyd2001::NewBie::Expression > ()), yyget_lineno(scanner));
         }
 
     break;
@@ -928,7 +939,7 @@ namespace zyd2001 { namespace NewBie {
   case 33:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){MUL, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){std::move(yystack_[2].value.as< zyd2001::NewBie::Identifier > ()), yystack_[0].value.as< zyd2001::NewBie::Expression > ()}, yyget_lineno(scanner));
         }
 
     break;
@@ -936,7 +947,7 @@ namespace zyd2001 { namespace NewBie {
   case 34:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){DIV, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){std::move(yystack_[1].value.as< zyd2001::NewBie::ValueType > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::DeclarationStatementItemList > ()), false}, yyget_lineno(scanner));
         }
 
     break;
@@ -944,7 +955,7 @@ namespace zyd2001 { namespace NewBie {
   case 35:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){MOD, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){std::move(yystack_[1].value.as< zyd2001::NewBie::ValueType > ()), std::move(yystack_[0].value.as< zyd2001::NewBie::DeclarationStatementItemList > ()), true}, yyget_lineno(scanner));
         }
 
     break;
@@ -952,7 +963,7 @@ namespace zyd2001 { namespace NewBie {
   case 36:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){EQ, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){ADD, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -960,7 +971,7 @@ namespace zyd2001 { namespace NewBie {
   case 37:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){NE, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){SUB, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -968,7 +979,7 @@ namespace zyd2001 { namespace NewBie {
   case 38:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){GT, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){MUL, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -976,7 +987,7 @@ namespace zyd2001 { namespace NewBie {
   case 39:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){GE, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){DIV, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -984,7 +995,7 @@ namespace zyd2001 { namespace NewBie {
   case 40:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){LT, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){MOD, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -992,7 +1003,7 @@ namespace zyd2001 { namespace NewBie {
   case 41:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){LE, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){EQ, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -1000,7 +1011,7 @@ namespace zyd2001 { namespace NewBie {
   case 42:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){AND, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){NE, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -1008,7 +1019,7 @@ namespace zyd2001 { namespace NewBie {
   case 43:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){OR, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){GT, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -1016,7 +1027,7 @@ namespace zyd2001 { namespace NewBie {
   case 44:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(UNARY_EXPRESSION, new (UnaryExpression){MINUS, yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){GE, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -1024,7 +1035,7 @@ namespace zyd2001 { namespace NewBie {
   case 45:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(UNARY_EXPRESSION, new (UnaryExpression){NOT, yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){LT, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -1032,7 +1043,7 @@ namespace zyd2001 { namespace NewBie {
   case 46:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(FUNCTION_CALL_EXPRESSION, new (FunctionCallExpression){yystack_[3].value.as< zyd2001::NewBie::Identifier > (), yystack_[1].value.as< zyd2001::NewBie::ArgumentsList > ()});
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){LE, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -1040,7 +1051,7 @@ namespace zyd2001 { namespace NewBie {
   case 47:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = yystack_[0].value.as< zyd2001::NewBie::Expression > ();
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){AND, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -1048,7 +1059,7 @@ namespace zyd2001 { namespace NewBie {
   case 48:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = yystack_[0].value.as< zyd2001::NewBie::Expression > ();
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(BINARY_EXPRESSION, new (BinaryExpression){OR, yystack_[2].value.as< zyd2001::NewBie::Expression > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -1056,7 +1067,7 @@ namespace zyd2001 { namespace NewBie {
   case 49:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = yystack_[0].value.as< zyd2001::NewBie::Expression > ();
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(UNARY_EXPRESSION, new (UnaryExpression){MINUS, yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -1064,7 +1075,7 @@ namespace zyd2001 { namespace NewBie {
   case 50:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Expression > () = yystack_[0].value.as< zyd2001::NewBie::Expression > ();
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(UNARY_EXPRESSION, new (UnaryExpression){NOT, yystack_[0].value.as< zyd2001::NewBie::Expression > ()});
         }
 
     break;
@@ -1072,7 +1083,7 @@ namespace zyd2001 { namespace NewBie {
   case 51:
 
     {
-            yylhs.value.as< zyd2001::NewBie::ValueType > () = INT_TYPE;
+            yylhs.value.as< zyd2001::NewBie::Expression > () = Expression(FUNCTION_CALL_EXPRESSION, new (FunctionCallExpression){yystack_[3].value.as< zyd2001::NewBie::Identifier > (), yystack_[1].value.as< zyd2001::NewBie::ArgumentsList > ()});
         }
 
     break;
@@ -1080,7 +1091,7 @@ namespace zyd2001 { namespace NewBie {
   case 52:
 
     {
-            yylhs.value.as< zyd2001::NewBie::ValueType > () = DOUBLE_TYPE;
+            yylhs.value.as< zyd2001::NewBie::Expression > () = yystack_[0].value.as< zyd2001::NewBie::Expression > ();
         }
 
     break;
@@ -1088,7 +1099,7 @@ namespace zyd2001 { namespace NewBie {
   case 53:
 
     {
-            yylhs.value.as< zyd2001::NewBie::ValueType > () = BOOL_TYPE;
+            yylhs.value.as< zyd2001::NewBie::Expression > () = yystack_[0].value.as< zyd2001::NewBie::Expression > ();
         }
 
     break;
@@ -1096,7 +1107,7 @@ namespace zyd2001 { namespace NewBie {
   case 54:
 
     {
-            yylhs.value.as< zyd2001::NewBie::ValueType > () = STRING_TYPE;
+            yylhs.value.as< zyd2001::NewBie::Expression > () = yystack_[0].value.as< zyd2001::NewBie::Expression > ();
         }
 
     break;
@@ -1104,7 +1115,7 @@ namespace zyd2001 { namespace NewBie {
   case 55:
 
     {
-            yylhs.value.as< zyd2001::NewBie::ValueType > () = ARRAY_TYPE;
+            yylhs.value.as< zyd2001::NewBie::Expression > () = yystack_[0].value.as< zyd2001::NewBie::Expression > ();
         }
 
     break;
@@ -1112,7 +1123,7 @@ namespace zyd2001 { namespace NewBie {
   case 56:
 
     {
-            yylhs.value.as< zyd2001::NewBie::ValueType > () = VARIOUS_TYPE;
+            yylhs.value.as< zyd2001::NewBie::ValueType > () = INT_TYPE;
         }
 
     break;
@@ -1120,7 +1131,7 @@ namespace zyd2001 { namespace NewBie {
   case 57:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(BLOCK_STATEMENT, new BlockStatement(std::move(yystack_[1].value.as< zyd2001::NewBie::StatementsList > ())), yyget_lineno(scanner));
+            yylhs.value.as< zyd2001::NewBie::ValueType > () = DOUBLE_TYPE;
         }
 
     break;
@@ -1128,7 +1139,7 @@ namespace zyd2001 { namespace NewBie {
   case 58:
 
     {
-            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(BLOCK_STATEMENT, new BlockStatement(), yyget_lineno(scanner));
+            yylhs.value.as< zyd2001::NewBie::ValueType > () = BOOL_TYPE;
         }
 
     break;
@@ -1136,7 +1147,7 @@ namespace zyd2001 { namespace NewBie {
   case 59:
 
     {
-            yylhs.value.as< zyd2001::NewBie::ArgumentsList > ();
+            yylhs.value.as< zyd2001::NewBie::ValueType > () = STRING_TYPE;
         }
 
     break;
@@ -1144,12 +1155,52 @@ namespace zyd2001 { namespace NewBie {
   case 60:
 
     {
-            yylhs.value.as< zyd2001::NewBie::ArgumentsList > ().emplace_back(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
+            yylhs.value.as< zyd2001::NewBie::ValueType > () = ARRAY_TYPE;
         }
 
     break;
 
   case 61:
+
+    {
+            yylhs.value.as< zyd2001::NewBie::ValueType > () = VARIOUS_TYPE;
+        }
+
+    break;
+
+  case 62:
+
+    {
+            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(BLOCK_STATEMENT, new BlockStatement(std::move(yystack_[1].value.as< zyd2001::NewBie::StatementsList > ())), yyget_lineno(scanner));
+        }
+
+    break;
+
+  case 63:
+
+    {
+            yylhs.value.as< zyd2001::NewBie::Statement > () = Statement(BLOCK_STATEMENT, new BlockStatement(), yyget_lineno(scanner));
+        }
+
+    break;
+
+  case 64:
+
+    {
+            yylhs.value.as< zyd2001::NewBie::ArgumentsList > ();
+        }
+
+    break;
+
+  case 65:
+
+    {
+            yylhs.value.as< zyd2001::NewBie::ArgumentsList > ().emplace_back(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
+        }
+
+    break;
+
+  case 66:
 
     {
             yystack_[2].value.as< zyd2001::NewBie::ArgumentsList > ().emplace_back(yystack_[0].value.as< zyd2001::NewBie::Expression > ());
@@ -1158,7 +1209,7 @@ namespace zyd2001 { namespace NewBie {
 
     break;
 
-  case 62:
+  case 67:
 
     {
             yylhs.value.as< zyd2001::NewBie::Parameter > () = {yystack_[1].value.as< zyd2001::NewBie::ValueType > (), yystack_[0].value.as< zyd2001::NewBie::Identifier > ()};
@@ -1166,7 +1217,7 @@ namespace zyd2001 { namespace NewBie {
 
     break;
 
-  case 63:
+  case 68:
 
     {
             yylhs.value.as< zyd2001::NewBie::Parameter > () = {yystack_[2].value.as< zyd2001::NewBie::ValueType > (), yystack_[1].value.as< zyd2001::NewBie::Identifier > (), yystack_[0].value.as< zyd2001::NewBie::Expression > ()};
@@ -1174,7 +1225,7 @@ namespace zyd2001 { namespace NewBie {
 
     break;
 
-  case 64:
+  case 69:
 
     {
             yylhs.value.as< zyd2001::NewBie::ParametersList > ();
@@ -1182,7 +1233,7 @@ namespace zyd2001 { namespace NewBie {
 
     break;
 
-  case 65:
+  case 70:
 
     {
             yylhs.value.as< zyd2001::NewBie::ParametersList > ().emplace_back(std::move(yystack_[0].value.as< zyd2001::NewBie::Parameter > ()));
@@ -1190,7 +1241,7 @@ namespace zyd2001 { namespace NewBie {
 
     break;
 
-  case 66:
+  case 71:
 
     {
             yystack_[2].value.as< zyd2001::NewBie::ParametersList > ().emplace_back(std::move(yystack_[0].value.as< zyd2001::NewBie::Parameter > ()));
@@ -1455,154 +1506,164 @@ namespace zyd2001 { namespace NewBie {
   }
 
 
-  const signed char Parser::yypact_ninf_ = -106;
+  const signed char Parser::yypact_ninf_ = -37;
 
   const signed char Parser::yytable_ninf_ = -1;
 
   const short int
   Parser::yypact_[] =
   {
-     236,     6,  -106,  -106,  -106,  -106,   -33,  -106,  -106,  -106,
-    -106,  -106,  -106,     7,   -27,   236,   -19,   -17,     6,   -16,
-      -6,     6,   148,     6,    19,    43,   104,  -106,    64,  -106,
-    -106,  -106,  -106,    65,  -106,    50,  -106,     6,     6,    68,
-       6,  -106,     6,     6,   294,  -106,  -106,   320,  -106,   192,
-    -106,    46,  -106,  -106,  -106,     6,     6,     6,     6,     6,
-       6,     6,     6,     6,     6,     6,     6,     6,  -106,   -32,
-    -106,   -37,   407,   -35,   307,    45,    40,   357,   370,   407,
-      51,  -106,  -106,  -106,  -106,   279,   279,    34,    34,    34,
-      34,    34,    34,    37,    37,  -106,  -106,  -106,     7,     6,
-    -106,    68,  -106,     6,  -106,  -106,   236,   236,     6,    73,
-    -106,   -30,   407,  -106,   407,  -106,  -106,    52,    63,    57,
-       7,     6,  -106,  -106,  -106,    60,   236,  -106
+     245,     6,   -37,   -37,   -37,   -37,   -33,   -37,   -37,   -37,
+     -37,   -37,   -37,   132,   -30,   245,   -29,   -27,     6,   -28,
+     -25,     6,   157,     6,     0,    33,   113,   -37,   303,   -37,
+     -37,   -37,   -37,    17,   -37,     5,   -37,     6,     6,    49,
+       6,   -37,     6,    60,   316,   -37,   -37,   371,   -37,   201,
+     -37,    27,   -37,   -37,   -37,     6,     6,     6,     6,     6,
+       6,     6,     6,     6,     6,     6,     6,     6,   -37,   -32,
+     -37,     1,   434,   -35,   329,    28,    23,   384,   421,   -31,
+     132,   434,    29,    49,   -37,   -37,   -37,   -37,   288,   288,
+      37,    37,    37,    37,    37,    37,    78,    78,   -37,   -37,
+     -37,   132,     6,   -37,    49,   -37,     6,   -37,   -37,   245,
+     245,     6,    49,     6,    30,    68,   -37,    -5,   434,   -37,
+     434,   -37,   -37,   434,    30,   434,    50,    11,    57,   132,
+      60,   -37,   -37,   -37,    61,   245,   -37
   };
 
   const unsigned char
   Parser::yydefact_[] =
   {
-       0,     0,    47,    49,    48,    50,    27,    51,    52,    53,
-      54,    55,    56,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,    52,    54,    53,    55,    27,    56,    57,    58,
+      59,    60,    61,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     3,     0,    23,
-      24,    26,    25,     0,    17,    27,    44,    59,     0,     0,
-       0,    10,     0,    29,     0,    15,    14,     0,    58,     0,
-      45,     0,     1,     2,     4,     0,     0,     0,     0,     0,
+      24,    26,    25,     0,    17,    27,    49,    64,     0,     0,
+       0,    10,     0,    31,     0,    15,    14,     0,    63,     0,
+      50,     0,     1,     2,     4,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     5,    19,
-      21,     0,    60,     0,     0,    19,     0,     0,     0,    30,
-       0,    13,    28,    57,    18,    42,    43,    36,    37,    38,
-      39,    40,    41,    31,    32,    33,    34,    35,    64,     0,
-       7,     0,    46,     0,     6,     8,     0,     0,    29,     0,
-      65,     0,    20,    22,    61,     9,    11,     0,    62,     0,
-       0,    29,    63,    16,    66,     0,     0,    12
+      21,     0,    65,     0,     0,    19,     0,     0,     0,    27,
+       0,    32,     0,     0,    13,    28,    62,    18,    47,    48,
+      41,    42,    43,    44,    45,    46,    36,    37,    38,    39,
+      40,    69,     0,     7,     0,    51,     0,     6,     8,     0,
+       0,     0,     0,    29,    34,     0,    70,     0,    20,    22,
+      66,     9,    11,    33,    35,    30,     0,    67,     0,     0,
+      31,    68,    16,    71,     0,     0,    12
   };
 
   const signed char
   Parser::yypgoto_[] =
   {
-    -106,  -106,    78,   -14,     0,    66,    -1,  -105,  -106,  -106,
-    -106,   -15,   -11,   -13,  -106,   -10,  -106
+     -37,   -37,    77,   -14,    -2,   -36,    -1,   -37,   -26,   -37,
+     -37,   -37,   -24,   -11,   -22,   -37,   -21,   -37
   };
 
   const signed char
   Parser::yydefgoto_[] =
   {
-      -1,    25,    26,    27,    70,    71,    28,    80,    29,    30,
-      31,    32,    33,    34,    73,   110,   111
+      -1,    25,    26,    27,    70,    71,    28,   126,    82,    29,
+      30,    31,    32,    33,    34,    73,   116,   117
   };
 
   const unsigned char
   Parser::yytable_[] =
   {
-      36,    41,    39,   117,   102,    37,    98,   100,   101,   119,
-     103,    40,    54,    38,    99,   120,   125,    44,     1,    42,
-      47,    43,    50,     2,     3,     4,     5,    35,    45,     7,
-       8,     9,    10,    11,    12,    54,    72,    74,    46,    77,
-      51,    78,    79,    52,    21,    63,    64,    65,    66,    67,
-      65,    66,    67,    23,    85,    86,    87,    88,    89,    90,
-      91,    92,    93,    94,    95,    96,    97,    55,    56,    57,
-      58,    59,    60,    61,    62,    63,    64,    65,    66,    67,
-       2,     3,     4,     5,   105,   101,    69,   109,    37,    75,
-      84,    99,   115,   116,   118,   108,   121,    22,   112,   126,
-      49,   113,   114,   122,    53,    76,   123,    79,    68,   109,
-     124,     0,   127,     0,     0,     0,     1,     0,     0,     0,
-      79,     2,     3,     4,     5,     6,     7,     8,     9,    10,
-      11,    12,    13,    14,    15,    16,    17,     0,     0,    18,
-      19,    20,    21,     0,    22,     0,     0,     0,     0,     0,
-       0,    23,     0,     0,     0,     0,     0,     0,     0,     0,
-       1,     0,     0,     0,    24,     2,     3,     4,     5,     6,
-       7,     8,     9,    10,    11,    12,    13,    14,    15,    16,
-      17,     0,     0,    18,    19,    20,    21,     0,    22,    48,
-       0,     0,     0,     0,     0,    23,     0,     0,     0,     0,
-       0,     0,     0,     0,     1,     0,     0,     0,    24,     2,
-       3,     4,     5,     6,     7,     8,     9,    10,    11,    12,
-      13,    14,    15,    16,    17,     0,     0,    18,    19,    20,
-      21,     0,    22,    83,     0,     0,     0,     0,     0,    23,
-       0,     0,     0,     0,     0,     0,     0,     0,     1,     0,
-       0,     0,    24,     2,     3,     4,     5,     6,     7,     8,
-       9,    10,    11,    12,    13,    14,    15,    16,    17,     0,
-       0,    18,    19,    20,    21,     0,    22,     0,     0,     0,
-       0,     0,     0,    23,    57,    58,    59,    60,    61,    62,
-      63,    64,    65,    66,    67,     0,    24,    55,    56,    57,
-      58,    59,    60,    61,    62,    63,    64,    65,    66,    67,
-      55,    56,    57,    58,    59,    60,    61,    62,    63,    64,
-      65,    66,    67,    55,    56,    57,    58,    59,    60,    61,
-      62,    63,    64,    65,    66,    67,     0,     0,    81,     0,
+      36,    41,    39,    76,   105,    37,   101,    37,    40,    42,
+     106,    43,    54,    38,   102,   111,    45,    44,     1,    46,
+      47,    51,    50,     2,     3,     4,     5,    35,     2,     3,
+       4,     5,    83,    52,   128,    54,    72,    74,    69,    77,
+     129,    78,    81,    37,    21,   103,   104,   114,    63,    64,
+      65,    66,    67,    23,    88,    89,    90,    91,    92,    93,
+      94,    95,    96,    97,    98,    99,   100,   108,   104,   112,
+      75,    87,     1,   113,   102,   104,   124,     2,     3,     4,
+       5,    79,     7,     8,     9,    10,    11,    12,    80,   127,
+     115,    65,    66,    67,   130,   121,   122,    22,    21,    49,
+     135,   118,   119,   131,   134,   120,   132,    23,   133,     0,
+     123,     0,   125,    53,     0,     0,     0,     0,   115,    83,
+       0,   136,     0,     0,     0,     1,     0,     0,     0,    81,
+       2,     3,     4,     5,     6,     7,     8,     9,    10,    11,
+      12,    13,    14,    15,    16,    17,     0,     0,    18,    19,
+      20,    21,     0,    22,     7,     8,     9,    10,    11,    12,
+      23,     0,     0,     0,     0,     0,     0,     0,     0,     1,
+       0,     0,     0,    24,     2,     3,     4,     5,     6,     7,
+       8,     9,    10,    11,    12,    13,    14,    15,    16,    17,
+       0,     0,    18,    19,    20,    21,     0,    22,    48,     0,
+       0,     0,     0,     0,    23,     0,     0,     0,     0,     0,
+       0,     0,     0,     1,     0,     0,     0,    24,     2,     3,
+       4,     5,     6,     7,     8,     9,    10,    11,    12,    13,
+      14,    15,    16,    17,     0,     0,    18,    19,    20,    21,
+       0,    22,    86,     0,     0,     0,     0,     0,    23,     0,
+       0,     0,     0,     0,     0,     0,     0,     1,     0,     0,
+       0,    24,     2,     3,     4,     5,     6,     7,     8,     9,
+      10,    11,    12,    13,    14,    15,    16,    17,     0,     0,
+      18,    19,    20,    21,     0,    22,     0,     0,     0,     0,
+       0,     0,    23,    57,    58,    59,    60,    61,    62,    63,
+      64,    65,    66,    67,     0,    24,    55,    56,    57,    58,
+      59,    60,    61,    62,    63,    64,    65,    66,    67,    55,
+      56,    57,    58,    59,    60,    61,    62,    63,    64,    65,
+      66,    67,    55,    56,    57,    58,    59,    60,    61,    62,
+      63,    64,    65,    66,    67,     0,     0,    68,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,   104,     0,     0,     0,     0,     0,     0,     0,    82,
-      55,    56,    57,    58,    59,    60,    61,    62,    63,    64,
-      65,    66,    67,    55,    56,    57,    58,    59,    60,    61,
-      62,    63,    64,    65,    66,    67,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,   106,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,     0,   107,
-      55,    56,    57,    58,    59,    60,    61,    62,    63,    64,
-      65,    66,    67
+      84,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,   107,    55,    56,    57,    58,    59,    60,
+      61,    62,    63,    64,    65,    66,    67,    55,    56,    57,
+      58,    59,    60,    61,    62,    63,    64,    65,    66,    67,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+      85,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,   109,    55,    56,    57,    58,    59,    60,
+      61,    62,    63,    64,    65,    66,    67,    55,    56,    57,
+      58,    59,    60,    61,    62,    63,    64,    65,    66,    67,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+     110
   };
 
-  const signed char
+  const short int
   Parser::yycheck_[] =
   {
-       1,    15,    13,   108,    39,    38,    38,    44,    45,    39,
-      45,    38,    26,    46,    46,    45,   121,    18,    12,    38,
-      21,    38,    23,    17,    18,    19,    20,    21,    44,    22,
-      23,    24,    25,    26,    27,    49,    37,    38,    44,    40,
-      21,    42,    43,     0,    38,    11,    12,    13,    14,    15,
+       1,    15,    13,    39,    39,    38,    38,    38,    38,    38,
+      45,    38,    26,    46,    46,    46,    44,    18,    12,    44,
+      21,    21,    23,    17,    18,    19,    20,    21,    17,    18,
+      19,    20,    43,     0,    39,    49,    37,    38,    21,    40,
+      45,    42,    43,    38,    38,    44,    45,    83,    11,    12,
       13,    14,    15,    47,    55,    56,    57,    58,    59,    60,
-      61,    62,    63,    64,    65,    66,    67,     3,     4,     5,
-       6,     7,     8,     9,    10,    11,    12,    13,    14,    15,
-      17,    18,    19,    20,    44,    45,    21,    98,    38,    21,
-      44,    46,   106,   107,    21,    44,    44,    40,    99,    39,
-      22,   101,   103,   118,     0,    39,   119,   108,    44,   120,
-     120,    -1,   126,    -1,    -1,    -1,    12,    -1,    -1,    -1,
-     121,    17,    18,    19,    20,    21,    22,    23,    24,    25,
-      26,    27,    28,    29,    30,    31,    32,    -1,    -1,    35,
-      36,    37,    38,    -1,    40,    -1,    -1,    -1,    -1,    -1,
-      -1,    47,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
-      12,    -1,    -1,    -1,    60,    17,    18,    19,    20,    21,
-      22,    23,    24,    25,    26,    27,    28,    29,    30,    31,
-      32,    -1,    -1,    35,    36,    37,    38,    -1,    40,    41,
-      -1,    -1,    -1,    -1,    -1,    47,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    12,    -1,    -1,    -1,    60,    17,
-      18,    19,    20,    21,    22,    23,    24,    25,    26,    27,
-      28,    29,    30,    31,    32,    -1,    -1,    35,    36,    37,
-      38,    -1,    40,    41,    -1,    -1,    -1,    -1,    -1,    47,
-      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    12,    -1,
-      -1,    -1,    60,    17,    18,    19,    20,    21,    22,    23,
-      24,    25,    26,    27,    28,    29,    30,    31,    32,    -1,
-      -1,    35,    36,    37,    38,    -1,    40,    -1,    -1,    -1,
-      -1,    -1,    -1,    47,     5,     6,     7,     8,     9,    10,
-      11,    12,    13,    14,    15,    -1,    60,     3,     4,     5,
-       6,     7,     8,     9,    10,    11,    12,    13,    14,    15,
-       3,     4,     5,     6,     7,     8,     9,    10,    11,    12,
-      13,    14,    15,     3,     4,     5,     6,     7,     8,     9,
-      10,    11,    12,    13,    14,    15,    -1,    -1,    44,    -1,
+      61,    62,    63,    64,    65,    66,    67,    44,    45,    80,
+      21,    44,    12,    44,    46,    45,   112,    17,    18,    19,
+      20,    21,    22,    23,    24,    25,    26,    27,    28,    21,
+     101,    13,    14,    15,    44,   109,   110,    40,    38,    22,
+      39,   102,   104,   127,   130,   106,   128,    47,   129,    -1,
+     111,    -1,   113,     0,    -1,    -1,    -1,    -1,   129,   130,
+      -1,   135,    -1,    -1,    -1,    12,    -1,    -1,    -1,   130,
+      17,    18,    19,    20,    21,    22,    23,    24,    25,    26,
+      27,    28,    29,    30,    31,    32,    -1,    -1,    35,    36,
+      37,    38,    -1,    40,    22,    23,    24,    25,    26,    27,
+      47,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    12,
+      -1,    -1,    -1,    60,    17,    18,    19,    20,    21,    22,
+      23,    24,    25,    26,    27,    28,    29,    30,    31,    32,
+      -1,    -1,    35,    36,    37,    38,    -1,    40,    41,    -1,
+      -1,    -1,    -1,    -1,    47,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    12,    -1,    -1,    -1,    60,    17,    18,
+      19,    20,    21,    22,    23,    24,    25,    26,    27,    28,
+      29,    30,    31,    32,    -1,    -1,    35,    36,    37,    38,
+      -1,    40,    41,    -1,    -1,    -1,    -1,    -1,    47,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    12,    -1,    -1,
+      -1,    60,    17,    18,    19,    20,    21,    22,    23,    24,
+      25,    26,    27,    28,    29,    30,    31,    32,    -1,    -1,
+      35,    36,    37,    38,    -1,    40,    -1,    -1,    -1,    -1,
+      -1,    -1,    47,     5,     6,     7,     8,     9,    10,    11,
+      12,    13,    14,    15,    -1,    60,     3,     4,     5,     6,
+       7,     8,     9,    10,    11,    12,    13,    14,    15,     3,
+       4,     5,     6,     7,     8,     9,    10,    11,    12,    13,
+      14,    15,     3,     4,     5,     6,     7,     8,     9,    10,
+      11,    12,    13,    14,    15,    -1,    -1,    44,    -1,    -1,
       -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
-      -1,    44,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    39,
-       3,     4,     5,     6,     7,     8,     9,    10,    11,    12,
-      13,    14,    15,     3,     4,     5,     6,     7,     8,     9,
-      10,    11,    12,    13,    14,    15,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    -1,    -1,    39,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    39,
-       3,     4,     5,     6,     7,     8,     9,    10,    11,    12,
-      13,    14,    15
+      44,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    44,     3,     4,     5,     6,     7,     8,
+       9,    10,    11,    12,    13,    14,    15,     3,     4,     5,
+       6,     7,     8,     9,    10,    11,    12,    13,    14,    15,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      39,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    39,     3,     4,     5,     6,     7,     8,
+       9,    10,    11,    12,    13,    14,    15,     3,     4,     5,
+       6,     7,     8,     9,    10,    11,    12,    13,    14,    15,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      39
   };
 
   const unsigned char
@@ -1610,17 +1671,18 @@ namespace zyd2001 { namespace NewBie {
   {
        0,    12,    17,    18,    19,    20,    21,    22,    23,    24,
       25,    26,    27,    28,    29,    30,    31,    32,    35,    36,
-      37,    38,    40,    47,    60,    62,    63,    64,    67,    69,
-      70,    71,    72,    73,    74,    21,    67,    38,    46,    73,
+      37,    38,    40,    47,    60,    62,    63,    64,    67,    70,
+      71,    72,    73,    74,    75,    21,    67,    38,    46,    74,
       38,    64,    38,    38,    67,    44,    44,    67,    41,    63,
       67,    21,     0,     0,    64,     3,     4,     5,     6,     7,
        8,     9,    10,    11,    12,    13,    14,    15,    44,    21,
-      65,    66,    67,    75,    67,    21,    66,    67,    67,    67,
-      68,    44,    39,    41,    44,    67,    67,    67,    67,    67,
-      67,    67,    67,    67,    67,    67,    67,    67,    38,    46,
-      44,    45,    39,    45,    44,    44,    39,    39,    44,    73,
-      76,    77,    67,    65,    67,    64,    64,    68,    21,    39,
-      45,    44,    72,    74,    76,    68,    39,    64
+      65,    66,    67,    76,    67,    21,    66,    67,    67,    21,
+      28,    67,    69,    74,    44,    39,    41,    44,    67,    67,
+      67,    67,    67,    67,    67,    67,    67,    67,    67,    67,
+      67,    38,    46,    44,    45,    39,    45,    44,    44,    39,
+      39,    46,    74,    44,    66,    74,    77,    78,    67,    65,
+      67,    64,    64,    67,    66,    67,    68,    21,    39,    45,
+      44,    73,    75,    77,    69,    39,    64
   };
 
   const unsigned char
@@ -1629,10 +1691,11 @@ namespace zyd2001 { namespace NewBie {
        0,    61,    62,    63,    63,    64,    64,    64,    64,    64,
       64,    64,    64,    64,    64,    64,    64,    64,    64,    65,
       65,    66,    66,    67,    67,    67,    67,    67,    67,    68,
-      68,    69,    69,    69,    69,    69,    69,    69,    69,    69,
-      69,    69,    69,    69,    70,    70,    71,    72,    72,    72,
-      72,    73,    73,    73,    73,    73,    73,    74,    74,    75,
-      75,    75,    76,    76,    77,    77,    77
+      68,    69,    69,    69,    69,    69,    70,    70,    70,    70,
+      70,    70,    70,    70,    70,    70,    70,    70,    70,    71,
+      71,    72,    73,    73,    73,    73,    74,    74,    74,    74,
+      74,    74,    75,    75,    76,    76,    76,    77,    77,    78,
+      78,    78
   };
 
   const unsigned char
@@ -1641,10 +1704,11 @@ namespace zyd2001 { namespace NewBie {
        0,     2,     2,     1,     2,     2,     4,     3,     4,     5,
        2,     5,     9,     3,     2,     2,     6,     1,     3,     1,
        3,     1,     3,     1,     1,     1,     1,     1,     3,     0,
-       1,     3,     3,     3,     3,     3,     3,     3,     3,     3,
-       3,     3,     3,     3,     2,     2,     4,     1,     1,     1,
-       1,     1,     1,     1,     1,     1,     1,     3,     2,     0,
-       1,     3,     2,     3,     0,     1,     3
+       1,     0,     1,     3,     2,     3,     3,     3,     3,     3,
+       3,     3,     3,     3,     3,     3,     3,     3,     3,     2,
+       2,     4,     1,     1,     1,     1,     1,     1,     1,     1,
+       1,     1,     3,     2,     0,     1,     3,     2,     3,     0,
+       1,     3
   };
 
 
@@ -1665,9 +1729,9 @@ namespace zyd2001 { namespace NewBie {
   "PUBLIC", "PROTECTED", "PRIVATE", "REVERSE", "PRINT", "$accept", "eof",
   "statements_list", "statement", "declaration_item",
   "declaration_item_list", "expression", "expression_optional",
-  "binary_expression", "unary_expression", "function_call_expression",
-  "primary_expression", "type_tag", "block", "arguments_list", "parameter",
-  "parameters_list", YY_NULLPTR
+  "statement_optional", "binary_expression", "unary_expression",
+  "function_call_expression", "primary_expression", "type_tag", "block",
+  "arguments_list", "parameter", "parameters_list", YY_NULLPTR
   };
 
 #if YYDEBUG
@@ -1677,10 +1741,11 @@ namespace zyd2001 { namespace NewBie {
        0,    60,    60,    65,    69,    75,    79,    83,    87,    91,
       96,   101,   107,   111,   115,   119,   123,   133,   137,   142,
      146,   151,   155,   161,   165,   169,   173,   177,   181,   187,
-     190,   192,   196,   200,   204,   208,   212,   216,   220,   224,
-     228,   232,   236,   240,   245,   249,   254,   259,   263,   267,
-     271,   286,   290,   294,   298,   302,   306,   311,   315,   321,
-     324,   328,   334,   338,   344,   347,   351
+     190,   196,   199,   203,   207,   211,   216,   220,   224,   228,
+     232,   236,   240,   244,   248,   252,   256,   260,   264,   269,
+     273,   278,   283,   287,   291,   295,   310,   314,   318,   322,
+     326,   330,   335,   339,   345,   348,   352,   358,   362,   368,
+     371,   375
   };
 
   // Print the state stack on the debug stream.

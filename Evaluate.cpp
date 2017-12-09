@@ -128,13 +128,14 @@ Value InterpreterImp::evaluate(const Expression &e)
                     }
                     variables_stack.push(vector<VariablesMap>());
                     variables_stack.top().push_back(VariablesMap());
-                    VariablesMap vmap = variables_stack.top().back();
                     for (auto &s : temp_slist)
                     {
-                        execute(s, false, false);
+                        execute(s);
                     }
 
-                    execute(func.body, true, false);
+                    interpret(func.body.get<BlockStatement>());
+                    variables_stack.pop();
+
                     return temp_variable;
                 }
             }

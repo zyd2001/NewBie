@@ -1,12 +1,28 @@
-var a = 55;
-if (a == 55)
+var a = 45;
+for (a = 0; a < 55; a = a + 1)
 {
-    a = "asd";
-    print(a);
+    __print__ a;
+    if (a == 54)
+    {
+        break;
+    }
 }
+print(a);
+__print__ a;
 
 int print(var v)
 {
-    __print__ v;
-    return 1;
+    if (v < 10)
+    {
+        string str = "";
+        __print__ str;
+        __print__ v;
+        return 1;
+    }
+    else
+    {
+        v = 100;
+        return -1111111;
+        __print__ v;
+    }
 }

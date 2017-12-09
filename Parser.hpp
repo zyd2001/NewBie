@@ -300,6 +300,7 @@ namespace zyd2001 { namespace NewBie {
       char dummy7[sizeof(zyd2001::NewBie::ParametersList)];
 
       // statement
+      // statement_optional
       // block
       char dummy8[sizeof(zyd2001::NewBie::Statement)];
 
@@ -834,7 +835,7 @@ namespace zyd2001 { namespace NewBie {
   // number is the opposite.  If YYTABLE_NINF, syntax error.
   static const unsigned char yytable_[];
 
-  static const signed char yycheck_[];
+  static const short int yycheck_[];
 
   // YYSTOS[STATE-NUM] -- The (internal number of the) accessing
   // symbol of state STATE-NUM.
@@ -954,8 +955,8 @@ namespace zyd2001 { namespace NewBie {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 422,     ///< Last index in yytable_.
-      yynnts_ = 17,  ///< Number of nonterminal symbols.
+      yylast_ = 460,     ///< Last index in yytable_.
+      yynnts_ = 18,  ///< Number of nonterminal symbols.
       yyfinal_ = 52, ///< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
@@ -1043,7 +1044,7 @@ namespace zyd2001 { namespace NewBie {
   {
       switch (other.type_get ())
     {
-      case 75: // arguments_list
+      case 76: // arguments_list
         value.copy< zyd2001::NewBie::ArgumentsList > (other.value);
         break;
 
@@ -1061,10 +1062,10 @@ namespace zyd2001 { namespace NewBie {
       case 20: // BOOL_LITERAL
       case 67: // expression
       case 68: // expression_optional
-      case 69: // binary_expression
-      case 70: // unary_expression
-      case 71: // function_call_expression
-      case 72: // primary_expression
+      case 70: // binary_expression
+      case 71: // unary_expression
+      case 72: // function_call_expression
+      case 73: // primary_expression
         value.copy< zyd2001::NewBie::Expression > (other.value);
         break;
 
@@ -1072,16 +1073,17 @@ namespace zyd2001 { namespace NewBie {
         value.copy< zyd2001::NewBie::Identifier > (other.value);
         break;
 
-      case 76: // parameter
+      case 77: // parameter
         value.copy< zyd2001::NewBie::Parameter > (other.value);
         break;
 
-      case 77: // parameters_list
+      case 78: // parameters_list
         value.copy< zyd2001::NewBie::ParametersList > (other.value);
         break;
 
       case 64: // statement
-      case 74: // block
+      case 69: // statement_optional
+      case 75: // block
         value.copy< zyd2001::NewBie::Statement > (other.value);
         break;
 
@@ -1089,7 +1091,7 @@ namespace zyd2001 { namespace NewBie {
         value.copy< zyd2001::NewBie::StatementsList > (other.value);
         break;
 
-      case 73: // type_tag
+      case 74: // type_tag
         value.copy< zyd2001::NewBie::ValueType > (other.value);
         break;
 
@@ -1110,7 +1112,7 @@ namespace zyd2001 { namespace NewBie {
     (void) v;
       switch (this->type_get ())
     {
-      case 75: // arguments_list
+      case 76: // arguments_list
         value.copy< zyd2001::NewBie::ArgumentsList > (v);
         break;
 
@@ -1128,10 +1130,10 @@ namespace zyd2001 { namespace NewBie {
       case 20: // BOOL_LITERAL
       case 67: // expression
       case 68: // expression_optional
-      case 69: // binary_expression
-      case 70: // unary_expression
-      case 71: // function_call_expression
-      case 72: // primary_expression
+      case 70: // binary_expression
+      case 71: // unary_expression
+      case 72: // function_call_expression
+      case 73: // primary_expression
         value.copy< zyd2001::NewBie::Expression > (v);
         break;
 
@@ -1139,16 +1141,17 @@ namespace zyd2001 { namespace NewBie {
         value.copy< zyd2001::NewBie::Identifier > (v);
         break;
 
-      case 76: // parameter
+      case 77: // parameter
         value.copy< zyd2001::NewBie::Parameter > (v);
         break;
 
-      case 77: // parameters_list
+      case 78: // parameters_list
         value.copy< zyd2001::NewBie::ParametersList > (v);
         break;
 
       case 64: // statement
-      case 74: // block
+      case 69: // statement_optional
+      case 75: // block
         value.copy< zyd2001::NewBie::Statement > (v);
         break;
 
@@ -1156,7 +1159,7 @@ namespace zyd2001 { namespace NewBie {
         value.copy< zyd2001::NewBie::StatementsList > (v);
         break;
 
-      case 73: // type_tag
+      case 74: // type_tag
         value.copy< zyd2001::NewBie::ValueType > (v);
         break;
 
@@ -1271,7 +1274,7 @@ namespace zyd2001 { namespace NewBie {
     // Type destructor.
     switch (yytype)
     {
-      case 75: // arguments_list
+      case 76: // arguments_list
         value.template destroy< zyd2001::NewBie::ArgumentsList > ();
         break;
 
@@ -1289,10 +1292,10 @@ namespace zyd2001 { namespace NewBie {
       case 20: // BOOL_LITERAL
       case 67: // expression
       case 68: // expression_optional
-      case 69: // binary_expression
-      case 70: // unary_expression
-      case 71: // function_call_expression
-      case 72: // primary_expression
+      case 70: // binary_expression
+      case 71: // unary_expression
+      case 72: // function_call_expression
+      case 73: // primary_expression
         value.template destroy< zyd2001::NewBie::Expression > ();
         break;
 
@@ -1300,16 +1303,17 @@ namespace zyd2001 { namespace NewBie {
         value.template destroy< zyd2001::NewBie::Identifier > ();
         break;
 
-      case 76: // parameter
+      case 77: // parameter
         value.template destroy< zyd2001::NewBie::Parameter > ();
         break;
 
-      case 77: // parameters_list
+      case 78: // parameters_list
         value.template destroy< zyd2001::NewBie::ParametersList > ();
         break;
 
       case 64: // statement
-      case 74: // block
+      case 69: // statement_optional
+      case 75: // block
         value.template destroy< zyd2001::NewBie::Statement > ();
         break;
 
@@ -1317,7 +1321,7 @@ namespace zyd2001 { namespace NewBie {
         value.template destroy< zyd2001::NewBie::StatementsList > ();
         break;
 
-      case 73: // type_tag
+      case 74: // type_tag
         value.template destroy< zyd2001::NewBie::ValueType > ();
         break;
 
@@ -1344,7 +1348,7 @@ namespace zyd2001 { namespace NewBie {
     super_type::move(s);
       switch (this->type_get ())
     {
-      case 75: // arguments_list
+      case 76: // arguments_list
         value.move< zyd2001::NewBie::ArgumentsList > (s.value);
         break;
 
@@ -1362,10 +1366,10 @@ namespace zyd2001 { namespace NewBie {
       case 20: // BOOL_LITERAL
       case 67: // expression
       case 68: // expression_optional
-      case 69: // binary_expression
-      case 70: // unary_expression
-      case 71: // function_call_expression
-      case 72: // primary_expression
+      case 70: // binary_expression
+      case 71: // unary_expression
+      case 72: // function_call_expression
+      case 73: // primary_expression
         value.move< zyd2001::NewBie::Expression > (s.value);
         break;
 
@@ -1373,16 +1377,17 @@ namespace zyd2001 { namespace NewBie {
         value.move< zyd2001::NewBie::Identifier > (s.value);
         break;
 
-      case 76: // parameter
+      case 77: // parameter
         value.move< zyd2001::NewBie::Parameter > (s.value);
         break;
 
-      case 77: // parameters_list
+      case 78: // parameters_list
         value.move< zyd2001::NewBie::ParametersList > (s.value);
         break;
 
       case 64: // statement
-      case 74: // block
+      case 69: // statement_optional
+      case 75: // block
         value.move< zyd2001::NewBie::Statement > (s.value);
         break;
 
@@ -1390,7 +1395,7 @@ namespace zyd2001 { namespace NewBie {
         value.move< zyd2001::NewBie::StatementsList > (s.value);
         break;
 
-      case 73: // type_tag
+      case 74: // type_tag
         value.move< zyd2001::NewBie::ValueType > (s.value);
         break;
 

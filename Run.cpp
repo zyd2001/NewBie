@@ -11,51 +11,27 @@ bool InterpreterImp::run()
         throw runtime_error("No AST");
     }
     variables_stack.push(vector<VariablesMap>());
-    variables_stack.top().push_back(VariablesMap());
+    variables_stack.top().emplace_back(VariablesMap());
     if (false) //according to the setting
-        variables_stack.top().push_back(VariablesMap());
-    interpret(statements_list, false, false);
+        variables_stack.top().emplace_back(VariablesMap());
+    interpret(statements_list);
     variables_stack.pop();
     return true;
 }
 
-int InterpreterImp::interpret(const StatementsList &s, bool isFunc, bool isLoop)
+StatementType InterpreterImp::interpret(const StatementsList &s)
 {
-    StatementType result;
+    StatementType res;
     auto end = s.cend();
-    if (isFunc && isLoop)
-        for (auto iter = s.cbegin(); iter != s.cend(); iter++)
-        {
-            auto res = execute(*iter, isFunc, isLoop);
-            if (res == RETURN_STATEMENT)
-                break;
-            else if (res == BREAK_STATEMENT)
-                break;
-            else if (res == CONTINUE_STATEMENT)
-                iter = s.cbegin(); //return to the beginning of the for-loop
-        }
-    else if (isFunc)
-        for (auto &iter : s)
-        {
-            auto res = execute(iter, isFunc, isLoop);
-            if (res == RETURN_STATEMENT)
-                break;
-        }
-    else if (isLoop)
-        for (auto iter = s.cbegin(); iter != s.cend(); iter++)
-        {
-            auto res = execute(*iter, isFunc, isLoop);
-            if (res == BREAK_STATEMENT)
-                break;
-            else if (res == CONTINUE_STATEMENT)
-                iter = s.cbegin(); //return to the beginning of the for-loop
-        }
-    else
-        for (auto &iter : s)
-        {
-            execute(iter, isFunc, isLoop);
-        }
-    return 1;
+    for (auto iter = s.cbegin(); iter != s.cend(); iter++)
+    {
+        res = execute(*iter);
+
+        /* if reach return, break or continue, jump out of the call stack */
+        if (res == BREAK_STATEMENT || res == CONTINUE_STATEMENT || res == RETURN_STATEMENT)
+            return res;
+    }
+    return NULL_STATEMENT;
 }
 
 int InterpreterImp::checkExist(const Identifier &id) //check all scope, 0 for global
@@ -78,7 +54,7 @@ int InterpreterImp::checkExist(const Identifier &id) //check all scope, 0 for gl
 }
 
 void InterpreterImp::err() { cerr << "Error occured at " << current_lineno << endl; }
-StatementType InterpreterImp::execute(const Statement &s, bool isFunc, bool isLoop)
+StatementType InterpreterImp::execute(const Statement &s)
 {
     current_lineno = s.lineno;
     auto &v = variables_stack.top();
@@ -143,16 +119,34 @@ StatementType InterpreterImp::execute(const Statement &s, bool isFunc, bool isLo
             break;
         }
         case zyd2001::NewBie::BLOCK_STATEMENT:
-            v.push_back(VariablesMap());
-            interpret(s.get<BlockStatement>(), isFunc, isLoop);
+        {
+            //new scope
+            v.emplace_back(VariablesMap());
+            StatementType res = interpret(s.get<BlockStatement>());
             v.pop_back();
+
+            /* if reach return, break or continue, jump out of the call stack */
+            if (res == BREAK_STATEMENT || res == CONTINUE_STATEMENT || res == RETURN_STATEMENT)
+                return res;
             break;
+        }
         case zyd2001::NewBie::IF_STATEMENT:
         {
             IfStatement &ifs = s.get<IfStatement>();
             if (evaluate(ifs.condition).change_type(BOOL_TYPE).get<bool>())
             {
-                execute(ifs.stat, isFunc, isLoop);
+                StatementType res;
+                //new scope
+                v.emplace_back(VariablesMap());
+                if (ifs.stat.type == BLOCK_STATEMENT)
+                    res = interpret(ifs.stat.get<BlockStatement>());
+                else                
+                    res = execute(ifs.stat);
+                v.pop_back();
+
+                /* if reach return, break or continue, jump out of the call stack */
+                if (res == BREAK_STATEMENT || res == CONTINUE_STATEMENT || res == RETURN_STATEMENT)
+                    return res;
             }
             else
             {
@@ -163,15 +157,38 @@ StatementType InterpreterImp::execute(const Statement &s, bool isFunc, bool isLo
                     {
                         if (evaluate(i.condition).change_type(BOOL_TYPE).get<bool>())
                         {
-                            execute(i.stat, isFunc, isLoop);
-                            flag = false;
+                            StatementType res;
+                            //new scope
+                            v.emplace_back(VariablesMap());
+                            if (i.stat.type == BLOCK_STATEMENT)
+                                res = interpret(ifs.stat.get<BlockStatement>());
+                            else
+                                res = execute(i.stat);
+                            v.pop_back();
+
+                            /* if reach return, break or continue, jump out of the call stack */
+                            if (res == BREAK_STATEMENT || res == CONTINUE_STATEMENT || res == RETURN_STATEMENT)
+                                return res;
+
+                            flag = false; //do not process else statement
                             break;
                         }
                     }
                 }
-                if (ifs.else_stat.type != NULL_STATEMENT && flag);
+                if (ifs.else_stat.type != NULL_STATEMENT && flag)
                 {
-                    execute(ifs.else_stat, isFunc, isLoop);
+                    StatementType res;
+                    //new scope
+                    v.emplace_back(VariablesMap());
+                    if (ifs.else_stat.type == BLOCK_STATEMENT)
+                        res = interpret(ifs.else_stat.get<BlockStatement>());
+                    else
+                        res = execute(ifs.else_stat);
+                    v.pop_back();
+
+                    /* if reach return, break or continue, jump out of the call stack */
+                    if (res == BREAK_STATEMENT || res == CONTINUE_STATEMENT || res == RETURN_STATEMENT)
+                        return res;
                 }
             }
             break;
@@ -179,8 +196,28 @@ StatementType InterpreterImp::execute(const Statement &s, bool isFunc, bool isLo
         case zyd2001::NewBie::FOR_STATEMENT:
         {
             ForStatement &fs = s.get<ForStatement>();
-            for (evaluate(fs.exp1); evaluate(fs.exp2).change_type(BOOL_TYPE).get<bool>(); evaluate(fs.exp3))
-                execute(fs.stat, isFunc, true);
+            //new scope
+            v.emplace_back(VariablesMap());
+            for (execute(fs.pre); evaluate(fs.condition).change_type(BOOL_TYPE).get<bool>(); execute(fs.after))
+            {
+                StatementType res;
+                if (fs.stat.type == BLOCK_STATEMENT)
+                    res = interpret(fs.stat.get<BlockStatement>());
+                else
+                    res = execute(fs.stat);
+
+                if (res == RETURN_STATEMENT)
+                {
+                    v.pop_back();
+                    return res;
+                }
+                /* handle break and continue */
+                else if (res == CONTINUE_STATEMENT)
+                    continue;
+                else if (res == BREAK_STATEMENT)
+                    break;
+            }
+            v.pop_back();
             break;
         }
         case zyd2001::NewBie::FOREACH_STATEMENT:

@@ -47,7 +47,7 @@
         INCREMENT DECREMENT PUBLIC PROTECTED PRIVATE REVERSE
         PRINT
 %type<zyd2001::NewBie::Expression> expression function_call_expression primary_expression expression_optional binary_expression unary_expression
-%type<zyd2001::NewBie::Statement> statement block
+%type<zyd2001::NewBie::Statement> statement block statement_optional
 %type<zyd2001::NewBie::StatementsList> statements_list
 %type<zyd2001::NewBie::ArgumentsList> arguments_list
 %type<zyd2001::NewBie::ParametersList> parameters_list
@@ -104,7 +104,7 @@
             current_if->elseif.emplace_back(e);
             $$ = Statement();
         }
-        | FOR LP expression_optional SEMICOLON expression_optional SEMICOLON expression_optional RP statement
+        | FOR LP statement_optional SEMICOLON expression_optional SEMICOLON statement_optional RP statement
         {
             $$ = Statement(FOR_STATEMENT, new (ForStatement){$3, $5, $7, $9}, yyget_lineno(scanner));
         }
@@ -188,6 +188,30 @@
             $$ = Expression();
         }
         | expression
+        {
+            $$ = $1;
+        }
+        ;
+    statement_optional: /* empty */
+        {
+            $$ = Statement();
+        }
+        | expression
+        {
+            $$ = Statement(EXPRESSION_STATEMENT, new ExpressionStatement($1), yyget_lineno(scanner));
+        }
+        | IDENTIFIER ASSIGN expression
+        {
+            $$ = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){std::move($1), $3}, yyget_lineno(scanner));
+        }
+        | type_tag declaration_item_list
+        {
+            $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){std::move($1), std::move($2), false}, yyget_lineno(scanner));
+        }
+		| GLOBAL type_tag declaration_item_list
+        {
+            $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){std::move($2), std::move($3), true}, yyget_lineno(scanner));
+        }
         ;
     binary_expression: expression ADD expression
         {

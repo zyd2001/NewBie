@@ -255,9 +255,9 @@ namespace zyd2001::NewBie
 
     struct ForStatement
     {
-        Expression exp1;
-        Expression exp2;
-        Expression exp3;
+        Statement pre;
+        Expression condition;
+        Statement after;
         Statement stat;
     };
 
@@ -310,9 +310,9 @@ namespace zyd2001::NewBie
         bool setFile(const std::string &name);
         bool changeSetting(const std::string &, int);
 
-        StatementType execute(const Statement &, bool, bool);
+        StatementType execute(const Statement &);
+        StatementType interpret(const StatementsList &);
         Value evaluate(const Expression &);
-        int interpret(const StatementsList &, bool, bool);
         void err();
         int checkExist(const Identifier &);
 
