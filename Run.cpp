@@ -224,6 +224,7 @@ StatementType InterpreterImp::execute(const Statement &s)
             break;
         case zyd2001::NewBie::RETURN_STATEMENT:
         {
+            //return result by a global variable
             temp_variable = evaluate(s.get<ReturnStatement>());
             break;
         }
