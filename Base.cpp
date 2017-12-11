@@ -250,3 +250,29 @@ Statement::~Statement()
         }
     }
 }
+
+bool ParamsEqualTo::operator()(const ParametersList& lhs, const ParametersList& rhs) const
+{
+    if (lhs.size() != rhs.size())
+        return false;
+    else
+    {
+        for (int i = 0; i < lhs.size(); i++)
+        {
+            if (lhs[i].type != rhs[i].type)
+                return false;
+        }
+        return true;
+    }
+}
+
+std::size_t ParamsHash::operator()(const ParametersList& p) const
+{
+    std::hash<ValueType> h;
+    std::size_t seed;
+    for (auto &i : p)
+    {
+        seed ^= h(i.type) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+    return seed;
+}

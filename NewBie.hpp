@@ -3,11 +3,11 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <memory>
 #include <utility>
 #include <stack>
 #include <iostream>
-#include <tuple>
 
 /*For flex and bison*/
 typedef void* yyscan_t;
@@ -65,6 +65,13 @@ namespace zyd2001::NewBie
     using char_t = char32_t;
     using string_t = std::basic_string<char_t>;
 #endif
+
+    using StringsSet = std::unordered_set<string_t>;
+
+    struct String
+    {
+
+    };
 
     using Identifier = string_t;
 
@@ -281,20 +288,30 @@ namespace zyd2001::NewBie
     };
 
     using ParametersList = std::vector<Parameter>;
-
     using ArgumentsList = std::vector<Expression>;
-
     using VariablesStack = std::stack<std::vector<VariablesMap>>;
 
+    struct ParamsHash
+    {
+        std::size_t operator()(const ParametersList& p) const;
+    };
+    struct ParamsEqualTo
+    {
+        bool operator()(const ParametersList& lhs, const ParametersList& rhs) const;
+    };
     struct Function
     {
         ValueType return_type;
-        ParametersList plist;
-        Statement body;
+        std::unordered_map<ParametersList, Statement, ParamsHash, ParamsEqualTo> overload_map;
+    };
+    struct Class
+    {
+        Identifier type;
+        StatementsList slist;
     };
     struct Object
     {
-        bool Root;
+        int ref_count;
         Identifier type;
         VariablesMap local_variables;
     };
@@ -329,6 +346,7 @@ namespace zyd2001::NewBie
         VariablesMap global_variables;
         std::vector<std::unique_ptr<void *>> handle_list;
         std::unordered_map<std::string, int> settings;
+        StringsSet strings_pool;
     };
 }
 

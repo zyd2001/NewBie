@@ -125,9 +125,20 @@
             VariablesMap &vmap = inter.global_variables;
             auto result = vmap.find($2);
             if (result != vmap.cend())
-                inter.err();
+            {
+                auto &func = result->second.get<Function>();
+                auto exist = func.overload_map.find($4);
+                if (exist == func.overload_map.cend())
+                    func.overload_map[$4] = std::move($6);
+                else
+                    inter.err();
+            }
             else
-                vmap[$2] = Value(FUNCTION_TYPE, new (Function){$1, $4, $6});
+            {
+                auto func = new Function();
+                vmap[$2] = Value(FUNCTION_TYPE, func);
+                func->overload_map[$4] = $6;
+            }
             $$ = Statement();
         }
         | block

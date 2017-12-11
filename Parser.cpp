@@ -799,9 +799,20 @@ namespace zyd2001 { namespace NewBie {
             VariablesMap &vmap = inter.global_variables;
             auto result = vmap.find(yystack_[4].value.as< zyd2001::NewBie::Identifier > ());
             if (result != vmap.cend())
-                inter.err();
+            {
+                auto &func = result->second.get<Function>();
+                auto exist = func.overload_map.find(yystack_[2].value.as< zyd2001::NewBie::ParametersList > ());
+                if (exist == func.overload_map.cend())
+                    func.overload_map[yystack_[2].value.as< zyd2001::NewBie::ParametersList > ()] = std::move(yystack_[0].value.as< zyd2001::NewBie::Statement > ());
+                else
+                    inter.err();
+            }
             else
-                vmap[yystack_[4].value.as< zyd2001::NewBie::Identifier > ()] = Value(FUNCTION_TYPE, new (Function){yystack_[5].value.as< zyd2001::NewBie::ValueType > (), yystack_[2].value.as< zyd2001::NewBie::ParametersList > (), yystack_[0].value.as< zyd2001::NewBie::Statement > ()});
+            {
+                auto func = new Function();
+                vmap[yystack_[4].value.as< zyd2001::NewBie::Identifier > ()] = Value(FUNCTION_TYPE, func);
+                func->overload_map[yystack_[2].value.as< zyd2001::NewBie::ParametersList > ()] = yystack_[0].value.as< zyd2001::NewBie::Statement > ();
+            }
             yylhs.value.as< zyd2001::NewBie::Statement > () = Statement();
         }
 
@@ -1741,13 +1752,13 @@ namespace zyd2001 { namespace NewBie {
   Parser::yyrline_[] =
   {
        0,    60,    60,    65,    69,    75,    79,    83,    87,    91,
-      96,   101,   107,   111,   115,   119,   123,   133,   137,   142,
-     146,   151,   155,   167,   171,   175,   179,   183,   187,   193,
-     196,   202,   205,   209,   213,   217,   222,   226,   230,   234,
-     238,   242,   246,   250,   254,   258,   262,   266,   270,   275,
-     279,   284,   289,   293,   297,   301,   316,   320,   324,   328,
-     332,   336,   341,   345,   351,   354,   358,   364,   368,   374,
-     377,   381
+      96,   101,   107,   111,   115,   119,   123,   144,   148,   153,
+     157,   162,   166,   178,   182,   186,   190,   194,   198,   204,
+     207,   213,   216,   220,   224,   228,   233,   237,   241,   245,
+     249,   253,   257,   261,   265,   269,   273,   277,   281,   286,
+     290,   295,   300,   304,   308,   312,   327,   331,   335,   339,
+     343,   347,   352,   356,   362,   365,   369,   375,   379,   385,
+     388,   392
   };
 
   // Print the state stack on the debug stream.

@@ -112,33 +112,36 @@ Value InterpreterImp::evaluate(const Expression &e)
 
                     //initialize the function local variables
                     StatementsList temp_slist;
-                    auto argument = fce.alist.cbegin();
-                    for (auto iter = func.plist.cbegin(); iter != func.plist.cend(); iter++)
+                    vector<Expression> temp_elist;
+                    ParametersList temp_plist;
+                    for (auto &arg : fce.alist)
                     {
-                        Expression val(LITERAL_EXPRESSION, nullptr);
-                        if (argument != fce.alist.cend())
-                            val.content = new LiteralExpression(evaluate(*argument));
-                        else if (iter->default_value_exp.type != NULL_EXPRESSION)
-                            val.content = new LiteralExpression(evaluate(iter->default_value_exp));
-                        else
-                            err();
-                        DeclarationStatementItemList item;
-                        item.emplace_back(std::move(DeclarationStatementItem{ std::move(iter->identifier), val }));
-                        Statement temp(DECLARATION_STATEMENT, new (DeclarationStatement)\
-                            {iter->type, item, false}, -1); //construct a assignment statement to assign parameter
-                        temp_slist.emplace_back(temp);
-                    }
-                    variables_stack.push(vector<VariablesMap>());
-                    variables_stack.top().push_back(VariablesMap());
-                    for (auto &s : temp_slist)
-                    {
-                        execute(s);
+                        temp_elist.emplace_back(Expression(LITERAL_EXPRESSION, new Value(evaluate(arg))));
+                        temp_plist.emplace_back(Parameter());
+                        temp_plist.back().type = temp_elist.back().get<LiteralExpression>().type;
                     }
 
-                    interpret(func.body.get<BlockStatement>());
-                    variables_stack.pop();
+                    auto fbody = func.overload_map.find(temp_plist);
+                    if (fbody == func.overload_map.cend())
+                        err();
+                    else
+                    {
+                        variables_stack.push(vector<VariablesMap>());
+                        variables_stack.top().push_back(VariablesMap());
+                        auto eiter = temp_elist.cbegin();
+                        for (auto param = fbody->first.cbegin(); param != fbody->first.cend(); param++, eiter++)
+                        {
+                            DeclarationStatementItemList item;
+                            item.emplace_back(std::move(DeclarationStatementItem{ std::move(param->identifier), *eiter }));
+                            Statement temp(DECLARATION_STATEMENT, new (DeclarationStatement){param->type, item, false}, -1);
+                            execute(temp);
+                        }
 
-                    return temp_variable;
+                        interpret(fbody->second.get<BlockStatement>());
+                        variables_stack.pop();
+
+                        return temp_variable;
+                    }
                 }
             }
             break;
