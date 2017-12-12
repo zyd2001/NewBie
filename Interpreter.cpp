@@ -65,13 +65,4 @@ int main()
     {
         cerr << e.what() << endl;
     }
-    //ParametersList pl;
-    //pl.push_back({ INT_TYPE, U("asd"), Expression() });
-    //pl.push_back({ DOUBLE_TYPE, U("haha"), Expression() });
-    //ParamsHash h;
-    //cout << h(pl) << endl;
-    //ParametersList pl2;
-    //pl2.push_back({ INT_TYPE, Identifier(), Expression() });
-    //pl2.push_back({ DOUBLE_TYPE, Identifier(), Expression() });
-    //cout << h(pl2) << endl;
 }

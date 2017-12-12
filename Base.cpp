@@ -269,7 +269,7 @@ bool ParamsEqualTo::operator()(const ParametersList& lhs, const ParametersList& 
 std::size_t ParamsHash::operator()(const ParametersList& p) const
 {
     std::hash<ValueType> h;
-    std::size_t seed;
+    std::size_t seed = 0;
     for (auto &i : p)
     {
         seed ^= h(i.type) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
