@@ -10,13 +10,17 @@ using namespace std;
 
 Interpreter::Interpreter() : imp(new InterpreterImp()) {}
 Interpreter::Interpreter(const std::string &name) : imp(new InterpreterImp(name)) {}
+zyd2001::NewBie::Interpreter::~Interpreter()
+{
+    delete imp;
+}
 bool Interpreter::run() { return imp->run(); }
 bool Interpreter::setFile(const std::string &name) { return imp->setFile(name); }
 bool Interpreter::changeSetting(const string &key, int value) { return imp->changeSetting(key, value); };
 
-int zyd2001::NewBie::Interpreter::parse()
+void zyd2001::NewBie::Interpreter::parse()
 {
-    return imp->parse();
+    imp->parse();
 }
 
 InterpreterImp::InterpreterImp() {}
@@ -40,7 +44,7 @@ bool InterpreterImp::changeSetting(const std::string &key, int value)
     }
 }
 
-int InterpreterImp::parse()
+void InterpreterImp::parse()
 {
     yyscan_t scanner;
     yylex_init(&scanner);
@@ -50,19 +54,4 @@ int InterpreterImp::parse()
     parser.parse();
     yylex_destroy(scanner);
     fclose(fp);
-    return 1;
-}
-
-int main()
-{
-    Interpreter inter("test");
-    inter.parse();
-    try
-    {
-        inter.run();
-    }
-    catch (runtime_error e)
-    {
-        cerr << e.what() << endl;
-    }
 }

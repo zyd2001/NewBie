@@ -1,24 +1,25 @@
 #ifndef NEWBIE_LANG_HPP
 #define NEWBIE_LANG_HPP
 #include <string>
-#include <memory>
 
-namespace zyd2001::NewBie
+namespace zyd2001
 {
-    class InterpreterImp;
-    class Interpreter
+    namespace NewBie
     {
-    public:
-        Interpreter();
-        Interpreter(const std::string &name);
-        ~Interpreter() = default;
-        bool setFile(const std::string &name);
-        bool changeSetting(const std::string &, int);
-        bool run();
-        int parse();
-    private:
-        std::unique_ptr<InterpreterImp> imp;
-    };
+        class InterpreterImp;
+        class Interpreter
+        {
+        public:
+            Interpreter();
+            Interpreter(const std::string &name);
+            ~Interpreter();
+            bool setFile(const std::string &name);
+            bool changeSetting(const std::string &, int);
+            bool run();
+            void parse();
+        private:
+            InterpreterImp *imp;
+        };
+    }
 }
-
 #endif

@@ -3,6 +3,7 @@
 
 #include <codecvt>
 #include <locale>
+#include <cstdio>
 
 using namespace zyd2001::NewBie;
 using namespace std;
@@ -464,7 +465,11 @@ ostream &zyd2001::NewBie::operator<<(ostream &out, Value &v)
             out << v.get<bool>();
             break;
         case zyd2001::NewBie::STRING_TYPE:
+#if defined(_MSC_VER)
+            printf(conv.to_bytes(v.get<string_t>()).c_str());
+#elif defined(__GNUC__)
             out << conv.to_bytes(v.get<string_t>());
+#endif
             break;
         case zyd2001::NewBie::ARRAY_TYPE:
             break;

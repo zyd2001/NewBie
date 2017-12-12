@@ -1,11 +1,19 @@
 #include "NewBie_Lang.hpp"
 #include "NewBie.hpp"
 
+#if defined(_MSC_VER)
+#include <Windows.h>
+#endif
+
 using namespace zyd2001::NewBie;
 using namespace std;
 
 bool InterpreterImp::run()
 {
+#if defined(_MSC_VER)
+    auto cp = GetConsoleOutputCP();
+    SetConsoleOutputCP(CP_UTF8);
+#endif
     if (statements_list.empty())
     {
         throw runtime_error("No AST");
@@ -16,6 +24,9 @@ bool InterpreterImp::run()
         variables_stack.top().emplace_back(VariablesMap());
     interpret(statements_list);
     variables_stack.pop();
+#if defined(_MSC_VER)
+    SetConsoleOutputCP(cp);
+#endif
     return true;
 }
 

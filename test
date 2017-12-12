@@ -1,12 +1,13 @@
-int i = 55;
+int i = 123;
 print(i);
 double j = 123.123;
 print(j);
 print("测试", 3.14);
+print(234);
 
 int print(int v)
 {
-    __print__ "int " + v;
+    __print__ v;
 }
 
 int print(double v)
