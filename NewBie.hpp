@@ -70,11 +70,6 @@ namespace zyd2001
 
         using StringsSet = std::unordered_set<string_t>;
 
-        struct String
-        {
-
-        };
-
         using Identifier = string_t;
 
         struct Value
@@ -305,6 +300,7 @@ namespace zyd2001
         {
             ValueType return_type;
             std::unordered_map<ParametersList, Statement, ParamsHash, ParamsEqualTo> overload_map;
+            bool can_overload;
         };
         struct Class
         {

@@ -120,28 +120,39 @@ Value InterpreterImp::evaluate(const Expression &e)
                         temp_plist.emplace_back(Parameter());
                         temp_plist.back().type = temp_elist.back().get<LiteralExpression>().type;
                     }
+                    
+                    variables_stack.push(vector<VariablesMap>());
+                    variables_stack.top().push_back(VariablesMap());
+                    decltype(func.overload_map.begin()) fbody;
 
-                    auto fbody = func.overload_map.find(temp_plist);
-                    if (fbody == func.overload_map.cend())
-                        err();
-                    else
+                    if (func.can_overload)
                     {
-                        variables_stack.push(vector<VariablesMap>());
-                        variables_stack.top().push_back(VariablesMap());
-                        auto eiter = temp_elist.cbegin();
-                        for (auto param = fbody->first.cbegin(); param != fbody->first.cend(); param++, eiter++)
-                        {
-                            DeclarationStatementItemList item;
-                            item.emplace_back(std::move(DeclarationStatementItem{ std::move(param->identifier), *eiter }));
-                            Statement temp(DECLARATION_STATEMENT, new (DeclarationStatement){param->type, item, false}, -1);
-                            execute(temp);
-                        }
-
-                        interpret(fbody->second.get<BlockStatement>());
-                        variables_stack.pop();
-
-                        return temp_variable;
+                        fbody = func.overload_map.find(temp_plist);
+                        if (fbody == func.overload_map.cend())
+                            err();
                     }
+                    else
+                        fbody = func.overload_map.begin();
+
+                    auto eiter = temp_elist.cbegin();
+                    for (auto param = fbody->first.cbegin(); param != fbody->first.cend(); param++)
+                    {
+                        DeclarationStatementItemList item;
+                        if (eiter != temp_elist.cend())
+                        {
+                            item.emplace_back(std::move(DeclarationStatementItem{ std::move(param->identifier), *eiter }));
+                            eiter++;
+                        }
+                        else
+                            item.emplace_back(std::move(DeclarationStatementItem{ std::move(param->identifier), param->default_value_exp }));
+                        Statement temp(DECLARATION_STATEMENT, new (DeclarationStatement){ param->type, item, false }, -1);
+                        execute(temp);
+                    }
+
+                    interpret(fbody->second.get<BlockStatement>());
+                    variables_stack.pop();
+
+                    return temp_variable;
                 }
             }
             break;

@@ -3,7 +3,9 @@ print(i);
 double j = 123.123;
 print(j);
 print("测试", 3.14);
-print(234);
+print();
+p();
+p("haha");
 
 int print(int v)
 {
@@ -18,4 +20,14 @@ int print(double v)
 int print(string str, double v)
 {
     __print__ str + " " + v;
+}
+
+int print()
+{
+    __print__ "default";
+}
+
+int p(string str = "asd")
+{
+    __print__ str;
 }

@@ -127,17 +127,42 @@
             if (result != vmap.cend())
             {
                 auto &func = result->second.get<Function>();
-                auto exist = func.overload_map.find($4);
-                if (exist == func.overload_map.cend())
-                    func.overload_map[$4] = std::move($6);
+                if (func.can_overload)
+                {
+                    auto exist = func.overload_map.find($4);
+                    if (exist == func.overload_map.cend())
+                    {
+                        for (auto &i : $4)
+                        {
+                            if (i.type == VARIOUS_TYPE || i.default_value_exp.type != NULL_EXPRESSION)
+                            {
+                                inter.err();
+                                break;
+                            }
+                        }
+                        func.overload_map[$4] = std::move($6);
+                    }
+                    else
+                        inter.err();
+                }
                 else
                     inter.err();
             }
             else
             {
                 auto func = new Function();
+                func->return_type = $1;
+                func->can_overload = true;
                 vmap[$2] = Value(FUNCTION_TYPE, func);
                 func->overload_map[$4] = $6;
+                for (auto &i : $4)
+                {
+                    if (i.type == VARIOUS_TYPE || i.default_value_exp.type != NULL_EXPRESSION)
+                    {
+                        func->can_overload = false;
+                        break;
+                    }
+                }
             }
             $$ = Statement();
         }
@@ -376,9 +401,9 @@
         {
             $$ = {$1, $2};
         }
-        | type_tag IDENTIFIER primary_expression
+        | type_tag IDENTIFIER ASSIGN primary_expression
         {
-            $$ = {$1, $2, $3};
+            $$ = {$1, $2, $4};
         }
         ;
     parameters_list: /* empty */
