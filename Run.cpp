@@ -233,6 +233,63 @@ StatementType InterpreterImp::execute(const Statement &s)
         }
         case zyd2001::NewBie::FOREACH_STATEMENT:
         {
+            ForeachStatement fes = s.get<ForeachStatement>();
+            DeclarationStatement *ds = new (DeclarationStatement){ VARIOUS_TYPE, { { fes.identifier, Expression() } }, false };
+            Statement stat(DECLARATION_STATEMENT, ds, -1);
+
+            //new scope
+            v.emplace_back(VariablesMap());
+            execute(stat);
+            auto &var = v.back().at(fes.identifier);
+            Value a = evaluate(fes.exp);
+            Array &arr = a.get<Array>();
+
+            StatementType res;
+            if (fes.reverse)
+            {
+                for (auto iter = arr.crbegin(); iter != arr.crend(); iter++)
+                {
+                    var = *iter;
+                    if (fes.stat.type == BLOCK_STATEMENT)
+                        res = interpret(fes.stat.get<BlockStatement>());
+                    else
+                        res = execute(fes.stat);
+
+                    if (res == RETURN_STATEMENT)
+                    {
+                        v.pop_back();
+                        return res;
+                    }
+                    /* handle break and continue */
+                    else if (res == CONTINUE_STATEMENT)
+                        continue;
+                    else if (res == BREAK_STATEMENT)
+                        break;
+                }
+            }
+            else
+            {
+                for (auto iter = arr.cbegin(); iter != arr.cend(); iter++)
+                {
+                    var = *iter;
+                    if (fes.stat.type == BLOCK_STATEMENT)
+                        res = interpret(fes.stat.get<BlockStatement>());
+                    else
+                        res = execute(fes.stat);
+
+                    if (res == RETURN_STATEMENT)
+                    {
+                        v.pop_back();
+                        return res;
+                    }
+                    /* handle break and continue */
+                    else if (res == CONTINUE_STATEMENT)
+                        continue;
+                    else if (res == BREAK_STATEMENT)
+                        break;
+                }
+            }
+
             break;
         }
         case zyd2001::NewBie::RETURN_STATEMENT:

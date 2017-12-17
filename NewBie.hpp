@@ -265,6 +265,7 @@ namespace zyd2001
             Identifier identifier;
             Expression exp;
             Statement stat;
+            bool reverse;
         };
 
         using ExpressionStatement = Expression;

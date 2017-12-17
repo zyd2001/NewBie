@@ -49,9 +49,8 @@
 %type<Expression> expression function_call_expression primary_expression expression_optional binary_expression unary_expression array_expression index_expression
 %type<Statement> statement block statement_optional
 %type<StatementsList> statements_list
-%type<ArgumentsList> arguments_list
 %type<ParametersList> parameters_list
-%type<ExpressionsList> expressions_list
+%type<ExpressionsList> expressions_list arguments_list
 %type<ValueType> type_tag
 %type<Parameter> parameter
 %type<DeclarationStatementItem> declaration_item
@@ -110,7 +109,11 @@
         }
         | FOR LP IDENTIFIER IN expression RP block
         {
-            $$ = Statement(FOREACH_STATEMENT, new (ForeachStatement){$3, $5, $7}, yyget_lineno(scanner));
+            $$ = Statement(FOREACH_STATEMENT, new (ForeachStatement){$3, $5, $7, false}, yyget_lineno(scanner));
+        }
+        | FOR LP IDENTIFIER IN REVERSE expression RP block
+        {
+            $$ = Statement(FOREACH_STATEMENT, new (ForeachStatement){$3, $6, $8, true}, yyget_lineno(scanner));
         }
         | RETURN expression SEMICOLON
         {

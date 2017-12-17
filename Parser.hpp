@@ -269,14 +269,11 @@ namespace zyd2001 { namespace NewBie {
     /// An auxiliary type to compute the largest semantic type.
     union union_type
     {
-      // arguments_list
-      char dummy1[sizeof(ArgumentsList)];
-
       // declaration_item
-      char dummy2[sizeof(DeclarationStatementItem)];
+      char dummy1[sizeof(DeclarationStatementItem)];
 
       // declaration_item_list
-      char dummy3[sizeof(DeclarationStatementItemList)];
+      char dummy2[sizeof(DeclarationStatementItemList)];
 
       // INT_LITERAL
       // STRING_LITERAL
@@ -290,30 +287,31 @@ namespace zyd2001 { namespace NewBie {
       // unary_expression
       // function_call_expression
       // primary_expression
-      char dummy4[sizeof(Expression)];
+      char dummy3[sizeof(Expression)];
 
       // expressions_list
-      char dummy5[sizeof(ExpressionsList)];
+      // arguments_list
+      char dummy4[sizeof(ExpressionsList)];
 
       // IDENTIFIER
-      char dummy6[sizeof(Identifier)];
+      char dummy5[sizeof(Identifier)];
 
       // parameter
-      char dummy7[sizeof(Parameter)];
+      char dummy6[sizeof(Parameter)];
 
       // parameters_list
-      char dummy8[sizeof(ParametersList)];
+      char dummy7[sizeof(ParametersList)];
 
       // statement
       // statement_optional
       // block
-      char dummy9[sizeof(Statement)];
+      char dummy8[sizeof(Statement)];
 
       // statements_list
-      char dummy10[sizeof(StatementsList)];
+      char dummy9[sizeof(StatementsList)];
 
       // type_tag
-      char dummy11[sizeof(ValueType)];
+      char dummy10[sizeof(ValueType)];
 };
 
     /// Symbol semantic values.
@@ -431,8 +429,6 @@ namespace zyd2001 { namespace NewBie {
       /// Constructor for valueless symbols, and symbols from each type.
 
   basic_symbol (typename Base::kind_type t, const location_type& l);
-
-  basic_symbol (typename Base::kind_type t, const ArgumentsList v, const location_type& l);
 
   basic_symbol (typename Base::kind_type t, const DeclarationStatementItem v, const location_type& l);
 
@@ -815,7 +811,7 @@ namespace zyd2001 { namespace NewBie {
     /// \param yyvalue   the value to check
     static bool yy_table_value_is_error_ (int yyvalue);
 
-    static const signed char yypact_ninf_;
+    static const short int yypact_ninf_;
     static const signed char yytable_ninf_;
 
     /// Convert a scanner token number \a t to a symbol number.
@@ -832,7 +828,7 @@ namespace zyd2001 { namespace NewBie {
   static const unsigned char yydefact_[];
 
   // YYPGOTO[NTERM-NUM].
-  static const signed char yypgoto_[];
+  static const short int yypgoto_[];
 
   // YYDEFGOTO[NTERM-NUM].
   static const short int yydefgoto_[];
@@ -962,7 +958,7 @@ namespace zyd2001 { namespace NewBie {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 669,     ///< Last index in yytable_.
+      yylast_ = 717,     ///< Last index in yytable_.
       yynnts_ = 21,  ///< Number of nonterminal symbols.
       yyfinal_ = 58, ///< Termination state number.
       yyterror_ = 1,
@@ -1051,10 +1047,6 @@ namespace zyd2001 { namespace NewBie {
   {
       switch (other.type_get ())
     {
-      case 79: // arguments_list
-        value.copy< ArgumentsList > (other.value);
-        break;
-
       case 65: // declaration_item
         value.copy< DeclarationStatementItem > (other.value);
         break;
@@ -1079,6 +1071,7 @@ namespace zyd2001 { namespace NewBie {
         break;
 
       case 76: // expressions_list
+      case 79: // arguments_list
         value.copy< ExpressionsList > (other.value);
         break;
 
@@ -1125,10 +1118,6 @@ namespace zyd2001 { namespace NewBie {
     (void) v;
       switch (this->type_get ())
     {
-      case 79: // arguments_list
-        value.copy< ArgumentsList > (v);
-        break;
-
       case 65: // declaration_item
         value.copy< DeclarationStatementItem > (v);
         break;
@@ -1153,6 +1142,7 @@ namespace zyd2001 { namespace NewBie {
         break;
 
       case 76: // expressions_list
+      case 79: // arguments_list
         value.copy< ExpressionsList > (v);
         break;
 
@@ -1194,13 +1184,6 @@ namespace zyd2001 { namespace NewBie {
   Parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const location_type& l)
     : Base (t)
     , value ()
-    , location (l)
-  {}
-
-  template <typename Base>
-  Parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const ArgumentsList v, const location_type& l)
-    : Base (t)
-    , value (v)
     , location (l)
   {}
 
@@ -1300,10 +1283,6 @@ namespace zyd2001 { namespace NewBie {
     // Type destructor.
     switch (yytype)
     {
-      case 79: // arguments_list
-        value.template destroy< ArgumentsList > ();
-        break;
-
       case 65: // declaration_item
         value.template destroy< DeclarationStatementItem > ();
         break;
@@ -1328,6 +1307,7 @@ namespace zyd2001 { namespace NewBie {
         break;
 
       case 76: // expressions_list
+      case 79: // arguments_list
         value.template destroy< ExpressionsList > ();
         break;
 
@@ -1380,10 +1360,6 @@ namespace zyd2001 { namespace NewBie {
     super_type::move(s);
       switch (this->type_get ())
     {
-      case 79: // arguments_list
-        value.move< ArgumentsList > (s.value);
-        break;
-
       case 65: // declaration_item
         value.move< DeclarationStatementItem > (s.value);
         break;
@@ -1408,6 +1384,7 @@ namespace zyd2001 { namespace NewBie {
         break;
 
       case 76: // expressions_list
+      case 79: // arguments_list
         value.move< ExpressionsList > (s.value);
         break;
 
