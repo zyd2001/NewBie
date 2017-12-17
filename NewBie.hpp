@@ -139,9 +139,7 @@ namespace zyd2001
 
             Expression();
             Expression(ExpressionType, void*);
-            //Expression(Expression &&);
             Expression(const Expression &);
-            //Expression &operator=(Expression&&);
             Expression &operator=(const Expression&);
             void swap(Expression &);
 
@@ -178,6 +176,7 @@ namespace zyd2001
         };
 
         using ArrayExpression = std::vector<Expression>;
+        using ExpressionsList = ArrayExpression;
         using IdentifierExpression = string_t;
         using LiteralExpression = Value;
 
@@ -197,20 +196,16 @@ namespace zyd2001
             DEBUG_STATEMENT
         };
 
-        using ExpressionsList = std::vector<Expression>;
-
         struct Statement
         {
             StatementType type;
             void *content;
-            unsigned long lineno;
+            int lineno;
             int *ref_count;
 
             Statement();
             Statement(StatementType, void*, int);
-            //Statement(Statement &&);
             Statement(const Statement &);
-            //Statement &operator=(Statement&&);
             Statement &operator=(const Statement &);
             void swap(Statement &);
 

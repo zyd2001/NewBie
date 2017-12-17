@@ -15,7 +15,7 @@
     using namespace std;
     using namespace zyd2001::NewBie;
     IfStatement *current_if;
-	Parser::symbol_type yylex(zyd2001::NewBie::InterpreterImp &inter, yyscan_t yyscanner);
+	Parser::symbol_type yylex(InterpreterImp &inter, yyscan_t yyscanner);
 }
 
 %no-lines
@@ -25,7 +25,7 @@
 %define api.token.prefix {TOKEN_}
 %define parse.trace
 %define parse.error verbose
-%param {zyd2001::NewBie::InterpreterImp &inter}
+%param {InterpreterImp &inter}
 %param {yyscan_t scanner}
 %locations
 %initial-action
@@ -38,24 +38,24 @@
 %left ADD SUB
 %left MUL DIV MOD
 %nonassoc UMINUS
-%token <zyd2001::NewBie::Expression> INT_LITERAL STRING_LITERAL DOUBLE_LITERAL BOOL_LITERAL
-%token <zyd2001::NewBie::Identifier>     IDENTIFIER
+%token<Expression> INT_LITERAL STRING_LITERAL DOUBLE_LITERAL BOOL_LITERAL
+%token<Identifier>     IDENTIFIER
 %token END  0  "end of file"
         INT DOUBLE BOOL STRING ARRAY VAR GLOBAL IF ELSE ELSEIF FOR IN CLASS RETURN BREAK CONTINUE
         LP RP LC RC LB RB SEMICOLON COMMA ASSIGN EXCLAMATION DOT
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
         INCREMENT DECREMENT PUBLIC PROTECTED PRIVATE REVERSE
         PRINT
-%type<zyd2001::NewBie::Expression> expression function_call_expression primary_expression expression_optional binary_expression unary_expression
-%type<zyd2001::NewBie::Statement> statement block statement_optional
-%type<zyd2001::NewBie::StatementsList> statements_list
-%type<zyd2001::NewBie::ArgumentsList> arguments_list
-%type<zyd2001::NewBie::ParametersList> parameters_list
-%type<zyd2001::NewBie::ExpressionsList> expressions_list
-%type<zyd2001::NewBie::ValueType> type_tag
-%type<zyd2001::NewBie::Parameter> parameter
-%type<zyd2001::NewBie::DeclarationStatementItem> declaration_item
-%type<zyd2001::NewBie::DeclarationStatementItemList> declaration_item_list
+%type<Expression> expression function_call_expression primary_expression expression_optional binary_expression unary_expression array_expression index_expression
+%type<Statement> statement block statement_optional
+%type<StatementsList> statements_list
+%type<ArgumentsList> arguments_list
+%type<ParametersList> parameters_list
+%type<ExpressionsList> expressions_list
+%type<ValueType> type_tag
+%type<Parameter> parameter
+%type<DeclarationStatementItem> declaration_item
+%type<DeclarationStatementItemList> declaration_item_list
 %%
     eof: statements_list END
 		{
@@ -107,6 +107,10 @@
         | FOR LP statement_optional SEMICOLON expression_optional SEMICOLON statement_optional RP statement
         {
             $$ = Statement(FOR_STATEMENT, new (ForStatement){$3, $5, $7, $9}, yyget_lineno(scanner));
+        }
+        | FOR LP IDENTIFIER IN expression RP block
+        {
+            $$ = Statement(FOREACH_STATEMENT, new (ForeachStatement){$3, $5, $7}, yyget_lineno(scanner));
         }
         | RETURN expression SEMICOLON
         {
@@ -223,6 +227,36 @@
         | LP expression RP
         {
             $$ = $2;
+        }
+        | array_expression
+        {
+            $$ = $1;
+        }
+        | index_expression
+        {
+            $$ = $1;
+        }
+        ;
+    index_expression: IDENTIFIER LB expression RB
+        {
+            $$ = Expression(INDEX_EXPRESSION, new (IndexExpression){Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression(std::move($1))), $3});
+        }
+        | array_expression LB expression RB
+        {
+            $$ = Expression(INDEX_EXPRESSION, new (IndexExpression){$1, $3});
+        }
+        | function_call_expression LB expression RB
+        {
+            $$ = Expression(INDEX_EXPRESSION, new (IndexExpression){$1, $3});
+        }
+        | index_expression LB expression RB
+        {
+            $$ = Expression(INDEX_EXPRESSION, new (IndexExpression){$1, $3});
+        }
+        ;
+    array_expression: LB expressions_list RB
+        {
+            $$ = Expression(ARRAY_EXPRESSION, new ArrayExpression(std::move($2)));
         }
         ;
     expression_optional: /* empty */

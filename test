@@ -1,4 +1,5 @@
 int i = 123;
+var arr = [123, 233, "asd", ["second"]];
 print(i);
 double j = 123.123;
 print(j);
@@ -6,6 +7,8 @@ print("测试", 3.14);
 print();
 p();
 p("haha");
+__print__ arr[0];
+__print__ arr[3][0];
 
 int print(int v)
 {

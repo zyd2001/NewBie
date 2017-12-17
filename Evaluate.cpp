@@ -158,9 +158,25 @@ Value InterpreterImp::evaluate(const Expression &e)
             break;
         }
         case zyd2001::NewBie::ARRAY_EXPRESSION:
+        {
+            auto ae = e.get<ArrayExpression>();
+            Value v;
+            v.type = ARRAY_TYPE;
+            v.content = new Array();
+            Array &arr = v.get<Array>();
+            for (auto &i : ae)
+            {
+                arr.emplace_back(evaluate(i));
+            }
+            return v;
             break;
+        }
         case zyd2001::NewBie::INDEX_EXPRESSION:
+        {
+            auto ie = e.get<IndexExpression>();
+            return evaluate(ie.exp).get<Array>()[evaluate(ie.index).change_type(INT_TYPE).get<int>()];
             break;
+        }
         default:
             break;
     }

@@ -55,7 +55,11 @@ Value::Value(const Value &v) : type(v.type), various(v.various)
             break;
         }
         case zyd2001::NewBie::ARRAY_TYPE:
+        {
+            Array *ptr = new Array(v.get<Array>());
+            content = ptr;
             break;
+        }
         case zyd2001::NewBie::OBJECT_TYPE:
             break;
         case FUNCTION_TYPE:

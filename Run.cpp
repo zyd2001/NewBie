@@ -232,7 +232,9 @@ StatementType InterpreterImp::execute(const Statement &s)
             break;
         }
         case zyd2001::NewBie::FOREACH_STATEMENT:
+        {
             break;
+        }
         case zyd2001::NewBie::RETURN_STATEMENT:
         {
             //return result by a global variable
