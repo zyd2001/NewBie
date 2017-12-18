@@ -127,6 +127,37 @@ Statement::~Statement()
     }
 }
 
+string_t::string_t() : ptr(make_shared<basic_string<char_t>>()) {}
+string_t::string_t(const char_t *str) : ptr(make_shared<basic_string<char_t>>(str)) {}
+string_t::string_t(const basic_string<char_t> &str) : ptr(make_shared<basic_string<char_t>>(str)) {}
+string_t::string_t(const string_t &str) : ptr(str.ptr) {}
+basic_string<char_t> &string_t::get() { return *ptr; }
+
+string_t string_t::operator+(const string_t &str)
+{
+    return string_t(*(this->ptr) + *str.ptr);
+}
+string_t &string_t::operator+=(const string_t &str)
+{
+    *(this->ptr) += *str.ptr;
+    return *this;
+}
+string_t &string_t::operator=(const string_t &str)
+{
+    string_t s(str);
+    std::swap(s.ptr, ptr);
+    return *this;
+}
+bool string_t::operator==(const string_t &str) const
+{
+    return *(this->ptr) == *str.ptr;
+}
+
+size_t zyd2001::NewBie::string_t::hash::operator()(const string_t &s) const
+{
+    return h(*s.ptr);
+}
+
 bool ParamsEqualTo::operator()(const ParametersList& lhs, const ParametersList& rhs) const
 {
     if (lhs.size() != rhs.size())

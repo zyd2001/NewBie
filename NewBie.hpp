@@ -60,15 +60,33 @@ namespace zyd2001
 
 #if defined(_MSC_VER)
         using char_t = uint32_t;
-        using string_t = std::basic_string<char_t>;
 #define U(str) reinterpret_cast<const char_t*>(U##str)
 #elif defined(__GNUC__)
 #define U(str) U##str
         using char_t = char32_t;
-        using string_t = std::basic_string<char_t>;
 #endif
 
-        using StringsSet = std::unordered_set<string_t>;
+        struct string_t
+        {
+            std::shared_ptr<std::basic_string<char_t>> ptr;
+            string_t();
+            string_t(const char_t*);
+            string_t(const std::basic_string<char_t>&);
+            string_t(const string_t &);
+
+            string_t &operator=(const string_t &);
+            string_t operator+(const string_t &);
+            string_t &operator+=(const string_t &);
+            bool operator==(const string_t &) const;
+
+            std::basic_string<char_t> &get();
+
+            struct hash
+            {
+                std::hash<std::basic_string<char_t>> h;
+                std::size_t operator()(const string_t&) const;
+            };
+        };
 
         using Identifier = string_t;
 
@@ -117,7 +135,7 @@ namespace zyd2001
         Value change(const Value&, ValueType);
 
         using Array = std::vector<Value>;
-        using VariablesMap = std::unordered_map<Identifier, Value>;
+        using VariablesMap = std::unordered_map<Identifier, Value, Identifier::hash>;
 
         enum ExpressionType
         {
@@ -340,7 +358,6 @@ namespace zyd2001
             VariablesMap global_variables;
             std::vector<std::unique_ptr<void *>> handle_list;
             std::unordered_map<std::string, int> settings;
-            StringsSet strings_pool;
         };
     }
 }

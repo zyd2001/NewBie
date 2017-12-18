@@ -120,6 +120,8 @@ Value Value::operator+(const Value &v) const
     if (type == STRING_TYPE || v.type == STRING_TYPE)
     {
         Value first(*this);
+        delete static_cast<string_t*>(first.content);
+        first.content = new string_t(this->get<string_t>().get());
         Value second(v);
         first.change_type(STRING_TYPE);
         second.change_type(STRING_TYPE);
@@ -163,6 +165,8 @@ Value Value::operator*(const Value &v) const
     if (type == STRING_TYPE && v.type == INT_TYPE)
     {
         Value first(*this);
+        delete static_cast<string_t*>(first.content);
+        first.content = new string_t(this->get<string_t>().get());
         string_t str(first.get<string_t>());
         for (int i = 1; i < v.get<int>(); i++)
             first.get<string_t>() += str;
@@ -228,7 +232,7 @@ if (type == STRING_TYPE || v.type == STRING_TYPE) \
 { \
 	first.change_type(STRING_TYPE); \
 	second.change_type(STRING_TYPE); \
-	return first.get<string_t>() tag second.get<string_t>(); \
+	return first.get<string_t>().get() tag second.get<string_t>().get(); \
 } \
 else if (type == DOUBLE_TYPE || v.type == DOUBLE_TYPE) \
 { \
@@ -421,19 +425,19 @@ Value &Value::change_type(ValueType t)
             {
                 case zyd2001::NewBie::INT_TYPE:
                 {
-                    int *ptr = new int(stoi(conv.to_bytes(get_cast(string_t*))));
+                    int *ptr = new int(stoi(conv.to_bytes(get_cast(string_t*).get())));
                     replace(string_t*);
                     break;
                 }
                 case zyd2001::NewBie::DOUBLE_TYPE:
                 {
-                    double *ptr = new double(stod(conv.to_bytes(get_cast(string_t*))));
+                    double *ptr = new double(stod(conv.to_bytes(get_cast(string_t*).get())));
                     replace(string_t*);
                     break;
                 }
                 case zyd2001::NewBie::BOOL_TYPE:
                 {
-                    bool *ptr = new bool(get_cast(string_t*).empty() ? false : true);
+                    bool *ptr = new bool(get_cast(string_t*).get().empty() ? false : true);
                     replace(string_t*);
                     break;
                 }
@@ -470,9 +474,9 @@ ostream &zyd2001::NewBie::operator<<(ostream &out, Value &v)
             break;
         case zyd2001::NewBie::STRING_TYPE:
 #if defined(_MSC_VER)
-            printf(conv.to_bytes(v.get<string_t>()).c_str());
+            printf(conv.to_bytes(v.get<string_t>().get()).c_str());
 #elif defined(__GNUC__)
-            out << conv.to_bytes(v.get<string_t>());
+            out << conv.to_bytes(v.get<string_t>().get());
 #endif
             break;
         case zyd2001::NewBie::ARRAY_TYPE:

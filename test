@@ -1,39 +1,4 @@
-int i = 123;
-var arr = [123, 233, "asd", "second"];
-print(i);
-double j = 123.123;
-print(j);
-print("测试", 3.14);
-print();
-p();
-p("haha");
-__print__ arr[0];
-for (x in ~arr)
-{
-    __print__ x;
-}
-
-int print(int v)
-{
-    __print__ v;
-}
-
-int print(double v)
-{
-    __print__ "double " + v;
-}
-
-int print(string str, double v)
-{
-    __print__ str + " " + v;
-}
-
-int print()
-{
-    __print__ "default";
-}
-
-int p(string str = "asd")
-{
-    __print__ str;
-}
+string a = "first";
+string b = a + "second";
+__print__ b;
+__print__ a;
