@@ -167,7 +167,7 @@ Value Value::operator*(const Value &v) const
         Value first(*this);
         delete static_cast<string_t*>(first.content);
         first.content = new string_t(this->get<string_t>().get());
-        string_t str(first.get<string_t>());
+        string_t str(first.get<string_t>().get());
         for (int i = 1; i < v.get<int>(); i++)
             first.get<string_t>() += str;
         return first;

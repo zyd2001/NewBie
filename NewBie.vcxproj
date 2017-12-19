@@ -192,6 +192,7 @@
   <ItemGroup>
     <None Include="newbie++.l" />
     <None Include="newbie++.y" />
+    <None Include="README.md" />
     <None Include="test" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
