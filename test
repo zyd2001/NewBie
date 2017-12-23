@@ -1,3 +1,10 @@
 string a = "first";
-string b = a * 10000000;
-string c = b, d = b, e = b, f = e, g = e, h = e, i = e;
+string b = a + " second";
+__print__ f();
+__print__ b;
+__print__ a;
+
+int f()
+{
+    return 50;
+}

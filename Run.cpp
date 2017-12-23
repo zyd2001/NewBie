@@ -18,10 +18,10 @@ bool InterpreterImp::run()
     {
         throw runtime_error("No AST");
     }
-    variables_stack.push(vector<VariablesMap>());
-    variables_stack.top().emplace_back(VariablesMap());
+    variables_stack.push(make_stack_unit());
+    (*variables_stack.top()).emplace_back(VariablesMap());
     if (false) //according to the setting
-        variables_stack.top().emplace_back(VariablesMap());
+        (*variables_stack.top()).emplace_back(VariablesMap());
     interpret(statements_list);
     variables_stack.pop();
 #if defined(_MSC_VER)
@@ -45,9 +45,9 @@ StatementType InterpreterImp::interpret(const StatementsList &s)
     return NULL_STATEMENT;
 }
 
-int InterpreterImp::checkExist(const Identifier &id) //check all scope, 0 for global
+int InterpreterImp::checkExist(const Identifier &id, bool global) //check all scope, 0 for global
 {
-    vector<VariablesMap> &v = variables_stack.top();
+    vector<VariablesMap> &v = (*variables_stack.top());
     for (auto i = v.size(); i > 0; i--)
     {
         auto result = v[i - 1].find(id);
@@ -57,18 +57,24 @@ int InterpreterImp::checkExist(const Identifier &id) //check all scope, 0 for gl
             continue;
     }
     //when in function
-    auto result = global_variables.find(id);
-    if (result != global_variables.cend())
-    	return 0;
+    if (global)
+    {
+        auto result = global_variables.find(id);
+        if (result != global_variables.cend())
+            return 0;
+        else
+            return -1;
+    }
     else
         return -1;
 }
 
 void InterpreterImp::err() { cerr << "Error occured at " << current_lineno << endl; }
+void InterpreterImp::err(const string &s) { cerr << "Error occured at " << current_lineno << endl; cerr << s << endl; }
 StatementType InterpreterImp::execute(const Statement &s)
 {
     current_lineno = s.lineno;
-    auto &v = variables_stack.top();
+    auto &v = (*variables_stack.top());
     switch (s.type)
     {
         case zyd2001::NewBie::EXPRESSION_STATEMENT:
@@ -233,8 +239,8 @@ StatementType InterpreterImp::execute(const Statement &s)
         }
         case zyd2001::NewBie::FOREACH_STATEMENT:
         {
-            ForeachStatement fes = s.get<ForeachStatement>();
-            DeclarationStatement *ds = new (DeclarationStatement){ VARIOUS_TYPE, { { fes.identifier, Expression() } }, false };
+            ForeachStatement &fes = s.get<ForeachStatement>();
+            DeclarationStatement *ds = new (DeclarationStatement){ false, VARIANT_TYPE, { { fes.identifier, Expression() } } };
             Statement stat(DECLARATION_STATEMENT, ds, -1);
 
             //new scope

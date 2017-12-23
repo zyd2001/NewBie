@@ -42,19 +42,19 @@
 %token<Identifier>     IDENTIFIER
 %token END  0  "end of file"
         INT DOUBLE BOOL STRING ARRAY VAR GLOBAL IF ELSE ELSEIF FOR IN CLASS RETURN BREAK CONTINUE
-        LP RP LC RC LB RB SEMICOLON COMMA ASSIGN EXCLAMATION DOT
+        LP RP LC RC LB RB SEMICOLON COMMA ASSIGN EXCLAMATION DOT NEW CONSTRUCTOR THIS
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
         INCREMENT DECREMENT PUBLIC PROTECTED PRIVATE REVERSE
         PRINT
-%type<Expression> expression function_call_expression primary_expression expression_optional binary_expression unary_expression array_expression index_expression
-%type<Statement> statement block statement_optional
+%type<Expression> expression function_call_expression primary_expression expression_optional binary_expression unary_expression array_expression index_expression dot_expression dot_pre_expression
+%type<Statement> statement block statement_optional class_definition declaration_statement assignment_statement
 %type<StatementsList> statements_list
 %type<ParametersList> parameters_list
 %type<ExpressionsList> expressions_list arguments_list
 %type<ValueType> type_tag
 %type<Parameter> parameter
 %type<DeclarationStatementItem> declaration_item
-%type<DeclarationStatementItemList> declaration_item_list
+%type<DeclarationStatementItemsList> declaration_items_list
 %%
     eof: statements_list END
 		{
@@ -74,18 +74,6 @@
     statement: expression SEMICOLON
         {
             $$ = Statement(EXPRESSION_STATEMENT, new ExpressionStatement($1), yyget_lineno(scanner));
-        }
-        | IDENTIFIER ASSIGN expression SEMICOLON
-        {
-            $$ = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){std::move($1), $3}, yyget_lineno(scanner));
-        }
-        | type_tag declaration_item_list SEMICOLON
-        {
-            $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){std::move($1), std::move($2), false}, yyget_lineno(scanner));
-        }
-		| GLOBAL type_tag declaration_item_list SEMICOLON
-        {
-            $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){std::move($2), std::move($3), true}, yyget_lineno(scanner));
         }
         | IF LP expression RP statement
         {
@@ -129,9 +117,13 @@
         }
         | type_tag IDENTIFIER LP parameters_list RP block
         {
-            VariablesMap &vmap = inter.global_variables;
-            auto result = vmap.find($2);
-            if (result != vmap.cend())
+            VariablesMap *vmap;
+            if (inter.in_class)
+                vmap = &inter.current_class->static_variables;
+            else
+                vmap = &inter.global_variables;
+            auto result = (*vmap).find($2);
+            if (result != (*vmap).cend())
             {
                 auto &func = result->second.get<Function>();
                 if (func.can_overload)
@@ -141,13 +133,13 @@
                     {
                         for (auto &i : $4)
                         {
-                            if (i.type == VARIOUS_TYPE || i.default_value_exp.type != NULL_EXPRESSION)
+                            if (i.type == VARIANT_TYPE || i.default_value_exp.type != NULL_EXPRESSION)
                             {
                                 inter.err();
                                 break;
                             }
                         }
-                        func.overload_map[$4] = std::move($6);
+                        func.overload_map[$4] = $6;
                     }
                     else
                         inter.err();
@@ -160,17 +152,42 @@
                 auto func = new Function();
                 func->return_type = $1;
                 func->can_overload = true;
-                vmap[$2] = Value(FUNCTION_TYPE, func);
+                (*vmap)[$2] = Value(FUNCTION_TYPE, func);
                 func->overload_map[$4] = $6;
                 for (auto &i : $4)
                 {
-                    if (i.type == VARIOUS_TYPE || i.default_value_exp.type != NULL_EXPRESSION)
+                    if (i.type == VARIANT_TYPE || i.default_value_exp.type != NULL_EXPRESSION)
                     {
                         func->can_overload = false;
                         break;
                     }
                 }
             }
+            $$ = Statement();
+        }
+        | CONSTRUCTOR LP parameters_list RP block
+        {
+            auto &func = inter.current_class->ctor;
+            if (func.can_overload)
+            {
+                auto exist = func.overload_map.find($3);
+                if (exist == func.overload_map.cend())
+                {
+                    for (auto &i : $3)
+                    {
+                        if (i.type == VARIANT_TYPE || i.default_value_exp.type != NULL_EXPRESSION)
+                        {
+                            inter.err();
+                            break;
+                        }
+                    }
+                    func.overload_map[$3] = $5;
+                }
+                else
+                    inter.err("exist");
+            }
+            else
+                inter.err("can_overload");
             $$ = Statement();
         }
         | block
@@ -181,31 +198,77 @@
         {
             $$ = Statement(DEBUG_STATEMENT, new DebugStatement($2), yyget_lineno(scanner));
         }
+        | declaration_statement
+        {
+            $$ = $1;
+        }
+        | assignment_statement
+        {
+            $$ = $1;
+        }
+        | class_definition
+        ;
+    assignment_statement: IDENTIFIER ASSIGN expression SEMICOLON
+        {
+            $$ = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression($1)), $3}, yyget_lineno(scanner));
+        }
+        | dot_expression ASSIGN expression SEMICOLON
+        {
+            $$ = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){$1, $3}, yyget_lineno(scanner));
+        }
+        ;
+    declaration_statement: type_tag declaration_items_list SEMICOLON
+        {
+            $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){false, $1, std::move($2)}, yyget_lineno(scanner));
+        }
+		| GLOBAL type_tag declaration_items_list SEMICOLON
+        {
+            $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){true, $2, std::move($3)}, yyget_lineno(scanner));
+        }
+        | IDENTIFIER declaration_items_list SEMICOLON
+        {
+            $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){false, OBJECT_TYPE, std::move($2), $1}, yyget_lineno(scanner));
+        }
+        | GLOBAL IDENTIFIER declaration_items_list SEMICOLON
+        {
+            $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){true, OBJECT_TYPE, std::move($3), $2}, yyget_lineno(scanner));
+        }
         ;
     declaration_item: IDENTIFIER 
         {
-            $$ = {std::move($1)};
+            $$ = {$1};
         }
         | IDENTIFIER ASSIGN expression
         {
-            $$ = {std::move($1), $3};
+            $$ = {$1, $3};
         }
         ;
-    declaration_item_list: declaration_item
+    declaration_items_list: declaration_item
         {
             $$.emplace_back(std::move($1));
         }
-        | declaration_item_list COMMA declaration_item
+        | declaration_items_list COMMA declaration_item
         {
             $1.emplace_back(std::move($3));
             $$.swap($1);
         }
         ;
-    class_definition: CLASS IDENTIFIER block
+    class_definition: CLASS IDENTIFIER LC statements_list RC
         {
-            
+            auto result = inter.class_map.find($2);
+            if (result == inter.class_map.cend())
+            {
+                inter.current_class->type = $2;
+                inter.current_class->slist = $4;
+                inter.class_map[$2] = *inter.current_class;
+                delete inter.current_class;
+                inter.current_class = nullptr;
+                $$ = Statement();
+                inter.in_class = false;
+            }
+            else
+                inter.err("class_definition");
         }
-        | CLASS IDENTIFIER block
         ;
     expression: binary_expression
         {
@@ -225,7 +288,7 @@
         }
         | IDENTIFIER
         {
-            $$ = Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression(std::move($1)));
+            $$ = Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression($1));
         }
         | LP expression RP
         {
@@ -239,10 +302,19 @@
         {
             $$ = $1;
         }
+        | dot_expression
+        {
+            $$ = $1;
+        }
+        | NEW function_call_expression
+        {
+            $2.type = NEW_OBJECT_EXPRESSION;
+            $$ = $2;
+        }
         ;
     index_expression: IDENTIFIER LB expression RB
         {
-            $$ = Expression(INDEX_EXPRESSION, new (IndexExpression){Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression(std::move($1))), $3});
+            $$ = Expression(INDEX_EXPRESSION, new (IndexExpression){Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression($1)), $3});
         }
         | array_expression LB expression RB
         {
@@ -260,6 +332,44 @@
     array_expression: LB expressions_list RB
         {
             $$ = Expression(ARRAY_EXPRESSION, new ArrayExpression(std::move($2)));
+        }
+        ;
+    dot_expression: dot_pre_expression DOT IDENTIFIER
+        {
+            $$ = Expression(DOT_FUNC_EXPRESSION, new (DotID){$1, $3});
+        }
+        | dot_pre_expression DOT function_call_expression
+        {
+            $$ = Expression(DOT_ID_EXPRESSION, new (DotFuncCall){$1, $3});
+        }
+        ;
+    dot_pre_expression: primary_expression
+        {
+            $$ = $1;
+        }
+        | function_call_expression
+        {
+            $$ = $1;
+        }
+        | IDENTIFIER
+        {
+            $$ = Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression($1));
+        }
+        | LP expression RP
+        {
+            $$ = $2;
+        }
+        | index_expression
+        {
+            $$ = $1;
+        }
+        | dot_expression
+        {
+            $$ = $1;
+        }
+        | THIS
+        {
+            $$ = Expression(THIS_EXPRESSION, nullptr);
         }
         ;
     expression_optional: /* empty */
@@ -281,15 +391,11 @@
         }
         | IDENTIFIER ASSIGN expression
         {
-            $$ = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){std::move($1), $3}, yyget_lineno(scanner));
+            $$ = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){$1, $3}, yyget_lineno(scanner));
         }
-        | type_tag declaration_item_list
+        | declaration_statement
         {
-            $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){std::move($1), std::move($2), false}, yyget_lineno(scanner));
-        }
-		| GLOBAL type_tag declaration_item_list
-        {
-            $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){std::move($2), std::move($3), true}, yyget_lineno(scanner));
+            $$ = $1;
         }
         ;
     binary_expression: expression ADD expression
@@ -408,7 +514,7 @@
         }
         | VAR
         {
-            $$ = VARIOUS_TYPE;
+            $$ = VARIANT_TYPE;
         }
         ;
     block: LC statements_list RC

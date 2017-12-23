@@ -8,6 +8,7 @@
 #include <utility>
 #include <stack>
 #include <iostream>
+#include <functional>
 
 /*For flex and bison*/
 typedef void* yyscan_t;
@@ -52,7 +53,7 @@ namespace zyd2001
             DOUBLE_TYPE,
             BOOL_TYPE,
             STRING_TYPE,
-            VARIOUS_TYPE,
+            VARIANT_TYPE,
             ARRAY_TYPE,
             FUNCTION_TYPE,
             OBJECT_TYPE
@@ -146,7 +147,11 @@ namespace zyd2001
             UNARY_EXPRESSION,
             FUNCTION_CALL_EXPRESSION,
             ARRAY_EXPRESSION,
-            INDEX_EXPRESSION
+            INDEX_EXPRESSION,
+            THIS_EXPRESSION,
+            DOT_FUNC_EXPRESSION,
+            DOT_ID_EXPRESSION,
+            NEW_OBJECT_EXPRESSION
         };
 
         struct Expression
@@ -191,6 +196,18 @@ namespace zyd2001
         {
             Expression exp;
             Expression index;
+        };
+
+        struct DotFuncCall
+        {
+            Expression obj;
+            Expression fce;
+        };
+
+        struct DotID
+        {
+            Expression obj;
+            string_t id;
         };
 
         using ArrayExpression = std::vector<Expression>;
@@ -240,19 +257,25 @@ namespace zyd2001
             Identifier identifier;
             Expression initial_value;
         };
-
-        using DeclarationStatementItemList = std::vector<DeclarationStatementItem>;
-
+        using DeclarationStatementItemsList = std::vector<DeclarationStatementItem>;
         struct DeclarationStatement
         {
+            bool global;
             ValueType type;
-            DeclarationStatementItemList items;
+            DeclarationStatementItemsList items;
+            Identifier obj_type;
+        };
+
+        struct ObjDeclarationStatement
+        {
+            Identifier type;
+            DeclarationStatementItemsList items;
             bool global;
         };
 
         struct AssignmentStatement
         {
-            Identifier identifier;
+            Expression identifier;
             Expression value;
         };
 
@@ -298,9 +321,17 @@ namespace zyd2001
             Expression default_value_exp; //only Value
         };
 
+        //stack unit
+        using deleter = std::function<void(std::vector<VariablesMap>*)>;
+        using stack_unit = std::unique_ptr<std::vector<VariablesMap>, deleter >;
+        void disabled_deleter(std::vector<VariablesMap> *p);
+        void enabled_deleter(std::vector<VariablesMap> *p);
+        stack_unit make_stack_unit();
+        stack_unit make_temp_unit(std::vector<VariablesMap>&);
+        using VariablesStack = std::stack<stack_unit>;
+
         using ParametersList = std::vector<Parameter>;
         using ArgumentsList = std::vector<Expression>;
-        using VariablesStack = std::stack<std::vector<VariablesMap>>;
 
         struct ParamsHash
         {
@@ -314,19 +345,28 @@ namespace zyd2001
         {
             ValueType return_type;
             std::unordered_map<ParametersList, Statement, ParamsHash, ParamsEqualTo> overload_map;
-            bool can_overload;
+            bool can_overload = true;
         };
         struct Class
         {
             Identifier type;
             StatementsList slist;
+            VariablesMap static_variables;
+            Function ctor;
         };
-        struct Object
+        using ClassMap = std::unordered_map<Identifier, Class, Identifier::hash>;
+        struct GCHandle
         {
-            int ref_count;
-            Identifier type;
-            VariablesMap local_variables;
+            int id;
+            std::vector<int, int> branches;
         };
+        struct object_t
+        {
+            std::shared_ptr<GCHandle> gc_handle;
+            Identifier type;
+            std::vector<VariablesMap> local_env;
+        };
+        using Object = std::shared_ptr<object_t>;
 
         class InterpreterImp
         {
@@ -339,23 +379,39 @@ namespace zyd2001
             bool run();
             bool setFile(const std::string &name);
             bool changeSetting(const std::string &, int);
+            Value callFunc(Function&, ArgumentsList&);
+            void addVar(Value&);
+            void addGlobalVar(Value&);
 
             StatementType execute(const Statement &);
             StatementType interpret(const StatementsList &);
-            Value evaluate(const Expression &);
+            Value &evaluate(const Expression &);
             void err();
-            int checkExist(const Identifier &);
+            void err(const std::string&);
+            int checkExist(const Identifier &, bool global = true);
 
             /*parsing time variables*/
             int level = 0;
             std::string filename;
+            bool in_class = false;
+            Class *current_class;
 
             /*runtime variables*/
             int current_lineno;
+            int object_count;
+            //support "this" expression
+            bool in_obj = false;
+            Value *current_object;
+
+            //for return value
+            Value temp_variable;
+
+            //global scope
+            VariablesMap global_variables;
+
             StatementsList statements_list;
             VariablesStack variables_stack;
-            Value temp_variable;
-            VariablesMap global_variables;
+            ClassMap class_map;
             std::vector<std::unique_ptr<void *>> handle_list;
             std::unordered_map<std::string, int> settings;
         };

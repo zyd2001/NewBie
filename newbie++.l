@@ -5,10 +5,12 @@
 #include "location.hh"
 #include <codecvt>
 #include <locale>
+#include <sstream>
 
 using namespace std;
 using namespace zyd2001::NewBie;
-string string_buffer, heredoc_tag;
+string heredoc_tag;
+ostringstream string_buffer;
 #if defined(_MSC_VER)
 extern wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 #elif defined(__GNUC__)
@@ -48,8 +50,12 @@ static zyd2001::NewBie::location loc;
 <INITIAL>"in"           return Parser::make_IN(loc);
 <INITIAL>"break"        return Parser::make_BREAK(loc);
 <INITIAL>"continue"     return Parser::make_CONTINUE(loc);
+<INITIAL>"constructor"  return Parser::make_CONSTRUCTOR(loc);
+<INITIAL>"ctor"         return Parser::make_CONSTRUCTOR(loc);
 <INITIAL>"return"       return Parser::make_RETURN(loc);
-<INITIAL>"class"        return Parser::make_CLASS(loc);
+<INITIAL>"class"        {inter.in_class = true; inter.current_class = new Class(); return Parser::make_CLASS(loc);}
+<INITIAL>"new"          return Parser::make_NEW(loc);
+<INITIAL>"this"         return Parser::make_THIS(loc);
 <INITIAL>"__print__"    return Parser::make_PRINT(loc);
 <INITIAL>"("            return Parser::make_LP(loc);
 <INITIAL>")"            return Parser::make_RP(loc);
@@ -60,9 +66,9 @@ static zyd2001::NewBie::location loc;
 <INITIAL>";"            return Parser::make_SEMICOLON(loc);
 <INITIAL>","            return Parser::make_COMMA(loc);
 <INITIAL>"&&"           return Parser::make_LOGICAL_AND(loc);
-<INITIAL>"OR"           return Parser::make_LOGICAL_AND(loc);
+<INITIAL>"AND"          return Parser::make_LOGICAL_AND(loc);
 <INITIAL>"||"           return Parser::make_LOGICAL_OR(loc);
-<INITIAL>"AND"          return Parser::make_LOGICAL_OR(loc);
+<INITIAL>"OR"           return Parser::make_LOGICAL_OR(loc);
 <INITIAL>"="            return Parser::make_ASSIGN(loc);
 <INITIAL>"=="           return Parser::make_EQ(loc);
 <INITIAL>"!="           return Parser::make_NE(loc);
@@ -128,8 +134,8 @@ static zyd2001::NewBie::location loc;
     {
         BEGIN INITIAL;
         heredoc_tag.clear();
-        string temp;
-        swap(temp, string_buffer);
+        string temp = string_buffer.str();
+        string_buffer.str("");
         if (temp.empty())
             return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(string_t())), loc);
         else
@@ -144,15 +150,15 @@ static zyd2001::NewBie::location loc;
         }
     }
     else
-        string_buffer += yytext;
+        string_buffer << yytext;
 }
 <HEREDOC>. {
-    string_buffer += yytext;
+    string_buffer << yytext;
 }
 <HEREDOC>\n {
     loc.lines(yyleng);
     loc.step();
-    string_buffer += yytext;
+    string_buffer << yytext;
 }
 <LINE_COMMENT>. ;
 <LINE_COMMENT>\n {
@@ -171,15 +177,15 @@ static zyd2001::NewBie::location loc;
     loc.step();
 }
 <STRING_LITERAL_STATE>\\n {
-    string_buffer += '\n';
+    string_buffer << '\n';
 }
 <STRING_LITERAL_STATE>\\\" {
-    string_buffer += '\"';
+    string_buffer << '\"';
 }
 <STRING_LITERAL_STATE>\" {
     BEGIN INITIAL;
-    string temp;
-    swap(temp, string_buffer);
+    string temp = string_buffer.str();
+    string_buffer.str("");
     if (temp.empty())
     {
         return Parser::make_STRING_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(string_t())), loc);
@@ -190,7 +196,7 @@ static zyd2001::NewBie::location loc;
     }
 }
 <STRING_LITERAL_STATE>. {
-    string_buffer += yytext;
+    string_buffer << yytext;
 }
 <<EOF>> return Parser::make_END(loc);
 %%

@@ -47,6 +47,7 @@ Expression::~Expression()
             case zyd2001::NewBie::UNARY_EXPRESSION:
                 delete_cast(UnaryExpression*);
                 break;
+            case NEW_OBJECT_EXPRESSION:
             case zyd2001::NewBie::FUNCTION_CALL_EXPRESSION:
                 delete_cast(FunctionCallExpression*);
                 break;
@@ -55,6 +56,12 @@ Expression::~Expression()
                 break;
             case zyd2001::NewBie::INDEX_EXPRESSION:
                 delete_cast(IndexExpression*);
+                break;
+            case DOT_FUNC_EXPRESSION:
+                delete_cast(DotFuncCall*);
+                break;
+            case DOT_ID_EXPRESSION:
+                delete_cast(DotID*);
                 break;
             default:
                 break;
@@ -182,4 +189,60 @@ std::size_t ParamsHash::operator()(const ParametersList& p) const
         seed ^= h(i.type) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
     return seed;
+}
+
+void zyd2001::NewBie::disabled_deleter(vector<VariablesMap> *p) {}
+void zyd2001::NewBie::enabled_deleter(vector<VariablesMap> *p) { delete p; }
+stack_unit zyd2001::NewBie::make_stack_unit() { return unique_ptr<std::vector<VariablesMap>, deleter>(new std::vector<VariablesMap>(), &enabled_deleter); }
+stack_unit zyd2001::NewBie::make_temp_unit(std::vector<VariablesMap> &u) { return unique_ptr<std::vector<VariablesMap>, deleter>(&u, &disabled_deleter); }
+
+Value InterpreterImp::callFunc(Function &func, ArgumentsList &alist)
+{
+    //initialize the function local variables
+    StatementsList temp_slist;
+    vector<Expression> temp_elist;
+    ParametersList temp_plist;
+    for (auto &arg : alist)
+    {
+        temp_elist.emplace_back(Expression(LITERAL_EXPRESSION, new Value(evaluate(arg))));
+        temp_plist.emplace_back(Parameter());
+        temp_plist.back().type = temp_elist.back().get<LiteralExpression>().type;
+    }
+
+    variables_stack.push(make_stack_unit());
+    (*variables_stack.top()).push_back(VariablesMap());
+    decltype(func.overload_map.begin()) fbody;
+
+    if (func.can_overload)
+    {
+        fbody = func.overload_map.find(temp_plist);
+        if (fbody == func.overload_map.cend())
+            err();
+    }
+    else
+        fbody = func.overload_map.begin();
+
+    auto eiter = temp_elist.cbegin();
+    for (auto param = fbody->first.cbegin(); param != fbody->first.cend(); param++)
+    {
+        DeclarationStatementItemsList item;
+        if (eiter != temp_elist.cend())
+        {
+            item.emplace_back(std::move(DeclarationStatementItem{ std::move(param->identifier), *eiter }));
+            eiter++;
+        }
+        else
+            item.emplace_back(std::move(DeclarationStatementItem{ std::move(param->identifier), param->default_value_exp }));
+        Statement temp(DECLARATION_STATEMENT, new (DeclarationStatement){ false, param->type, item }, -1);
+        execute(temp);
+    }
+
+    interpret(fbody->second.get<BlockStatement>());
+    variables_stack.pop();
+
+    return temp_variable;
+}
+
+void InterpreterImp::addVar(Value &val)
+{
 }

@@ -61,7 +61,11 @@ Value::Value(const Value &v) : type(v.type), various(v.various)
             break;
         }
         case zyd2001::NewBie::OBJECT_TYPE:
+        {
+            Object *ptr = new Object(v.get<Object>());
+            content = ptr;
             break;
+        }
         case FUNCTION_TYPE:
         {
             Function *ptr = new Function(v.get<Function>());
@@ -99,6 +103,7 @@ Value::~Value()
             delete_cast(Array*);
             break;
         case zyd2001::NewBie::OBJECT_TYPE:
+            delete_cast(Object*);
             break;
         case FUNCTION_TYPE:
             delete_cast(Function*);
@@ -324,7 +329,7 @@ Value zyd2001::NewBie::change(const Value &v, ValueType t)
 
 Value &Value::change_type(ValueType t)
 {
-    if (t == VARIOUS_TYPE)
+    if (t == VARIANT_TYPE)
     {
         this->various = true;
         return *this;

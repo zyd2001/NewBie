@@ -4,7 +4,7 @@
 using namespace zyd2001::NewBie;
 using namespace std;
 
-Value InterpreterImp::evaluate(const Expression &e)
+Value &InterpreterImp::evaluate(const Expression &e)
 {
     switch (e.type)
     {
@@ -22,7 +22,7 @@ Value InterpreterImp::evaluate(const Expression &e)
             {
                 if (res == 0)
                     return global_variables.at(e.get<IdentifierExpression>());
-                return variables_stack.top()[res - 1].at(e.get<IdentifierExpression>());
+                return (*variables_stack.top())[res - 1].at(e.get<IdentifierExpression>());
             }
             break;
         }
@@ -47,31 +47,32 @@ Value InterpreterImp::evaluate(const Expression &e)
                     return evaluate(be.lexp) % evaluate(be.rexp);
                     break;
                 case zyd2001::NewBie::EQ:
-                    return evaluate(be.lexp) == evaluate(be.rexp);
+                    temp_variable = evaluate(be.lexp) == evaluate(be.rexp);
                     break;
                 case zyd2001::NewBie::NE:
-                    return evaluate(be.lexp) != evaluate(be.rexp);
+                    temp_variable = evaluate(be.lexp) != evaluate(be.rexp);
                     break;
                 case zyd2001::NewBie::GT:
-                    return evaluate(be.lexp) > evaluate(be.rexp);
+                    temp_variable = evaluate(be.lexp) > evaluate(be.rexp);
                     break;
                 case zyd2001::NewBie::GE:
-                    return evaluate(be.lexp) >= evaluate(be.rexp);
+                    temp_variable = evaluate(be.lexp) >= evaluate(be.rexp);
                     break;
                 case zyd2001::NewBie::LT:
-                    return evaluate(be.lexp) < evaluate(be.rexp);
+                    temp_variable = evaluate(be.lexp) < evaluate(be.rexp);
                     break;
                 case zyd2001::NewBie::LE:
-                    return evaluate(be.lexp) <= evaluate(be.rexp);
+                    temp_variable = evaluate(be.lexp) <= evaluate(be.rexp);
                     break;
                 case zyd2001::NewBie::AND:
-                    return evaluate(be.lexp) && evaluate(be.rexp);
+                    temp_variable = evaluate(be.lexp) && evaluate(be.rexp);
                     break;
                 case zyd2001::NewBie::OR:
-                    return evaluate(be.lexp) || evaluate(be.rexp);
+                    temp_variable = evaluate(be.lexp) || evaluate(be.rexp);
                     break;
                 default:
                     break;
+                return temp_variable;
             }
             break;
         }
@@ -84,7 +85,8 @@ Value InterpreterImp::evaluate(const Expression &e)
                     return -evaluate(ue.exp);
                     break;
                 case zyd2001::NewBie::NOT:
-                    return !evaluate(ue.exp);
+                    temp_variable = !evaluate(ue.exp);
+                    return temp_variable;
                     break;
                 default:
                     break;
@@ -93,7 +95,7 @@ Value InterpreterImp::evaluate(const Expression &e)
         }
         case zyd2001::NewBie::FUNCTION_CALL_EXPRESSION:
         {
-            FunctionCallExpression fce = e.get<FunctionCallExpression>();
+            FunctionCallExpression &fce = e.get<FunctionCallExpression>();
             int res = checkExist(fce.identifier);
             if (res == -1)
                 err();
@@ -103,63 +105,21 @@ Value InterpreterImp::evaluate(const Expression &e)
                 if (res == 0)
                     f = &global_variables.at(fce.identifier);
                 else
-                    f = &variables_stack.top()[res - 1].at(fce.identifier);
+                    f = &(*variables_stack.top())[res - 1].at(fce.identifier);
                 if (f->type != FUNCTION_TYPE)
                     err();
                 else
                 {
                     Function func = f->get<Function>();
 
-                    //initialize the function local variables
-                    StatementsList temp_slist;
-                    vector<Expression> temp_elist;
-                    ParametersList temp_plist;
-                    for (auto &arg : fce.alist)
-                    {
-                        temp_elist.emplace_back(Expression(LITERAL_EXPRESSION, new Value(evaluate(arg))));
-                        temp_plist.emplace_back(Parameter());
-                        temp_plist.back().type = temp_elist.back().get<LiteralExpression>().type;
-                    }
-                    
-                    variables_stack.push(vector<VariablesMap>());
-                    variables_stack.top().push_back(VariablesMap());
-                    decltype(func.overload_map.begin()) fbody;
-
-                    if (func.can_overload)
-                    {
-                        fbody = func.overload_map.find(temp_plist);
-                        if (fbody == func.overload_map.cend())
-                            err();
-                    }
-                    else
-                        fbody = func.overload_map.begin();
-
-                    auto eiter = temp_elist.cbegin();
-                    for (auto param = fbody->first.cbegin(); param != fbody->first.cend(); param++)
-                    {
-                        DeclarationStatementItemList item;
-                        if (eiter != temp_elist.cend())
-                        {
-                            item.emplace_back(std::move(DeclarationStatementItem{ std::move(param->identifier), *eiter }));
-                            eiter++;
-                        }
-                        else
-                            item.emplace_back(std::move(DeclarationStatementItem{ std::move(param->identifier), param->default_value_exp }));
-                        Statement temp(DECLARATION_STATEMENT, new (DeclarationStatement){ param->type, item, false }, -1);
-                        execute(temp);
-                    }
-
-                    interpret(fbody->second.get<BlockStatement>());
-                    variables_stack.pop();
-
-                    return temp_variable;
+                    return callFunc(func, fce.alist);
                 }
             }
             break;
         }
         case zyd2001::NewBie::ARRAY_EXPRESSION:
         {
-            auto ae = e.get<ArrayExpression>();
+            auto &ae = e.get<ArrayExpression>();
             Value v;
             v.type = ARRAY_TYPE;
             v.content = new Array();
@@ -173,8 +133,64 @@ Value InterpreterImp::evaluate(const Expression &e)
         }
         case zyd2001::NewBie::INDEX_EXPRESSION:
         {
-            auto ie = e.get<IndexExpression>();
+            auto &ie = e.get<IndexExpression>();
             return evaluate(ie.exp).get<Array>()[evaluate(ie.index).change_type(INT_TYPE).get<int>()];
+            break;
+        }
+        case THIS_EXPRESSION:
+        {
+            if (in_obj)
+                return *current_object;
+            else
+                err("use this outside class");
+            break;
+        }
+        case DOT_FUNC_EXPRESSION:
+        {
+            auto &dfe = e.get<DotFuncCall>();
+            Value obj = evaluate(dfe.obj);
+            break;
+        }
+        case DOT_ID_EXPRESSION:
+        {
+            auto &die = e.get<DotID>();
+            Value obj = evaluate(die.obj);
+            //override the env
+            variables_stack.push(make_temp_unit(obj.get<Object>()->local_env));
+            int res = checkExist(die.id, false);
+            if (res == -1)
+                err();
+            else
+                return (*variables_stack.top())[res - 1].at(die.id);
+            break;
+        }
+        case NEW_OBJECT_EXPRESSION:
+        {
+            auto &noe = e.get<FunctionCallExpression>(); //just different TYPE
+            auto result = class_map.find(noe.identifier);
+            if (result != class_map.cend())
+            {
+                auto &cl = result->second;
+                auto ptr = new Object();
+                auto &obj = **ptr;
+                Value val(OBJECT_TYPE, ptr);
+                obj.type = noe.identifier;
+                //to initialize the local variables in the object
+                variables_stack.push(make_temp_unit(obj.local_env));
+                //support "this" expression
+                current_object = &val;
+                in_obj = true;
+                //call ctor
+                interpret(cl.slist);
+                callFunc(cl.ctor, noe.alist);
+
+                current_object = nullptr;
+                in_obj = false;
+
+                variables_stack.pop();
+            }
+            else
+                err("no such class");
             break;
         }
         default:

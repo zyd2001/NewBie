@@ -272,8 +272,8 @@ namespace zyd2001 { namespace NewBie {
       // declaration_item
       char dummy1[sizeof(DeclarationStatementItem)];
 
-      // declaration_item_list
-      char dummy2[sizeof(DeclarationStatementItemList)];
+      // declaration_items_list
+      char dummy2[sizeof(DeclarationStatementItemsList)];
 
       // INT_LITERAL
       // STRING_LITERAL
@@ -282,6 +282,8 @@ namespace zyd2001 { namespace NewBie {
       // expression
       // index_expression
       // array_expression
+      // dot_expression
+      // dot_pre_expression
       // expression_optional
       // binary_expression
       // unary_expression
@@ -303,6 +305,8 @@ namespace zyd2001 { namespace NewBie {
       char dummy7[sizeof(ParametersList)];
 
       // statement
+      // declaration_statement
+      // class_definition
       // statement_optional
       // block
       char dummy8[sizeof(Statement)];
@@ -381,18 +385,20 @@ namespace zyd2001 { namespace NewBie {
         TOKEN_ASSIGN = 301,
         TOKEN_EXCLAMATION = 302,
         TOKEN_DOT = 303,
-        TOKEN_ADD_ASSIGN = 304,
-        TOKEN_SUB_ASSIGN = 305,
-        TOKEN_MUL_ASSIGN = 306,
-        TOKEN_DIV_ASSIGN = 307,
-        TOKEN_MOD_ASSIGN = 308,
-        TOKEN_INCREMENT = 309,
-        TOKEN_DECREMENT = 310,
-        TOKEN_PUBLIC = 311,
-        TOKEN_PROTECTED = 312,
-        TOKEN_PRIVATE = 313,
-        TOKEN_REVERSE = 314,
-        TOKEN_PRINT = 315
+        TOKEN_NEW = 304,
+        TOKEN_CONSTRUCTOR = 305,
+        TOKEN_ADD_ASSIGN = 306,
+        TOKEN_SUB_ASSIGN = 307,
+        TOKEN_MUL_ASSIGN = 308,
+        TOKEN_DIV_ASSIGN = 309,
+        TOKEN_MOD_ASSIGN = 310,
+        TOKEN_INCREMENT = 311,
+        TOKEN_DECREMENT = 312,
+        TOKEN_PUBLIC = 313,
+        TOKEN_PROTECTED = 314,
+        TOKEN_PRIVATE = 315,
+        TOKEN_REVERSE = 316,
+        TOKEN_PRINT = 317
       };
     };
 
@@ -432,7 +438,7 @@ namespace zyd2001 { namespace NewBie {
 
   basic_symbol (typename Base::kind_type t, const DeclarationStatementItem v, const location_type& l);
 
-  basic_symbol (typename Base::kind_type t, const DeclarationStatementItemList v, const location_type& l);
+  basic_symbol (typename Base::kind_type t, const DeclarationStatementItemsList v, const location_type& l);
 
   basic_symbol (typename Base::kind_type t, const Expression v, const location_type& l);
 
@@ -707,6 +713,14 @@ namespace zyd2001 { namespace NewBie {
 
     static inline
     symbol_type
+    make_NEW (const location_type& l);
+
+    static inline
+    symbol_type
+    make_CONSTRUCTOR (const location_type& l);
+
+    static inline
+    symbol_type
     make_ADD_ASSIGN (const location_type& l);
 
     static inline
@@ -811,7 +825,7 @@ namespace zyd2001 { namespace NewBie {
     /// \param yyvalue   the value to check
     static bool yy_table_value_is_error_ (int yyvalue);
 
-    static const short int yypact_ninf_;
+    static const signed char yypact_ninf_;
     static const signed char yytable_ninf_;
 
     /// Convert a scanner token number \a t to a symbol number.
@@ -828,7 +842,7 @@ namespace zyd2001 { namespace NewBie {
   static const unsigned char yydefact_[];
 
   // YYPGOTO[NTERM-NUM].
-  static const short int yypgoto_[];
+  static const signed char yypgoto_[];
 
   // YYDEFGOTO[NTERM-NUM].
   static const short int yydefgoto_[];
@@ -836,7 +850,7 @@ namespace zyd2001 { namespace NewBie {
   // YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
   // positive, shift that token.  If negative, reduce the rule whose
   // number is the opposite.  If YYTABLE_NINF, syntax error.
-  static const unsigned char yytable_[];
+  static const short int yytable_[];
 
   static const short int yycheck_[];
 
@@ -958,12 +972,12 @@ namespace zyd2001 { namespace NewBie {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 717,     ///< Last index in yytable_.
-      yynnts_ = 21,  ///< Number of nonterminal symbols.
-      yyfinal_ = 58, ///< Termination state number.
+      yylast_ = 751,     ///< Last index in yytable_.
+      yynnts_ = 25,  ///< Number of nonterminal symbols.
+      yyfinal_ = 73, ///< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
-      yyntokens_ = 61  ///< Number of tokens.
+      yyntokens_ = 63  ///< Number of tokens.
     };
 
 
@@ -1012,9 +1026,9 @@ namespace zyd2001 { namespace NewBie {
       25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
       35,    36,    37,    38,    39,    40,    41,    42,    43,    44,
       45,    46,    47,    48,    49,    50,    51,    52,    53,    54,
-      55,    56,    57,    58,    59,    60
+      55,    56,    57,    58,    59,    60,    61,    62
     };
-    const unsigned int user_token_number_max_ = 315;
+    const unsigned int user_token_number_max_ = 317;
     const token_number_type undef_token_ = 2;
 
     if (static_cast<int>(t) <= yyeof_)
@@ -1047,31 +1061,33 @@ namespace zyd2001 { namespace NewBie {
   {
       switch (other.type_get ())
     {
-      case 65: // declaration_item
+      case 68: // declaration_item
         value.copy< DeclarationStatementItem > (other.value);
         break;
 
-      case 66: // declaration_item_list
-        value.copy< DeclarationStatementItemList > (other.value);
+      case 69: // declaration_items_list
+        value.copy< DeclarationStatementItemsList > (other.value);
         break;
 
       case 17: // INT_LITERAL
       case 18: // STRING_LITERAL
       case 19: // DOUBLE_LITERAL
       case 20: // BOOL_LITERAL
-      case 67: // expression
-      case 68: // index_expression
-      case 69: // array_expression
-      case 70: // expression_optional
-      case 72: // binary_expression
-      case 73: // unary_expression
-      case 74: // function_call_expression
-      case 75: // primary_expression
+      case 71: // expression
+      case 72: // index_expression
+      case 73: // array_expression
+      case 74: // dot_expression
+      case 75: // dot_pre_expression
+      case 76: // expression_optional
+      case 78: // binary_expression
+      case 79: // unary_expression
+      case 80: // function_call_expression
+      case 81: // primary_expression
         value.copy< Expression > (other.value);
         break;
 
-      case 76: // expressions_list
-      case 79: // arguments_list
+      case 82: // expressions_list
+      case 85: // arguments_list
         value.copy< ExpressionsList > (other.value);
         break;
 
@@ -1079,25 +1095,27 @@ namespace zyd2001 { namespace NewBie {
         value.copy< Identifier > (other.value);
         break;
 
-      case 80: // parameter
+      case 86: // parameter
         value.copy< Parameter > (other.value);
         break;
 
-      case 81: // parameters_list
+      case 87: // parameters_list
         value.copy< ParametersList > (other.value);
         break;
 
-      case 64: // statement
-      case 71: // statement_optional
-      case 78: // block
+      case 66: // statement
+      case 67: // declaration_statement
+      case 70: // class_definition
+      case 77: // statement_optional
+      case 84: // block
         value.copy< Statement > (other.value);
         break;
 
-      case 63: // statements_list
+      case 65: // statements_list
         value.copy< StatementsList > (other.value);
         break;
 
-      case 77: // type_tag
+      case 83: // type_tag
         value.copy< ValueType > (other.value);
         break;
 
@@ -1118,31 +1136,33 @@ namespace zyd2001 { namespace NewBie {
     (void) v;
       switch (this->type_get ())
     {
-      case 65: // declaration_item
+      case 68: // declaration_item
         value.copy< DeclarationStatementItem > (v);
         break;
 
-      case 66: // declaration_item_list
-        value.copy< DeclarationStatementItemList > (v);
+      case 69: // declaration_items_list
+        value.copy< DeclarationStatementItemsList > (v);
         break;
 
       case 17: // INT_LITERAL
       case 18: // STRING_LITERAL
       case 19: // DOUBLE_LITERAL
       case 20: // BOOL_LITERAL
-      case 67: // expression
-      case 68: // index_expression
-      case 69: // array_expression
-      case 70: // expression_optional
-      case 72: // binary_expression
-      case 73: // unary_expression
-      case 74: // function_call_expression
-      case 75: // primary_expression
+      case 71: // expression
+      case 72: // index_expression
+      case 73: // array_expression
+      case 74: // dot_expression
+      case 75: // dot_pre_expression
+      case 76: // expression_optional
+      case 78: // binary_expression
+      case 79: // unary_expression
+      case 80: // function_call_expression
+      case 81: // primary_expression
         value.copy< Expression > (v);
         break;
 
-      case 76: // expressions_list
-      case 79: // arguments_list
+      case 82: // expressions_list
+      case 85: // arguments_list
         value.copy< ExpressionsList > (v);
         break;
 
@@ -1150,25 +1170,27 @@ namespace zyd2001 { namespace NewBie {
         value.copy< Identifier > (v);
         break;
 
-      case 80: // parameter
+      case 86: // parameter
         value.copy< Parameter > (v);
         break;
 
-      case 81: // parameters_list
+      case 87: // parameters_list
         value.copy< ParametersList > (v);
         break;
 
-      case 64: // statement
-      case 71: // statement_optional
-      case 78: // block
+      case 66: // statement
+      case 67: // declaration_statement
+      case 70: // class_definition
+      case 77: // statement_optional
+      case 84: // block
         value.copy< Statement > (v);
         break;
 
-      case 63: // statements_list
+      case 65: // statements_list
         value.copy< StatementsList > (v);
         break;
 
-      case 77: // type_tag
+      case 83: // type_tag
         value.copy< ValueType > (v);
         break;
 
@@ -1195,7 +1217,7 @@ namespace zyd2001 { namespace NewBie {
   {}
 
   template <typename Base>
-  Parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const DeclarationStatementItemList v, const location_type& l)
+  Parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, const DeclarationStatementItemsList v, const location_type& l)
     : Base (t)
     , value (v)
     , location (l)
@@ -1283,31 +1305,33 @@ namespace zyd2001 { namespace NewBie {
     // Type destructor.
     switch (yytype)
     {
-      case 65: // declaration_item
+      case 68: // declaration_item
         value.template destroy< DeclarationStatementItem > ();
         break;
 
-      case 66: // declaration_item_list
-        value.template destroy< DeclarationStatementItemList > ();
+      case 69: // declaration_items_list
+        value.template destroy< DeclarationStatementItemsList > ();
         break;
 
       case 17: // INT_LITERAL
       case 18: // STRING_LITERAL
       case 19: // DOUBLE_LITERAL
       case 20: // BOOL_LITERAL
-      case 67: // expression
-      case 68: // index_expression
-      case 69: // array_expression
-      case 70: // expression_optional
-      case 72: // binary_expression
-      case 73: // unary_expression
-      case 74: // function_call_expression
-      case 75: // primary_expression
+      case 71: // expression
+      case 72: // index_expression
+      case 73: // array_expression
+      case 74: // dot_expression
+      case 75: // dot_pre_expression
+      case 76: // expression_optional
+      case 78: // binary_expression
+      case 79: // unary_expression
+      case 80: // function_call_expression
+      case 81: // primary_expression
         value.template destroy< Expression > ();
         break;
 
-      case 76: // expressions_list
-      case 79: // arguments_list
+      case 82: // expressions_list
+      case 85: // arguments_list
         value.template destroy< ExpressionsList > ();
         break;
 
@@ -1315,25 +1339,27 @@ namespace zyd2001 { namespace NewBie {
         value.template destroy< Identifier > ();
         break;
 
-      case 80: // parameter
+      case 86: // parameter
         value.template destroy< Parameter > ();
         break;
 
-      case 81: // parameters_list
+      case 87: // parameters_list
         value.template destroy< ParametersList > ();
         break;
 
-      case 64: // statement
-      case 71: // statement_optional
-      case 78: // block
+      case 66: // statement
+      case 67: // declaration_statement
+      case 70: // class_definition
+      case 77: // statement_optional
+      case 84: // block
         value.template destroy< Statement > ();
         break;
 
-      case 63: // statements_list
+      case 65: // statements_list
         value.template destroy< StatementsList > ();
         break;
 
-      case 77: // type_tag
+      case 83: // type_tag
         value.template destroy< ValueType > ();
         break;
 
@@ -1360,31 +1386,33 @@ namespace zyd2001 { namespace NewBie {
     super_type::move(s);
       switch (this->type_get ())
     {
-      case 65: // declaration_item
+      case 68: // declaration_item
         value.move< DeclarationStatementItem > (s.value);
         break;
 
-      case 66: // declaration_item_list
-        value.move< DeclarationStatementItemList > (s.value);
+      case 69: // declaration_items_list
+        value.move< DeclarationStatementItemsList > (s.value);
         break;
 
       case 17: // INT_LITERAL
       case 18: // STRING_LITERAL
       case 19: // DOUBLE_LITERAL
       case 20: // BOOL_LITERAL
-      case 67: // expression
-      case 68: // index_expression
-      case 69: // array_expression
-      case 70: // expression_optional
-      case 72: // binary_expression
-      case 73: // unary_expression
-      case 74: // function_call_expression
-      case 75: // primary_expression
+      case 71: // expression
+      case 72: // index_expression
+      case 73: // array_expression
+      case 74: // dot_expression
+      case 75: // dot_pre_expression
+      case 76: // expression_optional
+      case 78: // binary_expression
+      case 79: // unary_expression
+      case 80: // function_call_expression
+      case 81: // primary_expression
         value.move< Expression > (s.value);
         break;
 
-      case 76: // expressions_list
-      case 79: // arguments_list
+      case 82: // expressions_list
+      case 85: // arguments_list
         value.move< ExpressionsList > (s.value);
         break;
 
@@ -1392,25 +1420,27 @@ namespace zyd2001 { namespace NewBie {
         value.move< Identifier > (s.value);
         break;
 
-      case 80: // parameter
+      case 86: // parameter
         value.move< Parameter > (s.value);
         break;
 
-      case 81: // parameters_list
+      case 87: // parameters_list
         value.move< ParametersList > (s.value);
         break;
 
-      case 64: // statement
-      case 71: // statement_optional
-      case 78: // block
+      case 66: // statement
+      case 67: // declaration_statement
+      case 70: // class_definition
+      case 77: // statement_optional
+      case 84: // block
         value.move< Statement > (s.value);
         break;
 
-      case 63: // statements_list
+      case 65: // statements_list
         value.move< StatementsList > (s.value);
         break;
 
-      case 77: // type_tag
+      case 83: // type_tag
         value.move< ValueType > (s.value);
         break;
 
@@ -1475,7 +1505,7 @@ namespace zyd2001 { namespace NewBie {
      285,   286,   287,   288,   289,   290,   291,   292,   293,   294,
      295,   296,   297,   298,   299,   300,   301,   302,   303,   304,
      305,   306,   307,   308,   309,   310,   311,   312,   313,   314,
-     315
+     315,   316,   317
     };
     return static_cast<token_type> (yytoken_number_[type]);
   }
@@ -1760,6 +1790,18 @@ namespace zyd2001 { namespace NewBie {
   Parser::make_DOT (const location_type& l)
   {
     return symbol_type (token::TOKEN_DOT, l);
+  }
+
+  Parser::symbol_type
+  Parser::make_NEW (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_NEW, l);
+  }
+
+  Parser::symbol_type
+  Parser::make_CONSTRUCTOR (const location_type& l)
+  {
+    return symbol_type (token::TOKEN_CONSTRUCTOR, l);
   }
 
   Parser::symbol_type
