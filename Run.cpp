@@ -45,7 +45,7 @@ StatementType InterpreterImp::interpret(const StatementsList &s)
     return NULL_STATEMENT;
 }
 
-int InterpreterImp::checkExist(const Identifier &id, bool global) //check all scope, 0 for global
+int InterpreterImp::checkExist(const Identifier &id) //check all scope, 0 for global
 {
     vector<VariablesMap> &v = (*variables_stack.top());
     for (auto i = v.size(); i > 0; i--)
@@ -57,16 +57,17 @@ int InterpreterImp::checkExist(const Identifier &id, bool global) //check all sc
             continue;
     }
     //when in function
-    if (global)
+    if (in_object)
     {
-        auto result = global_variables.find(id);
-        if (result != global_variables.cend())
-            return 0;
-        else
+        auto result = object_static_variables->find(id);
+        if (result != object_static_variables->cend())
             return -1;
     }
+    auto result = global_variables.find(id);
+    if (result != global_variables.cend())
+        return 0;
     else
-        return -1;
+        return -2;
 }
 
 void InterpreterImp::err() { cerr << "Error occured at " << current_lineno << endl; }
@@ -83,31 +84,8 @@ StatementType InterpreterImp::execute(const Statement &s)
         case zyd2001::NewBie::ASSIGNMENT_STATEMENT:
         {
             AssignmentStatement &as = s.get<AssignmentStatement>();
-            int res = checkExist(as.identifier);
-            if (res == -1)
-            {
-                err();
-            }
-            else
-            {
-                Value *target;
-                if (res == 0)
-                    target = &global_variables.at(as.identifier);
-                else
-                    target = &v[res - 1].at(as.identifier);
-                Value &&val = evaluate(as.value);
-                if (!target->various && target->type != val.type)
-                {
-                    //if the variable isn't various type and the value's type assigned isn't match, error
-                    err();
-                }
-                else 
-                {
-                    if (target->various)
-                        val.various = true;
-                    *target = val;
-                }
-            }
+            Value &lval = evaluate(as.lvalue);
+            lval = evaluate(as.rvalue);
             break;
         }
         case zyd2001::NewBie::DECLARATION_STATEMENT:
@@ -116,7 +94,7 @@ StatementType InterpreterImp::execute(const Statement &s)
             for (auto &iter : ds.items)
             {
                 int res = checkExist(iter.identifier);
-                if (res == -1)
+                if (res == -2)
                 {
                     VariablesMap *vmap;
                     if (ds.global)

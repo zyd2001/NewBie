@@ -168,7 +168,20 @@
         | CONSTRUCTOR LP parameters_list RP block
         {
             auto &func = inter.current_class->ctor;
-            if (func.can_overload)
+            if (func.overload_map.empty())
+            {
+                func.can_overload = true;
+                func.overload_map[$3] = $5;
+                for (auto &i : $3)
+                {
+                    if (i.type == VARIANT_TYPE || i.default_value_exp.type != NULL_EXPRESSION)
+                    {
+                        func.can_overload = false;
+                        break;
+                    }
+                }
+            }
+            else if (func.can_overload)
             {
                 auto exist = func.overload_map.find($3);
                 if (exist == func.overload_map.cend())
@@ -208,11 +221,7 @@
         }
         | class_definition
         ;
-    assignment_statement: IDENTIFIER ASSIGN expression SEMICOLON
-        {
-            $$ = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression($1)), $3}, yyget_lineno(scanner));
-        }
-        | dot_expression ASSIGN expression SEMICOLON
+    assignment_statement: expression ASSIGN expression SEMICOLON
         {
             $$ = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){$1, $3}, yyget_lineno(scanner));
         }
@@ -334,13 +343,13 @@
             $$ = Expression(ARRAY_EXPRESSION, new ArrayExpression(std::move($2)));
         }
         ;
-    dot_expression: dot_pre_expression DOT IDENTIFIER
+    dot_expression: dot_pre_expression DOT function_call_expression
         {
-            $$ = Expression(DOT_FUNC_EXPRESSION, new (DotID){$1, $3});
+            $$ = Expression(DOT_EXPRESSION, new (DotExpression){$1, $3});
         }
-        | dot_pre_expression DOT function_call_expression
+        | dot_pre_expression DOT IDENTIFIER
         {
-            $$ = Expression(DOT_ID_EXPRESSION, new (DotFuncCall){$1, $3});
+            $$ = Expression(DOT_EXPRESSION, new (DotExpression){$1, Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression($3))});
         }
         ;
     dot_pre_expression: primary_expression
@@ -389,7 +398,7 @@
         {
             $$ = Statement(EXPRESSION_STATEMENT, new ExpressionStatement($1), yyget_lineno(scanner));
         }
-        | IDENTIFIER ASSIGN expression
+        | expression ASSIGN expression
         {
             $$ = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){$1, $3}, yyget_lineno(scanner));
         }
@@ -462,7 +471,7 @@
         ;
     function_call_expression: IDENTIFIER LP arguments_list RP
         {
-            $$ = Expression(FUNCTION_CALL_EXPRESSION, new (FunctionCallExpression){$1, $3});
+            $$ = Expression(FUNCTION_CALL_EXPRESSION, new (FunctionCallExpression){Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression($1)), $3});
         }
         ;
     primary_expression: INT_LITERAL

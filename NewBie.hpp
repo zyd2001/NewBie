@@ -149,8 +149,7 @@ namespace zyd2001
             ARRAY_EXPRESSION,
             INDEX_EXPRESSION,
             THIS_EXPRESSION,
-            DOT_FUNC_EXPRESSION,
-            DOT_ID_EXPRESSION,
+            DOT_EXPRESSION,
             NEW_OBJECT_EXPRESSION
         };
 
@@ -188,7 +187,7 @@ namespace zyd2001
 
         struct FunctionCallExpression
         {
-            Identifier identifier;
+            Expression identifier;
             std::vector<Expression> alist;
         };
 
@@ -198,16 +197,10 @@ namespace zyd2001
             Expression index;
         };
 
-        struct DotFuncCall
+        struct DotExpression
         {
             Expression obj;
-            Expression fce;
-        };
-
-        struct DotID
-        {
-            Expression obj;
-            string_t id;
+            Expression exp;
         };
 
         using ArrayExpression = std::vector<Expression>;
@@ -275,8 +268,8 @@ namespace zyd2001
 
         struct AssignmentStatement
         {
-            Expression identifier;
-            Expression value;
+            Expression lvalue;
+            Expression rvalue;
         };
 
         struct ElseIf
@@ -358,13 +351,14 @@ namespace zyd2001
         struct GCHandle
         {
             int id;
-            std::vector<int, int> branches;
+            std::vector<int> branches;
         };
         struct object_t
         {
             std::shared_ptr<GCHandle> gc_handle;
             Identifier type;
             std::vector<VariablesMap> local_env;
+            VariablesMap *static_variables;
         };
         using Object = std::shared_ptr<object_t>;
 
@@ -388,7 +382,9 @@ namespace zyd2001
             Value &evaluate(const Expression &);
             void err();
             void err(const std::string&);
-            int checkExist(const Identifier &, bool global = true);
+            int checkExist(const Identifier &);
+            void initialize_obj_env(Value &);
+            void restore_obj_env();
 
             /*parsing time variables*/
             int level = 0;
@@ -400,8 +396,9 @@ namespace zyd2001
             int current_lineno;
             int object_count;
             //support "this" expression
-            bool in_obj = false;
+            bool in_object = false;
             Value *current_object;
+            VariablesMap *object_static_variables;
 
             //for return value
             Value temp_variable;

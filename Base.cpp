@@ -57,11 +57,8 @@ Expression::~Expression()
             case zyd2001::NewBie::INDEX_EXPRESSION:
                 delete_cast(IndexExpression*);
                 break;
-            case DOT_FUNC_EXPRESSION:
-                delete_cast(DotFuncCall*);
-                break;
-            case DOT_ID_EXPRESSION:
-                delete_cast(DotID*);
+            case DOT_EXPRESSION:
+                delete_cast(DotExpression*);
                 break;
             default:
                 break;
@@ -195,6 +192,21 @@ void zyd2001::NewBie::disabled_deleter(vector<VariablesMap> *p) {}
 void zyd2001::NewBie::enabled_deleter(vector<VariablesMap> *p) { delete p; }
 stack_unit zyd2001::NewBie::make_stack_unit() { return unique_ptr<std::vector<VariablesMap>, deleter>(new std::vector<VariablesMap>(), &enabled_deleter); }
 stack_unit zyd2001::NewBie::make_temp_unit(std::vector<VariablesMap> &u) { return unique_ptr<std::vector<VariablesMap>, deleter>(&u, &disabled_deleter); }
+void InterpreterImp::initialize_obj_env(Value &o)
+{
+    auto &obj = o.get<Object>();
+    variables_stack.push(make_temp_unit(obj->local_env));
+    in_object = true;
+    current_object = &o;
+    object_static_variables = obj->static_variables;
+}
+void InterpreterImp::restore_obj_env()
+{
+    in_object = false;
+    current_object = nullptr;
+    object_static_variables = nullptr;
+    variables_stack.pop();
+}
 
 Value InterpreterImp::callFunc(Function &func, ArgumentsList &alist)
 {
