@@ -1,12 +1,14 @@
-A a = new A("asd"), b = new A("bbb");
-b.str = "ccc";
-b.print();
-a.str = f();
-a.print();
+A a = new A(obj());
+a.str.print();
 
 int f()
 {
     return 50;
+}
+
+var obj()
+{
+    return new A("b");
 }
 
 class A

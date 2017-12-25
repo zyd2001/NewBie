@@ -110,14 +110,15 @@ Value &InterpreterImp::evaluate(const Expression &e)
         case zyd2001::NewBie::ARRAY_EXPRESSION:
         {
             auto &ae = e.get<ArrayExpression>();
-            temp_variable = Value();
-            temp_variable.type = ARRAY_TYPE;
-            temp_variable.content = new Array();
-            Array &arr = temp_variable.get<Array>();
+            Value val;
+            val.type = ARRAY_TYPE;
+            val.content = new Array();
+            Array &arr = val.get<Array>();
             for (auto &i : ae)
             {
                 arr.emplace_back(evaluate(i));
             }
+            temp_variable = std::move(val);
             break;
         }
         case zyd2001::NewBie::INDEX_EXPRESSION:
@@ -154,19 +155,20 @@ Value &InterpreterImp::evaluate(const Expression &e)
                 auto &cl = result->second;
                 auto ptr = new Object(make_shared<object_t>());
                 auto &obj = *ptr;
-                temp_variable = Value(OBJECT_TYPE, ptr);
+                Value val(OBJECT_TYPE, ptr);
 
                 obj->type = noe.identifier.get<IdentifierExpression>();
                 obj->static_variables = &cl.static_variables;
 
                 obj->local_env.push_back(VariablesMap());
                 
-                initialize_obj_env(temp_variable);
+                initialize_obj_env(val);
                 //call ctor
                 interpret(cl.slist);
                 callFunc(cl.ctor, noe.alist);
 
                 restore_obj_env();
+                temp_variable = std::move(val);
             }
             else
                 err("no such class");

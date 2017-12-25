@@ -199,12 +199,23 @@ void InterpreterImp::initialize_obj_env(Value &o)
     in_object = true;
     current_object = &o;
     object_static_variables = obj->static_variables;
+    object_env_stack.push(make_pair(current_object, object_static_variables));
 }
 void InterpreterImp::restore_obj_env()
 {
-    in_object = false;
-    current_object = nullptr;
-    object_static_variables = nullptr;
+    object_env_stack.pop();
+    if (object_env_stack.empty())
+    {
+        in_object = false;
+        current_object = nullptr;
+        object_static_variables = nullptr;
+    }
+    else
+    {
+        auto &env = object_env_stack.top();
+        current_object = env.first;
+        object_static_variables = env.second;
+    }
     variables_stack.pop();
 }
 

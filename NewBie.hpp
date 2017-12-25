@@ -399,6 +399,7 @@ namespace zyd2001
             bool in_object = false;
             Value *current_object;
             VariablesMap *object_static_variables;
+            std::stack<std::pair<Value*, VariablesMap*>> object_env_stack;
 
             //for return value
             Value temp_variable;
