@@ -141,8 +141,10 @@ Value &InterpreterImp::evaluate(const Expression &e)
             Value obj = evaluate(de.obj);
             //replace the environment
             initialize_obj_env(obj);
+            variables_stack.push(make_temp_unit(obj.get<Object>()->local_env));
             Value &ret = evaluate(de.exp);
             restore_obj_env();
+            variables_stack.pop();
             return ret;
             break;
         }
@@ -164,7 +166,10 @@ Value &InterpreterImp::evaluate(const Expression &e)
                 
                 initialize_obj_env(val);
                 //call ctor
+
+                variables_stack.push(make_temp_unit(obj->local_env));
                 interpret(cl.slist);
+                variables_stack.pop();
                 callFunc(cl.ctor, noe.alist);
 
                 restore_obj_env();

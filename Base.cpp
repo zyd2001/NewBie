@@ -195,7 +195,7 @@ stack_unit zyd2001::NewBie::make_temp_unit(std::vector<VariablesMap> &u) { retur
 void InterpreterImp::initialize_obj_env(Value &o)
 {
     auto &obj = o.get<Object>();
-    variables_stack.push(make_temp_unit(obj->local_env));
+    //variables_stack.push(make_temp_unit(obj->local_env));
     in_object = true;
     current_object = &o;
     object_static_variables = obj->static_variables;
@@ -216,7 +216,7 @@ void InterpreterImp::restore_obj_env()
         current_object = env.first;
         object_static_variables = env.second;
     }
-    variables_stack.pop();
+    //variables_stack.pop();
 }
 
 Value InterpreterImp::callFunc(Function &func, ArgumentsList &alist)
