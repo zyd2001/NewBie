@@ -104,6 +104,9 @@ Statement::~Statement()
             case zyd2001::NewBie::ASSIGNMENT_STATEMENT:
                 delete_cast(AssignmentStatement*);
                 break;
+            case FUNCTION_DEFINITION_STATEMENT:
+                delete_cast(VariablesMap::value_type*);
+                break;
             case zyd2001::NewBie::BLOCK_STATEMENT:
                 delete_cast(StatementsList*);
                 break;
@@ -198,8 +201,7 @@ void InterpreterImp::initialize_obj_env(Value &o)
     //variables_stack.push(make_temp_unit(obj->local_env));
     in_object = true;
     current_object = &o;
-    object_static_variables = obj->static_variables;
-    object_env_stack.push(make_pair(current_object, object_static_variables));
+    object_env_stack.push(current_object);
 }
 void InterpreterImp::restore_obj_env()
 {
@@ -208,13 +210,11 @@ void InterpreterImp::restore_obj_env()
     {
         in_object = false;
         current_object = nullptr;
-        object_static_variables = nullptr;
     }
     else
     {
         auto &env = object_env_stack.top();
-        current_object = env.first;
-        object_static_variables = env.second;
+        current_object = env;
     }
     //variables_stack.pop();
 }
@@ -234,16 +234,16 @@ Value InterpreterImp::callFunc(Function &func, ArgumentsList &alist)
 
     variables_stack.push(make_stack_unit());
     (*variables_stack.top()).push_back(VariablesMap());
-    decltype(func.overload_map.begin()) fbody;
+    decltype(func->overload_map.begin()) fbody;
 
-    if (func.can_overload)
+    if (func->can_overload)
     {
-        fbody = func.overload_map.find(temp_plist);
-        if (fbody == func.overload_map.cend())
+        fbody = func->overload_map.find(temp_plist);
+        if (fbody == func->overload_map.cend())
             err();
     }
     else
-        fbody = func.overload_map.begin();
+        fbody = func->overload_map.begin();
 
     auto eiter = temp_elist.cbegin();
     for (auto param = fbody->first.cbegin(); param != fbody->first.cend(); param++)

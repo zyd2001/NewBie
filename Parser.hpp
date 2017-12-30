@@ -978,9 +978,9 @@ namespace zyd2001 { namespace NewBie {
     enum
     {
       yyeof_ = 0,
-      yylast_ = 795,     ///< Last index in yytable_.
+      yylast_ = 930,     ///< Last index in yytable_.
       yynnts_ = 26,  ///< Number of nonterminal symbols.
-      yyfinal_ = 74, ///< Termination state number.
+      yyfinal_ = 77, ///< Termination state number.
       yyterror_ = 1,
       yyerrcode_ = 256,
       yyntokens_ = 64  ///< Number of tokens.

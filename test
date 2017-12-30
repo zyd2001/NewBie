@@ -1,32 +1,20 @@
-string str = <<<STR
-hahaha
-张逸达
->>>STR;
-__print__ str;
-int a = 123;
-A b = new A(str);
-b.print();
-
-int f()
-{
-    return 50;
-}
-
-var obj()
-{
-    return new A("b");
-}
-
 class A
 {
-    var str;
-    ctor(var i)
+    var content;
+    ctor(var c)
     {
-        this.str = i;
+        this.content = c;
     }
-
     int print()
     {
-        __print__ this.str;
+        __print__ this.content;
     }
 }
+
+A a = new A("asd");
+int print()
+{
+    __print__ 1;
+}
+print();
+a.print();

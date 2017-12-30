@@ -14,7 +14,7 @@ Value &InterpreterImp::evaluate(const Expression &e)
         case zyd2001::NewBie::IDENTIFIER_EXPRESSION:
         {
             int res = checkExist(e.get<IdentifierExpression>());
-            if (res == -2)
+            if (res == -1)
             {
                 err();
             }
@@ -22,8 +22,6 @@ Value &InterpreterImp::evaluate(const Expression &e)
             {
                 if (res == 0)
                     return global_variables.at(e.get<IdentifierExpression>());
-                else if (res == -1)
-                    return object_static_variables->at(e.get<IdentifierExpression>());
                 return (*variables_stack.top())[res - 1].at(e.get<IdentifierExpression>());
             }
             break;
@@ -160,7 +158,6 @@ Value &InterpreterImp::evaluate(const Expression &e)
                 Value val(OBJECT_TYPE, ptr);
 
                 obj->type = noe.identifier.get<IdentifierExpression>();
-                obj->static_variables = &cl.static_variables;
 
                 obj->local_env.push_back(VariablesMap());
                 

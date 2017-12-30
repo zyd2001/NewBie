@@ -211,6 +211,7 @@ namespace zyd2001
         enum StatementType
         {
             NULL_STATEMENT,
+            FUNCTION_DEFINITION_STATEMENT,
             EXPRESSION_STATEMENT,
             ASSIGNMENT_STATEMENT,
             DECLARATION_STATEMENT,
@@ -334,18 +335,22 @@ namespace zyd2001
         {
             bool operator()(const ParametersList& lhs, const ParametersList& rhs) const;
         };
-        struct Function
+
+        struct function_t
         {
             ValueType return_type;
             std::unordered_map<ParametersList, Statement, ParamsHash, ParamsEqualTo> overload_map;
             bool can_overload = true;
         };
+        using Function = std::shared_ptr<function_t>;
+
         struct Class
         {
             Identifier type;
             StatementsList slist;
+            Class *parent;
             VariablesMap static_variables;
-            Function ctor;
+            Function ctor = std::make_shared<function_t>();
         };
         using ClassMap = std::unordered_map<Identifier, Class, Identifier::hash>;
         struct GCHandle
@@ -358,7 +363,6 @@ namespace zyd2001
             std::shared_ptr<GCHandle> gc_handle;
             Identifier type;
             std::vector<VariablesMap> local_env;
-            VariablesMap *static_variables;
         };
         using Object = std::shared_ptr<object_t>;
 
@@ -390,7 +394,7 @@ namespace zyd2001
             int level = 0;
             std::string filename;
             bool in_class = false;
-            Class *current_class;
+            Class *current_class = new Class();
 
             /*runtime variables*/
             int current_lineno;
@@ -398,8 +402,7 @@ namespace zyd2001
             //support "this" expression
             bool in_object = false;
             Value *current_object;
-            VariablesMap *object_static_variables;
-            std::stack<std::pair<Value*, VariablesMap*>> object_env_stack;
+            std::stack<Value*> object_env_stack;
 
             //for return value
             Value temp_variable;

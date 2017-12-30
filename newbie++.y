@@ -126,10 +126,10 @@
             if (result != (*vmap).cend())
             {
                 auto &func = result->second.get<Function>();
-                if (func.can_overload)
+                if (func->can_overload)
                 {
-                    auto exist = func.overload_map.find($4);
-                    if (exist == func.overload_map.cend())
+                    auto exist = func->overload_map.find($4);
+                    if (exist == func->overload_map.cend())
                     {
                         for (auto &i : $4)
                         {
@@ -139,20 +139,23 @@
                                 break;
                             }
                         }
-                        func.overload_map[$4] = $6;
+                        func->overload_map[$4] = $6;
                     }
                     else
                         inter.err();
                 }
                 else
                     inter.err();
+                $$ = Statement();
             }
             else
             {
-                auto func = new Function();
+                auto ptr = new Function(make_shared<function_t>());
+                auto &func = *ptr;
                 func->return_type = $1;
                 func->can_overload = true;
-                (*vmap)[$2] = Value(FUNCTION_TYPE, func);
+                Value function(FUNCTION_TYPE, ptr);
+                (*vmap)[$2] = function;
                 func->overload_map[$4] = $6;
                 for (auto &i : $4)
                 {
@@ -162,29 +165,29 @@
                         break;
                     }
                 }
+                $$ = Statement(FUNCTION_DEFINITION_STATEMENT, new VariablesMap::value_type($2, function), yyget_lineno(scanner));
             }
-            $$ = Statement();
         }
         | CONSTRUCTOR LP parameters_list RP block
         {
             auto &func = inter.current_class->ctor;
-            if (func.overload_map.empty())
+            if (func->overload_map.empty())
             {
-                func.can_overload = true;
-                func.overload_map[$3] = $5;
+                func->can_overload = true;
+                func->overload_map[$3] = $5;
                 for (auto &i : $3)
                 {
                     if (i.type == VARIANT_TYPE || i.default_value_exp.type != NULL_EXPRESSION)
                     {
-                        func.can_overload = false;
+                        func->can_overload = false;
                         break;
                     }
                 }
             }
-            else if (func.can_overload)
+            else if (func->can_overload)
             {
-                auto exist = func.overload_map.find($3);
-                if (exist == func.overload_map.cend())
+                auto exist = func->overload_map.find($3);
+                if (exist == func->overload_map.cend())
                 {
                     for (auto &i : $3)
                     {
@@ -194,7 +197,7 @@
                             break;
                         }
                     }
-                    func.overload_map[$3] = $5;
+                    func->overload_map[$3] = $5;
                 }
                 else
                     inter.err("exist");
@@ -269,14 +272,35 @@
             {
                 inter.current_class->type = $2;
                 inter.current_class->slist = $4;
+                inter.current_class->parent = nullptr;
                 inter.class_map[$2] = *inter.current_class;
                 delete inter.current_class;
-                inter.current_class = nullptr;
+                inter.current_class = new Class();
                 $$ = Statement();
                 inter.in_class = false;
             }
             else
                 inter.err("class_definition");
+        }
+        | CLASS IDENTIFIER SEMICOLON IDENTIFIER LC statements_list RC
+        {
+            auto result = inter.class_map.find($2), parent = inter.class_map.find($4);
+            if (parent != inter.class_map.cend())
+                inter.err("no parent");
+            
+            if (result == inter.class_map.cend())
+            {
+                inter.current_class->type = $2;
+                inter.current_class->slist = $6;
+                inter.current_class->parent = &parent->second;
+                inter.class_map[$2] = *inter.current_class;
+                delete inter.current_class;
+                inter.current_class = new Class();
+                $$ = Statement();
+                inter.in_class = false;
+            }
+            else 
+                inter.err("class exists");
         }
         ;
     expression: binary_expression
@@ -319,6 +343,9 @@
         {
             $2.type = NEW_OBJECT_EXPRESSION;
             $$ = $2;
+        }
+        | ARRAY LP expression RP
+        {
         }
         ;
     index_expression: IDENTIFIER LB expression RB

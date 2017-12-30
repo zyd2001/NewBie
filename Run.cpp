@@ -20,8 +20,6 @@ bool InterpreterImp::run()
     }
     variables_stack.push(make_stack_unit());
     (*variables_stack.top()).emplace_back(VariablesMap());
-    if (false) //according to the setting
-        (*variables_stack.top()).emplace_back(VariablesMap());
     interpret(statements_list);
     variables_stack.pop();
 #if defined(_MSC_VER)
@@ -56,18 +54,12 @@ int InterpreterImp::checkExist(const Identifier &id) //check all scope, 0 for gl
         else
             continue;
     }
-    //when in function
-    if (in_object)
-    {
-        auto result = object_static_variables->find(id);
-        if (result != object_static_variables->cend())
-            return -1;
-    }
+
     auto result = global_variables.find(id);
     if (result != global_variables.cend())
         return 0;
     else
-        return -2;
+        return -1;
 }
 
 void InterpreterImp::err() { cerr << "Error occured at " << current_lineno << endl; }
@@ -94,7 +86,7 @@ StatementType InterpreterImp::execute(const Statement &s)
             for (auto &iter : ds.items)
             {
                 int res = checkExist(iter.identifier);
-                if (res == -2)
+                if (res == -1)
                 {
                     VariablesMap *vmap;
                     if (ds.global)
@@ -110,6 +102,16 @@ StatementType InterpreterImp::execute(const Statement &s)
                 {
                     err();
                 }
+            }
+            break;
+        }
+        case FUNCTION_DEFINITION_STATEMENT:
+        {
+            if (in_object)
+            {
+                auto &obj = current_object->get<Object>();
+                auto &func = s.get<VariablesMap::value_type>();
+                obj->local_env.back()[func.first] = func.second;
             }
             break;
         }
