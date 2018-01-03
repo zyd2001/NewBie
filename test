@@ -18,3 +18,14 @@ int print()
 }
 print();
 a.print();
+
+array arr = array(5);
+for (x in arr)
+{
+    x = 5;
+    __print__ x;
+}
+for (x in arr)
+{
+    __print__ x;
+}

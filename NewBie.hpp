@@ -147,6 +147,7 @@ namespace zyd2001
             UNARY_EXPRESSION,
             FUNCTION_CALL_EXPRESSION,
             ARRAY_EXPRESSION,
+            ARRAY_LENGTH_EXPRESSION,
             INDEX_EXPRESSION,
             THIS_EXPRESSION,
             DOT_EXPRESSION,
@@ -362,6 +363,7 @@ namespace zyd2001
         {
             std::shared_ptr<GCHandle> gc_handle;
             Identifier type;
+            Class *cl;
             std::vector<VariablesMap> local_env;
         };
         using Object = std::shared_ptr<object_t>;

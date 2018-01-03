@@ -94,6 +94,7 @@ static zyd2001::NewBie::location loc;
 <INITIAL>"public"       return Parser::make_PUBLIC(loc);
 <INITIAL>"protected"    return Parser::make_PROTECTED(loc);
 <INITIAL>"private"      return Parser::make_PRIVATE(loc);
+<INITIAL>"super"        return Parser::make_SUPER(loc);
 <INITIAL>"true" {       
     return Parser::make_BOOL_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(true)), loc);
 }

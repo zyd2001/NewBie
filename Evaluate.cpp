@@ -119,6 +119,16 @@ Value &InterpreterImp::evaluate(const Expression &e)
             temp_variable = std::move(val);
             break;
         }
+        case ARRAY_LENGTH_EXPRESSION:
+        {
+            auto &ale = e.get<Expression>();
+            Value size = evaluate(ale);
+            Value val;
+            val.type = ARRAY_TYPE;
+            val.content = new Array(size.get<int>());
+            temp_variable = std::move(val);
+            break;
+        }
         case zyd2001::NewBie::INDEX_EXPRESSION:
         {
             auto &ie = e.get<IndexExpression>();
@@ -158,15 +168,22 @@ Value &InterpreterImp::evaluate(const Expression &e)
                 Value val(OBJECT_TYPE, ptr);
 
                 obj->type = noe.identifier.get<IdentifierExpression>();
+                obj->cl = &cl;
 
                 obj->local_env.push_back(VariablesMap());
                 
                 initialize_obj_env(val);
                 //call ctor
 
+                if (cl.parent != nullptr)
+                {
+                    
+                }
+
                 variables_stack.push(make_temp_unit(obj->local_env));
                 interpret(cl.slist);
                 variables_stack.pop();
+
                 callFunc(cl.ctor, noe.alist);
 
                 restore_obj_env();

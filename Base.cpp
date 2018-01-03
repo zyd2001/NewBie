@@ -54,6 +54,9 @@ Expression::~Expression()
             case zyd2001::NewBie::ARRAY_EXPRESSION:
                 delete_cast(ArrayExpression*);
                 break;
+            case ARRAY_LENGTH_EXPRESSION:
+                delete_cast(Expression*);
+                break;
             case zyd2001::NewBie::INDEX_EXPRESSION:
                 delete_cast(IndexExpression*);
                 break;
@@ -198,7 +201,6 @@ stack_unit zyd2001::NewBie::make_temp_unit(std::vector<VariablesMap> &u) { retur
 void InterpreterImp::initialize_obj_env(Value &o)
 {
     auto &obj = o.get<Object>();
-    //variables_stack.push(make_temp_unit(obj->local_env));
     in_object = true;
     current_object = &o;
     object_env_stack.push(current_object);

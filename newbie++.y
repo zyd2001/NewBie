@@ -42,9 +42,9 @@
 %token<Identifier>     IDENTIFIER
 %token END  0  "end of file"
         INT DOUBLE BOOL STRING ARRAY VAR GLOBAL IF ELSE ELSEIF FOR IN CLASS RETURN BREAK CONTINUE
-        LP RP LC RC LB RB SEMICOLON COMMA ASSIGN EXCLAMATION DOT NEW CONSTRUCTOR THIS
+        LP RP LC RC LB RB SEMICOLON COMMA ASSIGN EXCLAMATION DOT NEW CONSTRUCTOR THIS PUBLIC PROTECTED PRIVATE SUPER
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
-        INCREMENT DECREMENT PUBLIC PROTECTED PRIVATE REVERSE
+        INCREMENT DECREMENT REVERSE
         PRINT
 %type<Expression> expression function_call_expression primary_expression expression_optional binary_expression unary_expression array_expression index_expression dot_expression dot_pre_expression
 %type<Statement> statement block statement_optional class_definition declaration_statement assignment_statement
@@ -346,6 +346,7 @@
         }
         | ARRAY LP expression RP
         {
+            $$ = Expression(ARRAY_LENGTH_EXPRESSION, new Expression($3));
         }
         ;
     index_expression: IDENTIFIER LB expression RB

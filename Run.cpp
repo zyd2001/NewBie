@@ -275,7 +275,7 @@ StatementType InterpreterImp::execute(const Statement &s)
                         break;
                 }
             }
-
+            v.pop_back();
             break;
         }
         case zyd2001::NewBie::RETURN_STATEMENT:
