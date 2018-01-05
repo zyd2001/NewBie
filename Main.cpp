@@ -11,7 +11,7 @@ int main(int argc, char **argv)
     //inter.parse();
     //inter.run();
     fstream f("tinyDG.txt");
-    DirectedGraph<int> g(true);
+    DirectedGraph<int> g;
     for (int i = 0; i < 13; i++)
         g.addVertex(i);
     int v, w;
@@ -20,6 +20,7 @@ int main(int argc, char **argv)
         f >> v >> w;
         g.addEdge(v, w);
     }
-    g.delVertex(2);
+    g.delVertex(6);
+    g.delVertex(7);
     auto r = g.dfs(0);
 }

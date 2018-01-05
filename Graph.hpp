@@ -40,7 +40,7 @@ public:
 
         marked[v] = true;
         for (auto &w : adjacent[v])
-            if (!marked[w])
+            if (!marked.at(w))
                 dfs(w);
 
         return marked;
@@ -176,16 +176,31 @@ public:
         this->edge--;
     }
 
+    void delReverseEdge(Node v, Node w)
+    {
+        auto n = this->reverse.find(v);
+        if (n == this->reverse.end())
+            throw std::runtime_error("no such node");
+        else
+        {
+            n->second.erase(w);
+        }
+    }
+
     void delVertex(Node v) override
     {
         if (!stable)
         {
+            this->edge -= this->adjacent[v].size();
             this->adjacent.erase(v);
         }
         else
         {
+            for (auto &w : this->adjacent[v])
+                delReverseEdge(w, v);
             for (auto &w : this->reverse[v])
                 delEdge(w, v);
+            this->edge -= this->adjacent[v].size();
             this->adjacent.erase(v);
             this->reverse.erase(v);
         }
