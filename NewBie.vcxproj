@@ -125,6 +125,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Graph.hpp" />
     <ClInclude Include="NewBie.hpp" />
     <ClInclude Include="NewBie_Lang.hpp" />
     <ClInclude Include="Parser.hpp" />
