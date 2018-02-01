@@ -8,13 +8,15 @@
 using namespace zyd2001::NewBie;
 using namespace std;
 
+InterpreterImp *inter;
+
 Interpreter::Interpreter() : imp(new InterpreterImp()) {}
 Interpreter::Interpreter(const std::string &name) : imp(new InterpreterImp(name)) {}
 zyd2001::NewBie::Interpreter::~Interpreter()
 {
     delete imp;
 }
-bool Interpreter::run() { return imp->run(); }
+bool Interpreter::run() { inter = imp; return imp->run(); }
 bool Interpreter::setFile(const std::string &name) { return imp->setFile(name); }
 bool Interpreter::changeSetting(const string &key, int value) { return imp->changeSetting(key, value); };
 

@@ -18,6 +18,7 @@ bool InterpreterImp::run()
     {
         throw runtime_error("No AST");
     }
+    gc_graph.addVertex(root);
     variables_stack.push(make_stack_unit());
     (*variables_stack.top()).emplace_back(VariablesMap());
     interpret(statements_list);
@@ -77,7 +78,21 @@ StatementType InterpreterImp::execute(const Statement &s)
         {
             AssignmentStatement &as = s.get<AssignmentStatement>();
             Value &lval = evaluate(as.lvalue);
-            lval = evaluate(as.rvalue);
+            Value &rval = evaluate(as.rvalue);
+            if (lval.type == OBJECT_TYPE)
+            {
+                if (in_object)
+                    gc_graph.delEdge((*current_object).get<Object>().node, rval.get<Object>().node);
+                else
+                    gc_graph.delEdge(root, rval.get<Object>().node);
+            }
+            if (rval.type == OBJECT_TYPE)
+            {
+                if (in_object)
+                    gc_graph.addEdge((*current_object).get<Object>().node, rval.get<Object>().node);
+                else
+                    gc_graph.addEdge(root, rval.get<Object>().node);
+            }
             break;
         }
         case zyd2001::NewBie::DECLARATION_STATEMENT:
@@ -93,10 +108,20 @@ StatementType InterpreterImp::execute(const Statement &s)
                         vmap = &global_variables;
                     else
                         vmap = &v.back();
-                    if (iter.initial_value.type != NULL_EXPRESSION)
-                        (*vmap)[iter.identifier] = evaluate(iter.initial_value).change_type(ds.type);
+                    if (ds.type != OBJECT_TYPE)
+                    {
+                        if (iter.initial_value.type != NULL_EXPRESSION)
+                            (*vmap)[iter.identifier] = evaluate(iter.initial_value);
+                        else
+                            (*vmap)[iter.identifier] = Value(ds.type);
+                    }
                     else
-                        (*vmap)[iter.identifier] = Value(ds.type);
+                    {
+                        if (iter.initial_value.type != NULL_EXPRESSION)
+                            (*vmap)[iter.identifier] = evaluate(iter.initial_value);
+                        else
+                            (*vmap)[iter.identifier] = newObject(ds.obj_type);
+                    }
                 }
                 else
                 {
@@ -109,6 +134,7 @@ StatementType InterpreterImp::execute(const Statement &s)
         {
             if (in_object)
             {
+                // get the function in a class
                 auto &obj = current_object->get<Object>();
                 auto &func = s.get<VariablesMap::value_type>();
                 obj->local_env.back()[func.first] = func.second;

@@ -5,249 +5,258 @@
 #include <unordered_set>
 #include <exception>
 
-template <typename Node, typename Hash = std::hash<Node>, typename Pred = std::equal_to<Node>>
-class Graph
+namespace zyd2001
 {
-protected:
-    std::unordered_map<Node, std::unordered_set<Node, Hash, Pred>, Hash, Pred> adjacent;
-public:
-    int vertex;
-    int edge;
-    
-    Graph(int v) : vertex(v), edge(0) {}
-    Graph() : Graph(0) {}
-    virtual void addVertex(Node v) 
+    template <typename Node, typename Hash = std::hash<Node>, typename Pred = std::equal_to<Node>>
+    class Graph
     {
-        adjacent[v] = std::unordered_set<Node, Hash, Pred>();
-        vertex++;
-    }
-    virtual void delVertex(Node v) {}
-    virtual void addEdge(Node v, Node w) {}
-    virtual void delEdge(Node v, Node w) {}
-    
-    using dfs_result_type = std::unordered_map<Node, bool, Hash, Pred>;
-    dfs_result_type marked;
-    dfs_result_type& dfs(Node v)
-    {
-        if (marked.size() != vertex)
+    protected:
+        std::unordered_map<Node, std::unordered_set<Node, Hash, Pred>, Hash, Pred> adjacent;
+    public:
+        int vertex;
+        int edge;
+
+        Graph(int v) : vertex(v), edge(0) {}
+        Graph() : Graph(0) {}
+        virtual void addVertex(Node v)
         {
-            marked.clear();
-            for (auto &i = adjacent.begin(); i != adjacent.end(); i++)
-            {
-                marked[i->first] = false;
-            }
+            adjacent[v] = std::unordered_set<Node, Hash, Pred>();
+            vertex++;
+        }
+        virtual void delVertex(Node v) {}
+        virtual void addEdge(Node v, Node w) {}
+        virtual void delEdge(Node v, Node w) {}
+        virtual bool isInGraph(Node v)
+        {
+            auto node = adjacent.find(v);
+            return node != adjacent.end();
         }
 
-        marked[v] = true;
-        for (auto &w : adjacent[v])
-            if (!marked.at(w))
-                dfs(w);
+        using dfs_result_type = std::unordered_map<Node, bool, Hash, Pred>;
+        dfs_result_type marked;
+        dfs_result_type& dfs(Node v)
+        {
+            if (marked.size() != vertex)
+            {
+                marked.clear();
+                for (auto &i = adjacent.begin(); i != adjacent.end(); i++)
+                {
+                    marked[i->first] = false;
+                }
+            }
 
-        return marked;
-    }
+            marked[v] = true;
+            for (auto &w : adjacent[v])
+                if (!marked.at(w))
+                    dfs(w);
 
-    class UF
+            return marked;
+        }
+
+        class UF
+        {
+        private:
+            std::unordered_map<Node, int> size;
+            std::unordered_map<Node, Node> id;
+            void merge(Node v, Node w)
+            {
+                Node &i = find(v);
+                Node &j = find(w);
+                if (i == j)
+                    return;
+                if (size[i] < size[j])
+                {
+                    id[i] = j;
+                    size[j] += size[i];
+                }
+                else
+                {
+                    id[j] = i;
+                    size[i] += size[j];
+                }
+            }
+
+            Node& find(Node v)
+            {
+                while (v != id[v])
+                    v = find(v);
+                return v;
+            }
+
+        public:
+            UF() : size(), id()
+            {
+                for (auto &i = adjacent.begin(); i != adjacent.end(); i++)
+                {
+                    size[i->first] = 1;
+                    id[i->first] = i->first;
+                }
+                for (auto i = this->adjacent.begin(); i != this->adjacent.end(); i++)
+                    for (auto &w : i->second)
+                        merge(i->first, w);
+            }
+
+            bool connected(Node v, Node w)
+            {
+                return find(v) == find(w);
+            }
+        };
+    };
+
+    template <typename Node, typename Hash = std::hash<Node>, typename Pred = std::equal_to<Node>>
+    class DirectedGraph : public Graph<Node>
     {
     private:
-        std::unordered_map<Node, int> size;
-        std::unordered_map<Node, Node> id;
-        void merge(Node v, Node w)
+        std::unordered_map<Node, std::unordered_set<Node, Hash, Pred>, Hash, Pred> reverse;
+
+    public:
+        bool stable = false;
+        DirectedGraph(int v, bool s) : Graph<Node>(v), stable(s) {}
+        DirectedGraph(bool s) : DirectedGraph(0, s) {}
+        DirectedGraph() : DirectedGraph(0, false) {}
+        DirectedGraph& reverseGraph()
         {
-            Node &i = find(v);
-            Node &j = find(w);
-            if (i == j)
-                return;
-            if (size[i] < size[j])
+            if (stable)
             {
-                id[i] = j;
-                size[j] += size[i];
+                DirectedGraph r(true);
+                r.adjacent = reverse;
+                r.reverse = this->adjacent;
+                return r;
             }
             else
             {
-                id[j] = i;
-                size[i] += size[j];
+                reverse.clear();
+                for (auto i = this->adjacent.begin(); i != this->adjacent.end(); i++)
+                    for (auto &w : i->second)
+                        reverse.addEdge(w, i->first);
+                DirectedGraph r(true);
+                r.adjacent = reverse;
+                r.reverse = this->adjacent;
+                return r;
             }
         }
-        
-        Node& find(Node v)
+
+        void addVertex(Node v) override
         {
-            while (v != id[v])
-                v = find(v);
-            return v;
+            this->adjacent[v] = std::unordered_set<Node, Hash, Pred>();
+            if (stable)
+                this->reverse[v] = std::unordered_set<Node, Hash, Pred>();
+            this->vertex++;
         }
-        
-    public: 
-        UF() : size(), id()
+
+        void addEdge(Node v, Node w) override
         {
-            for (auto &i = adjacent.begin(); i != adjacent.end(); i++)
+            if (!stable)
             {
-                size[i->first] = 1;
-                id[i->first] = i->first;
+                auto n = this->adjacent.find(v);
+                if (n == this->adjacent.end())
+                    throw std::runtime_error("no such node");
+                else
+                {
+                    n->second.insert(w);
+                }
             }
-            for (auto i = this->adjacent.begin(); i != this->adjacent.end(); i++)
-                for (auto &w : i->second)
-                    merge(i->first, w);
+            else
+            {
+                auto vv = this->adjacent.find(v);
+                auto ww = this->reverse.find(w);
+                if (vv == this->adjacent.end() || ww == this->reverse.end())
+                    throw std::runtime_error("no such node");
+                else
+                {
+                    vv->second.insert(w);
+                    ww->second.insert(v);
+                }
+            }
+            this->edge++;
         }
 
-        bool connected(Node v, Node w)
-        {
-            return find(v) == find(w);
-        }
-    };
-};
-
-template <typename Node, typename Hash = std::hash<Node>, typename Pred = std::equal_to<Node>>
-class DirectedGraph : public Graph<Node>
-{
-private:
-    std::unordered_map<Node, std::unordered_set<Node, Hash, Pred>, Hash, Pred> reverse;
-
-public:
-    bool stable = false;
-    DirectedGraph(int v, bool s) : Graph(v), stable(s) {}
-    DirectedGraph(bool s) : DirectedGraph(0, s) {}
-    DirectedGraph() : DirectedGraph(0, false) {}
-    DirectedGraph& reverseGraph()
-    {
-        if (stable)
-        {
-            DirectedGraph r(true);
-            r.adjacent = reverse;
-            r.reverse = this->adjacent;
-            return r;
-        }
-        else
-        {
-            reverse.clear();
-            for (auto i = this->adjacent.begin(); i != this->adjacent.end(); i++)
-                for (auto &w : i->second)
-                    reverse.addEdge(w, i->first);
-            DirectedGraph r(true);
-            r.adjacent = reverse;
-            r.reverse = this->adjacent;
-            return r;
-        }
-    }
-
-    void addVertex(Node v) override
-    {
-        this->adjacent[v] = std::unordered_set<Node, Hash, Pred>();
-        if (stable)
-            this->reverse[v] = std::unordered_set<Node, Hash, Pred>();
-        this->vertex++;
-    }
-
-    void addEdge(Node v, Node w) override
-    {
-        if (!stable)
+        void delEdge(Node v, Node w) override
         {
             auto n = this->adjacent.find(v);
             if (n == this->adjacent.end())
                 throw std::runtime_error("no such node");
             else
             {
-                n->second.insert(w);
+                n->second.erase(w);
+            }
+            this->edge--;
+        }
+
+        void delVertex(Node v) override
+        {
+            if (!stable)
+            {
+                this->edge -= this->adjacent[v].size();
+                this->adjacent.erase(v);
+            }
+            else
+            {
+                for (auto &w : this->adjacent[v])
+                    delReverseEdge(w, v);
+                for (auto &w : this->reverse[v])
+                    delEdge(w, v);
+                this->edge -= this->adjacent[v].size();
+                this->adjacent.erase(v);
+                this->reverse.erase(v);
+            }
+            this->vertex--;
+        }
+
+    private:
+        void delReverseEdge(Node v, Node w)
+        {
+            auto n = this->reverse.find(v);
+            if (n == this->reverse.end())
+                throw std::runtime_error("no such node");
+            else
+            {
+                n->second.erase(w);
             }
         }
-        else
+    };
+
+    template <typename Node, typename Hash = std::hash<Node>, typename Pred = std::equal_to<Node>>
+    class IndirectedGraph : public Graph<Node>
+    {
+    public:
+        IndirectedGraph(int v) : Graph<Node>(v) {}
+        IndirectedGraph() : IndirectedGraph(0) {}
+        void addEdge(Node v, Node w) override
         {
             auto vv = this->adjacent.find(v);
-            auto ww = this->reverse.find(w);
-            if (vv == this->adjacent.end() || ww == this->reverse.end())
+            auto ww = this->adjacent.find(w);
+            if (vv == this->adjacent.find(v) || ww == this->adjacent.find(w))
                 throw std::runtime_error("no such node");
             else
             {
                 vv->second.insert(w);
                 ww->second.insert(v);
+                this->edge++;
             }
         }
-        this->edge++;
-    }
-    
-    void delEdge(Node v, Node w) override
-    {
-        auto n = this->adjacent.find(v);
-        if (n == this->adjacent.end())
-            throw std::runtime_error("no such node");
-        else
-        {
-            n->second.erase(w);
-        }
-        this->edge--;
-    }
 
-    void delReverseEdge(Node v, Node w)
-    {
-        auto n = this->reverse.find(v);
-        if (n == this->reverse.end())
-            throw std::runtime_error("no such node");
-        else
+        void delEdge(Node v, Node w) override
         {
-            n->second.erase(w);
+            auto vv = this->adjacent.find(v);
+            auto ww = this->adjacent.find(w);
+            if (vv == this->adjacent.find(v) || ww == this->adjacent.find(w))
+                throw std::runtime_error("no such node");
+            else
+            {
+                vv->second.erase(w);
+                ww->second.erase(v);
+                this->edge--;
+            }
         }
-    }
 
-    void delVertex(Node v) override
-    {
-        if (!stable)
-        {
-            this->edge -= this->adjacent[v].size();
-            this->adjacent.erase(v);
-        }
-        else
+        void delVertex(Node v) override
         {
             for (auto &w : this->adjacent[v])
-                delReverseEdge(w, v);
-            for (auto &w : this->reverse[v])
-                delEdge(w, v);
-            this->edge -= this->adjacent[v].size();
+                delEdge(v, w);
             this->adjacent.erase(v);
-            this->reverse.erase(v);
+            this->vertex--;
         }
-        this->vertex--;
-    }
-};
-
-template <typename Node, typename Hash = std::hash<Node>, typename Pred = std::equal_to<Node>>
-class IndirectedGraph : public Graph<Node>
-{
-public:   
-    IndirectedGraph(int v) : Graph(v) {}
-    IndirectedGraph() : IndirectedGraph(0) {}
-    void addEdge(Node v, Node w) override
-    {
-        auto vv = this->adjacent.find(v);
-        auto ww = this->adjacent.find(w);
-        if (vv == this->adjacent.find(v) || ww == this->adjacent.find(w))
-            throw std::runtime_error("no such node");
-        else
-        {
-            vv->second.insert(w);
-            ww->second.insert(v);
-            this->edge++;
-        }
-    }
-
-    void delEdge(Node v, Node w) override
-    {
-        auto vv = this->adjacent.find(v);
-        auto ww = this->adjacent.find(w);
-        if (vv == this->adjacent.find(v) || ww == this->adjacent.find(w))
-            throw std::runtime_error("no such node");
-        else
-        {
-            vv->second.erase(w);
-            ww->second.erase(v);
-            this->edge--;
-        }
-    }
-
-    void delVertex(Node v) override
-    {
-        for (auto &w : this->adjacent[v])
-            delEdge(v, w);
-        this->adjacent.erase(v);
-        this->vertex--;
-    }
-};
+    };
+}
 #endif

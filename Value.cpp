@@ -12,6 +12,8 @@ using namespace std;
 #define get_cast(...) (*static_cast<__VA_ARGS__>(content))
 #define replace(...) do {delete_cast(__VA_ARGS__); content = ptr;} while(0)
 
+extern InterpreterImp *inter;
+
 #if defined(_MSC_VER)
 wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 #elif defined(__GNUC__)
@@ -103,8 +105,15 @@ Value::~Value()
             delete_cast(Array*);
             break;
         case zyd2001::NewBie::OBJECT_TYPE:
+        {
+            auto &node = this->get<Object>().node;
+            if (inter->in_object)
+                inter->gc_graph.delEdge(inter->current_object->get<Object>().node, node);
+            else
+                inter->gc_graph.delEdge(inter->root, node);
             delete_cast(Object*);
             break;
+        }
         case FUNCTION_TYPE:
             delete_cast(Function*);
             break;
@@ -468,6 +477,9 @@ ostream &zyd2001::NewBie::operator<<(ostream &out, Value &v)
 {
     switch (v.type)
     {
+        case zyd2001::NewBie::NULL_TYPE:
+            out << "null";
+            break;
         case zyd2001::NewBie::INT_TYPE:
             out << v.get<int>();
             break;

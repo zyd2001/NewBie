@@ -163,9 +163,10 @@ Value &InterpreterImp::evaluate(const Expression &e)
             if (result != class_map.cend())
             {
                 auto &cl = result->second;
-                auto ptr = new Object(make_shared<object_t>());
-                auto &obj = *ptr;
-                Value val(OBJECT_TYPE, ptr);
+                auto obj = new object_t();
+                GraphNode *gc_node = new GraphNode(obj);
+                Value val(OBJECT_TYPE, new Object(gc_node));
+                gc_graph.addVertex(gc_node);
 
                 obj->type = noe.identifier.get<IdentifierExpression>();
                 obj->cl = &cl;
@@ -175,7 +176,7 @@ Value &InterpreterImp::evaluate(const Expression &e)
                 initialize_obj_env(val);
                 //call ctor
 
-                if (cl.parent != nullptr)
+                if (cl.base != nullptr)
                 {
                     
                 }

@@ -272,7 +272,7 @@
             {
                 inter.current_class->type = $2;
                 inter.current_class->slist = $4;
-                inter.current_class->parent = nullptr;
+                inter.current_class->base = nullptr;
                 inter.class_map[$2] = *inter.current_class;
                 delete inter.current_class;
                 inter.current_class = new Class();
@@ -284,15 +284,15 @@
         }
         | CLASS IDENTIFIER SEMICOLON IDENTIFIER LC statements_list RC
         {
-            auto result = inter.class_map.find($2), parent = inter.class_map.find($4);
-            if (parent != inter.class_map.cend())
-                inter.err("no parent");
+            auto result = inter.class_map.find($2), base = inter.class_map.find($4);
+            if (base != inter.class_map.cend())
+                inter.err("no base");
             
             if (result == inter.class_map.cend())
             {
                 inter.current_class->type = $2;
                 inter.current_class->slist = $6;
-                inter.current_class->parent = &parent->second;
+                inter.current_class->base = &base->second;
                 inter.class_map[$2] = *inter.current_class;
                 delete inter.current_class;
                 inter.current_class = new Class();

@@ -9,6 +9,7 @@
 #include <stack>
 #include <iostream>
 #include <functional>
+#include "Graph.hpp"
 
 /*For flex and bison*/
 typedef void* yyscan_t;
@@ -163,7 +164,7 @@ namespace zyd2001
             Expression();
             Expression(ExpressionType, void*);
             Expression(const Expression &);
-            Expression &operator=(const Expression&);
+            //Expression &operator=(const Expression&);
             void swap(Expression &);
 
             template<typename T>
@@ -236,7 +237,7 @@ namespace zyd2001
             Statement();
             Statement(StatementType, void*, int);
             Statement(const Statement &);
-            Statement &operator=(const Statement &);
+            //Statement &operator=(const Statement &);
             void swap(Statement &);
 
             template<typename T>
@@ -340,33 +341,64 @@ namespace zyd2001
         struct function_t
         {
             ValueType return_type;
-            std::unordered_map<ParametersList, Statement, ParamsHash, ParamsEqualTo> overload_map;
             bool can_overload = true;
+            virtual Value& call(ArgumentsList&);
+        };
+        struct NormalFunction : public function_t
+        {
+            std::unordered_map<ParametersList, Statement, ParamsHash, ParamsEqualTo> overload_map;
+            Value& call(ArgumentsList&) override;
+        };
+        struct NativeFunction : public function_t
+        {
+            std::function<void(std::function<Value&(Identifier)>, ArgumentsList&)> func;
+            Value& call(ArgumentsList&) override;
         };
         using Function = std::shared_ptr<function_t>;
 
         struct Class
         {
             Identifier type;
-            StatementsList slist;
-            Class *parent;
+            Class *base;
+            Function ctor;
             VariablesMap static_variables;
-            Function ctor = std::make_shared<function_t>();
+            virtual Value& makeObject(ArgumentsList&);
+        };
+        struct NormalClass : public Class
+        {
+            StatementsList slist;
+            Value& makeObject(ArgumentsList&) override;
+        };
+        struct NativeClass : public Class
+        {
+            Identifier type;
+            VariablesMap var;
+            Value& makeObject(ArgumentsList&) override;
         };
         using ClassMap = std::unordered_map<Identifier, Class, Identifier::hash>;
-        struct GCHandle
-        {
-            int id;
-            std::vector<int> branches;
-        };
+
         struct object_t
         {
-            std::shared_ptr<GCHandle> gc_handle;
             Identifier type;
             Class *cl;
+            std::vector<object_t*> bases;
             std::vector<VariablesMap> local_env;
         };
-        using Object = std::shared_ptr<object_t>;
+        struct GraphNode
+        {
+            long ref_count;
+            object_t *ptr;
+            GraphNode(object_t *);
+        };
+        struct Object
+        {
+            GraphNode *node;
+            Object(GraphNode *);
+            Object(const Object &);
+            object_t &operator*();
+            object_t *operator->();
+            ~Object();
+        };
 
         class InterpreterImp
         {
@@ -379,9 +411,11 @@ namespace zyd2001
             bool run();
             bool setFile(const std::string &name);
             bool changeSetting(const std::string &, int);
-            Value callFunc(Function&, ArgumentsList&);
             void addVar(Value&);
             void addGlobalVar(Value&);
+            void changeVar(Identifier, Value&);
+            void registerClass(Identifier, NativeClass&);
+            void registerFunction(Identifier, NativeFunction&);
 
             StatementType execute(const Statement &);
             StatementType interpret(const StatementsList &);
@@ -399,8 +433,10 @@ namespace zyd2001
             Class *current_class = new Class();
 
             /*runtime variables*/
+            GraphNode *root;
             int current_lineno;
-            int object_count;
+            int object_count = 0;
+            DirectedGraph<GraphNode*> gc_graph;
             //support "this" expression
             bool in_object = false;
             Value *current_object;

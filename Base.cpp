@@ -7,6 +7,8 @@ using namespace std;
 #define delete_cast(...) delete static_cast<__VA_ARGS__>(content)
 #define replace(...) do {delete_cast(__VA_ARGS__); content = ptr;} while(0)
 
+extern InterpreterImp *inter;
+
 Expression::Expression() : type(NULL_EXPRESSION), content(nullptr), ref_count(new int(1)) {}
 Expression &Expression::operator=(const Expression &e)
 {
@@ -194,6 +196,34 @@ std::size_t ParamsHash::operator()(const ParametersList& p) const
     return seed;
 }
 
+GraphNode::GraphNode(object_t *o) : ptr(o), ref_count(0) {}
+
+zyd2001::NewBie::Object::Object(GraphNode *n) : node(n) 
+{
+    node->ref_count++;
+}
+Object::Object(const Object &o) : node(o.node) 
+{
+    node->ref_count++;
+}
+object_t &zyd2001::NewBie::Object::operator*()
+{
+    return *node->ptr;
+}
+object_t * zyd2001::NewBie::Object::operator->()
+{
+    return node->ptr;
+}
+zyd2001::NewBie::Object::~Object()
+{
+    if (node->ref_count != 0)
+    {
+        node->ref_count--;
+        if (node->ref_count == 0)
+            delete node->ptr;
+    }
+}
+
 void zyd2001::NewBie::disabled_deleter(vector<VariablesMap> *p) {}
 void zyd2001::NewBie::enabled_deleter(vector<VariablesMap> *p) { delete p; }
 stack_unit zyd2001::NewBie::make_stack_unit() { return unique_ptr<std::vector<VariablesMap>, deleter>(new std::vector<VariablesMap>(), &enabled_deleter); }
@@ -270,4 +300,9 @@ Value InterpreterImp::callFunc(Function &func, ArgumentsList &alist)
 
 void InterpreterImp::addVar(Value &val)
 {
+}
+
+void InterpreterImp::addGlobalVar(Value &val)
+{
+
 }
