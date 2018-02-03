@@ -46,21 +46,21 @@ StatementType InterpreterImp::interpret(const StatementsList &s)
 
 int InterpreterImp::checkExist(const Identifier &id) //check all scope, 0 for global
 {
-    vector<VariablesMap> &v = (*variables_stack.top());
-    for (auto i = v.size(); i > 0; i--)
-    {
-        auto result = v[i - 1].find(id);
-        if (result != v[i - 1].cend())
-            return i;
-        else
-            continue;
-    }
+    //vector<VariablesMap> &v = (*variables_stack.top());
+    //for (auto i = v.size(); i > 0; i--)
+    //{
+    //    auto result = v[i - 1].find(id);
+    //    if (result != v[i - 1].cend())
+    //        return i;
+    //    else
+    //        continue;
+    //}
 
-    auto result = global_variables.find(id);
-    if (result != global_variables.cend())
-        return 0;
-    else
-        return -1;
+    //auto result = global_variables.find(id);
+    //if (result != global_variables.cend())
+    //    return 0;
+    //else
+    //    return -1;
 }
 
 void InterpreterImp::err() { cerr << "Error occured at " << current_lineno << endl; }
@@ -77,23 +77,23 @@ StatementType InterpreterImp::execute(const Statement &s)
         case zyd2001::NewBie::ASSIGNMENT_STATEMENT:
         {
             AssignmentStatement &as = s.get<AssignmentStatement>();
-            Value &lval = evaluate(as.lvalue);
-            Value &rval = evaluate(as.rvalue);
-            if (lval.type == OBJECT_TYPE)
-            {
-                if (in_object)
-                    gc_graph.delEdge((*current_object).get<Object>().node, rval.get<Object>().node);
-                else
-                    gc_graph.delEdge(root, rval.get<Object>().node);
-            }
-            if (rval.type == OBJECT_TYPE)
-            {
-                if (in_object)
-                    gc_graph.addEdge((*current_object).get<Object>().node, rval.get<Object>().node);
-                else
-                    gc_graph.addEdge(root, rval.get<Object>().node);
-            }
-            break;
+            //Value &lval = evaluate(as.lvalue);
+            //Value &rval = evaluate(as.rvalue);
+            //if (lval.type == OBJECT_TYPE)
+            //{
+            //    if (in_object)
+            //        gc_graph.delEdge((*current_object).get<Object>().node, rval.get<Object>().node);
+            //    else
+            //        gc_graph.delEdge(root, rval.get<Object>().node);
+            //}
+            //if (rval.type == OBJECT_TYPE)
+            //{
+            //    if (in_object)
+            //        gc_graph.addEdge((*current_object).get<Object>().node, rval.get<Object>().node);
+            //    else
+            //        gc_graph.addEdge(root, rval.get<Object>().node);
+            //}
+            //break;
         }
         case zyd2001::NewBie::DECLARATION_STATEMENT:
         {

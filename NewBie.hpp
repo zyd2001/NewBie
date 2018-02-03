@@ -47,17 +47,16 @@ namespace zyd2001
             NOT
         };
 
-        enum ValueType
+        enum ValueType : unsigned long // when ValueType > 7, it will represent the class's id
         {
-            NULL_TYPE,
+            NULL_TYPE = 0,
             INT_TYPE,
             DOUBLE_TYPE,
             BOOL_TYPE,
             STRING_TYPE,
             VARIANT_TYPE,
             ARRAY_TYPE,
-            FUNCTION_TYPE,
-            OBJECT_TYPE
+            FUNCTION_TYPE = 7
         };
 
 #if defined(_MSC_VER)
@@ -104,6 +103,7 @@ namespace zyd2001
 
             Value();
             Value(Value&&);
+            Value(ValueType);
             Value(ValueType, void*);
             Value(const Value&);
             Value(const int&);
@@ -351,7 +351,7 @@ namespace zyd2001
         };
         struct NativeFunction : public function_t
         {
-            std::function<void(std::function<Value&(Identifier)>, ArgumentsList&)> func;
+            std::function<void(std::vector<Value>)> func;// TODO: support overload
             Value& call(ArgumentsList&) override;
         };
         using Function = std::shared_ptr<function_t>;
@@ -359,23 +359,24 @@ namespace zyd2001
         struct Class
         {
             Identifier type;
+            unsigned long id; // start with 8, since ValueType takes 0 ~ 7
             Class *base;
             Function ctor;
             VariablesMap static_variables;
-            virtual Value& makeObject(ArgumentsList&);
+            virtual Object makeObject(ArgumentsList&);
         };
         struct NormalClass : public Class
         {
             StatementsList slist;
-            Value& makeObject(ArgumentsList&) override;
+            Object makeObject(ArgumentsList&) override;
         };
         struct NativeClass : public Class
         {
-            Identifier type;
-            VariablesMap var;
-            Value& makeObject(ArgumentsList&) override;
+            std::unordered_map<Identifier, ValueType, Identifier::hash> var;
+            VariablesMap default_value_map;
+            Object makeObject(ArgumentsList&) override;
         };
-        using ClassMap = std::unordered_map<Identifier, Class, Identifier::hash>;
+        using ClassMap = std::pair<std::unordered_map<Identifier, unsigned long, Identifier::hash>, std::unordered_map<unsigned long, Class>>;
 
         struct object_t
         {
@@ -386,7 +387,7 @@ namespace zyd2001
         };
         struct GraphNode
         {
-            long ref_count;
+            unsigned long ref_count;
             object_t *ptr;
             GraphNode(object_t *);
         };
@@ -411,11 +412,15 @@ namespace zyd2001
             bool run();
             bool setFile(const std::string &name);
             bool changeSetting(const std::string &, int);
-            void addVar(Value&);
-            void addGlobalVar(Value&);
-            void changeVar(Identifier, Value&);
-            void registerClass(Identifier, NativeClass&);
+            void declareVariable(Identifier, ValueType, bool global = false);
+            void declareVariable(Identifier, Identifier type, bool global = false);
+            void changeVariable(Identifier, Value&, bool global = false);
+            void registerClass(NativeClass&);
             void registerFunction(Identifier, NativeFunction&);
+            bool typeCheck(ValueType, Value&);
+            bool typeCheck(Identifier, Value&);
+            bool checkVariable(Identifier, bool global = false);
+            Value &getVariable(Identifier, bool global = false);
 
             StatementType execute(const Statement &);
             StatementType interpret(const StatementsList &);
@@ -430,12 +435,12 @@ namespace zyd2001
             int level = 0;
             std::string filename;
             bool in_class = false;
-            Class *current_class = new Class();
+            Class *current_class;
 
             /*runtime variables*/
             GraphNode *root;
             int current_lineno;
-            int object_count = 0;
+            long class_count = 0;
             DirectedGraph<GraphNode*> gc_graph;
             //support "this" expression
             bool in_object = false;

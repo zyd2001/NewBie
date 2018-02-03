@@ -224,33 +224,6 @@ zyd2001::NewBie::Object::~Object()
     }
 }
 
-void zyd2001::NewBie::disabled_deleter(vector<VariablesMap> *p) {}
-void zyd2001::NewBie::enabled_deleter(vector<VariablesMap> *p) { delete p; }
-stack_unit zyd2001::NewBie::make_stack_unit() { return unique_ptr<std::vector<VariablesMap>, deleter>(new std::vector<VariablesMap>(), &enabled_deleter); }
-stack_unit zyd2001::NewBie::make_temp_unit(std::vector<VariablesMap> &u) { return unique_ptr<std::vector<VariablesMap>, deleter>(&u, &disabled_deleter); }
-void InterpreterImp::initialize_obj_env(Value &o)
-{
-    auto &obj = o.get<Object>();
-    in_object = true;
-    current_object = &o;
-    object_env_stack.push(current_object);
-}
-void InterpreterImp::restore_obj_env()
-{
-    object_env_stack.pop();
-    if (object_env_stack.empty())
-    {
-        in_object = false;
-        current_object = nullptr;
-    }
-    else
-    {
-        auto &env = object_env_stack.top();
-        current_object = env;
-    }
-    //variables_stack.pop();
-}
-
 Value InterpreterImp::callFunc(Function &func, ArgumentsList &alist)
 {
     //initialize the function local variables
@@ -296,13 +269,4 @@ Value InterpreterImp::callFunc(Function &func, ArgumentsList &alist)
     variables_stack.pop();
 
     return temp_variable;
-}
-
-void InterpreterImp::addVar(Value &val)
-{
-}
-
-void InterpreterImp::addGlobalVar(Value &val)
-{
-
 }

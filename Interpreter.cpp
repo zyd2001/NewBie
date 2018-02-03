@@ -57,3 +57,152 @@ void InterpreterImp::parse()
     yylex_destroy(scanner);
     fclose(fp);
 }
+
+void zyd2001::NewBie::InterpreterImp::declareVariable(Identifier id, ValueType type, bool global = false)
+{
+    VariablesMap *env;
+    if (global)
+        env = &global_variables;
+    else
+        env = &variables_stack.top()->back();
+    auto result = env->find(id);
+    if (result != env->cend())
+        return;
+    else
+        env->at(id) = Value(type);
+}
+
+void zyd2001::NewBie::InterpreterImp::declareVariable(Identifier id, Identifier type, bool global)
+{
+    try
+    {
+        declareVariable(id, (ValueType)class_map.first.at(type), global);
+    }
+    catch (out_of_range e)
+    {
+        err();
+        return;
+    }
+}
+
+void zyd2001::NewBie::InterpreterImp::changeVariable(Identifier id, Value &v, bool global)
+{
+    VariablesMap *env;
+    if (global)
+        env = &global_variables;
+    else
+        env = &variables_stack.top()->back();
+    try
+    {
+        auto lval = env->at(id);
+        if (lval.various)
+        {
+            v.various = true;
+            lval = v;
+        }
+        else if (typeCheck(lval.type, v))
+        {
+            v.various = false;
+            lval = v;
+        }
+        else
+        {
+            err();
+        }
+    }
+    catch (out_of_range e)
+    {
+        err();
+        return;
+    }
+}
+
+void zyd2001::NewBie::InterpreterImp::registerClass(NativeClass &cl)
+{
+    auto type = cl.type;
+    auto result = class_map.first.find(type);
+    if (result != class_map.first.cend())
+        return;
+    else
+    {
+        class_count++;
+        cl.id = class_count + 7;
+        class_map.first[type] = cl.id;
+        class_map.second[cl.id] = cl;
+    }
+}
+
+void zyd2001::NewBie::InterpreterImp::registerFunction(Identifier, NativeFunction &)
+{}
+
+bool zyd2001::NewBie::InterpreterImp::typeCheck(ValueType type, Value &v)
+{
+    if (type == v.type)
+        return true;
+    else
+    {
+        auto obj = v.get<Object>();
+        if (obj->cl->id == type)
+            return true;
+        else
+        {
+            for (auto iter = obj->bases.crbegin(); iter != obj->bases.crend(); iter++)
+            {
+                if ((*iter)->cl->id == type)
+                    return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool zyd2001::NewBie::InterpreterImp::typeCheck(Identifier type, Value &v)
+{
+    try
+    {
+        auto id = class_map.first.at(type);
+        auto obj = v.get<Object>();
+        if (obj->cl->id == id)
+            return true;
+        else
+        {
+            for (auto iter = obj->bases.crbegin(); iter != obj->bases.crend(); iter++)
+            {
+                if ((*iter)->cl->id == id)
+                    return true;
+            }
+        }
+    }
+    catch (out_of_range e)
+    {
+        return false;
+    }
+    return false;
+}
+
+void zyd2001::NewBie::disabled_deleter(vector<VariablesMap> *p) {}
+void zyd2001::NewBie::enabled_deleter(vector<VariablesMap> *p) { delete p; }
+stack_unit zyd2001::NewBie::make_stack_unit() { return unique_ptr<std::vector<VariablesMap>, deleter>(new std::vector<VariablesMap>(), &enabled_deleter); }
+stack_unit zyd2001::NewBie::make_temp_unit(std::vector<VariablesMap> &u) { return unique_ptr<std::vector<VariablesMap>, deleter>(&u, &disabled_deleter); }
+void InterpreterImp::initialize_obj_env(Value &o)
+{
+    auto &obj = o.get<Object>();
+    in_object = true;
+    current_object = &o;
+    object_env_stack.push(current_object);
+}
+void InterpreterImp::restore_obj_env()
+{
+    object_env_stack.pop();
+    if (object_env_stack.empty())
+    {
+        in_object = false;
+        current_object = nullptr;
+    }
+    else
+    {
+        auto &env = object_env_stack.top();
+        current_object = env;
+    }
+    //variables_stack.pop();
+}

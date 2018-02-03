@@ -159,39 +159,42 @@ Value &InterpreterImp::evaluate(const Expression &e)
         case NEW_OBJECT_EXPRESSION:
         {
             auto &noe = e.get<FunctionCallExpression>(); //just different TYPE
-            auto result = class_map.find(noe.identifier.get<IdentifierExpression>());
-            if (result != class_map.cend())
+            auto result = class_map.first.find(noe.identifier.get<IdentifierExpression>());
+            if (result != class_map.first.cend())
             {
-                auto &cl = result->second;
-                auto obj = new object_t();
-                GraphNode *gc_node = new GraphNode(obj);
-                Value val(OBJECT_TYPE, new Object(gc_node));
-                gc_graph.addVertex(gc_node);
-
-                obj->type = noe.identifier.get<IdentifierExpression>();
-                obj->cl = &cl;
-
-                obj->local_env.push_back(VariablesMap());
-                
-                initialize_obj_env(val);
-                //call ctor
-
-                if (cl.base != nullptr)
-                {
-                    
-                }
-
-                variables_stack.push(make_temp_unit(obj->local_env));
-                interpret(cl.slist);
-                variables_stack.pop();
-
-                callFunc(cl.ctor, noe.alist);
-
-                restore_obj_env();
-                temp_variable = std::move(val);
+                temp_variable = Value((ValueType)result->second, new Object(class_map.second[result->second].makeObject(noe.alist)));
             }
-            else
-                err("no such class");
+            //{
+            //    auto &cl = result->second;
+            //    auto obj = new object_t();
+            //    GraphNode *gc_node = new GraphNode(obj);
+            //    Value val(OBJECT_TYPE, new Object(gc_node));
+            //    gc_graph.addVertex(gc_node);
+
+            //    obj->type = noe.identifier.get<IdentifierExpression>();
+            //    obj->cl = &cl;
+
+            //    obj->local_env.push_back(VariablesMap());
+            //    
+            //    initialize_obj_env(val);
+            //    //call ctor
+
+            //    if (cl.base != nullptr)
+            //    {
+            //        
+            //    }
+
+            //    variables_stack.push(make_temp_unit(obj->local_env));
+            //    interpret(cl.slist);
+            //    variables_stack.pop();
+
+            //    callFunc(cl.ctor, noe.alist);
+
+            //    restore_obj_env();
+            //    temp_variable = std::move(val);
+            //}
+            //else
+            //    err("no such class");
             break;
         }
         default:

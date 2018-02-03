@@ -553,6 +553,10 @@
         {
             $$ = VARIANT_TYPE;
         }
+        | IDENTIFIER
+        {
+            
+        }
         ;
     block: LC statements_list RC
         {

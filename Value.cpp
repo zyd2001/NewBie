@@ -26,6 +26,35 @@ Value::Value(Value &&v) : type(v.type), various(v.various), content(v.content)
     //cout << "move ctor" << endl;
     v.type = NULL_TYPE;
 }
+zyd2001::NewBie::Value::Value(ValueType t) : type(t), content(nullptr)
+{
+    switch (type)
+    {
+        case zyd2001::NewBie::NULL_TYPE:
+            break;
+        case zyd2001::NewBie::INT_TYPE:
+            content = new int(0);
+            break;
+        case zyd2001::NewBie::DOUBLE_TYPE:
+            content = new double(0);
+            break;
+        case zyd2001::NewBie::BOOL_TYPE:
+            content = new bool(false);
+            break;
+        case zyd2001::NewBie::STRING_TYPE:
+            content = new string_t(0);
+            break;
+        case zyd2001::NewBie::VARIANT_TYPE:
+            various = true;
+            break;
+        case zyd2001::NewBie::ARRAY_TYPE:
+            break;
+        case zyd2001::NewBie::FUNCTION_TYPE:
+            break;
+        default:
+            break;
+    }
+}
 Value::Value(ValueType t, void *c) : type(t), content(c) {}
 Value::Value(const Value &v) : type(v.type), various(v.various)
 {
@@ -59,12 +88,6 @@ Value::Value(const Value &v) : type(v.type), various(v.various)
         case zyd2001::NewBie::ARRAY_TYPE:
         {
             Array *ptr = new Array(v.get<Array>());
-            content = ptr;
-            break;
-        }
-        case zyd2001::NewBie::OBJECT_TYPE:
-        {
-            Object *ptr = new Object(v.get<Object>());
             content = ptr;
             break;
         }

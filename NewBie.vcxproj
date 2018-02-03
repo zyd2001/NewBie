@@ -131,7 +131,7 @@
     <ClInclude Include="Parser.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Base.cpp">
+    <ClCompile Include="BaseType.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
