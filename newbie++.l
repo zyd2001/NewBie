@@ -91,6 +91,8 @@ static zyd2001::NewBie::location loc;
 <INITIAL>"!"            return Parser::make_EXCLAMATION(loc);
 <INITIAL>"."            return Parser::make_DOT(loc);
 <INITIAL>"~"            return Parser::make_REVERSE(loc);
+<INITIAL>"ref"          return Parser::make_REF(loc);
+<INITIAL>"interface"    return Parser::make_INTERFACE(loc);
 <INITIAL>"public"       return Parser::make_PUBLIC(loc);
 <INITIAL>"protected"    return Parser::make_PROTECTED(loc);
 <INITIAL>"private"      return Parser::make_PRIVATE(loc);

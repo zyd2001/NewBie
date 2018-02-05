@@ -59,6 +59,13 @@ namespace zyd2001
             FUNCTION_TYPE = 7
         };
 
+        enum AccessControl
+        {
+            PUBLIC,
+            PROTECTED,
+            PRIVATE
+        };
+
 #if defined(_MSC_VER)
         using char_t = uint32_t;
 #define U(str) reinterpret_cast<const char_t*>(U##str)
@@ -90,6 +97,10 @@ namespace zyd2001
         };
 
         using Identifier = string_t;
+
+        using Integer = std::shared_ptr<int>;
+        using Double = std::shared_ptr<double>;
+        using Boolean = std::shared_ptr<bool>;
 
         struct Value
         {
@@ -137,7 +148,7 @@ namespace zyd2001
         Value change(const Value&, ValueType);
 
         using Array = std::vector<Value>;
-        using VariablesMap = std::unordered_map<Identifier, Value, Identifier::hash>;
+        using VariableMap = std::unordered_map<Identifier, Value, Identifier::hash>;
 
         enum ExpressionType
         {
@@ -206,7 +217,7 @@ namespace zyd2001
         };
 
         using ArrayExpression = std::vector<Expression>;
-        using ExpressionsList = ArrayExpression;
+        using ExpressionList = ArrayExpression;
         using IdentifierExpression = string_t;
         using LiteralExpression = Value;
 
@@ -246,26 +257,26 @@ namespace zyd2001
             ~Statement();
         };
 
-        using StatementsList = std::vector<Statement>;
+        using StatementList = std::vector<Statement>;
 
         struct DeclarationStatementItem
         {
             Identifier identifier;
             Expression initial_value;
         };
-        using DeclarationStatementItemsList = std::vector<DeclarationStatementItem>;
+        using DeclarationStatementItemList = std::vector<DeclarationStatementItem>;
         struct DeclarationStatement
         {
             bool global;
             ValueType type;
-            DeclarationStatementItemsList items;
+            DeclarationStatementItemList items;
             Identifier obj_type;
         };
 
         struct ObjDeclarationStatement
         {
             Identifier type;
-            DeclarationStatementItemsList items;
+            DeclarationStatementItemList items;
             bool global;
         };
 
@@ -306,7 +317,7 @@ namespace zyd2001
         };
 
         using ExpressionStatement = Expression;
-        using BlockStatement = StatementsList;
+        using BlockStatement = StatementList;
         using ReturnStatement = Expression;
         using DebugStatement = Expression;
 
@@ -318,63 +329,57 @@ namespace zyd2001
         };
 
         //stack unit
-        using deleter = std::function<void(std::vector<VariablesMap>*)>;
-        using stack_unit = std::unique_ptr<std::vector<VariablesMap>, deleter >;
-        void disabled_deleter(std::vector<VariablesMap> *p);
-        void enabled_deleter(std::vector<VariablesMap> *p);
+        using deleter = std::function<void(std::vector<VariableMap>*)>;
+        using stack_unit = std::unique_ptr<std::vector<VariableMap>, deleter >;
+        void disabled_deleter(std::vector<VariableMap> *p);
+        void enabled_deleter(std::vector<VariableMap> *p);
         stack_unit make_stack_unit();
-        stack_unit make_temp_unit(std::vector<VariablesMap>&);
+        stack_unit make_temp_unit(std::vector<VariableMap>&);
         using VariablesStack = std::stack<stack_unit>;
 
-        using ParametersList = std::vector<Parameter>;
-        using ArgumentsList = std::vector<Expression>;
+        using ParameterList = std::vector<Parameter>;
+        using ArgumentList = std::vector<Expression>;
 
         struct ParamsHash
         {
-            std::size_t operator()(const ParametersList& p) const;
+            std::size_t operator()(const ParameterList& p) const;
         };
         struct ParamsEqualTo
         {
-            bool operator()(const ParametersList& lhs, const ParametersList& rhs) const;
+            bool operator()(const ParameterList& lhs, const ParameterList& rhs) const;
         };
 
         struct function_t
         {
             ValueType return_type;
             bool can_overload = true;
-            virtual Value& call(ArgumentsList&);
+            virtual Value& call(ArgumentList&) = 0;
         };
         struct NormalFunction : public function_t
         {
-            std::unordered_map<ParametersList, Statement, ParamsHash, ParamsEqualTo> overload_map;
-            Value& call(ArgumentsList&) override;
-        };
-        struct NativeFunction : public function_t
-        {
-            std::function<void(std::vector<Value>)> func;// TODO: support overload
-            Value& call(ArgumentsList&) override;
+            std::unordered_map<ParameterList, Statement, ParamsHash, ParamsEqualTo> overload_map;
+            Value& call(ArgumentList&) override;
         };
         using Function = std::shared_ptr<function_t>;
 
+        using AccessControlMap = std::unordered_map<Identifier, AccessControl, Identifier::hash>;
+        struct ObjectVariableMap : public VariableMap
+        {
+            AccessControlMap accessbility;
+        };
         struct Class
         {
             Identifier type;
             unsigned long id; // start with 8, since ValueType takes 0 ~ 7
             Class *base;
             Function ctor;
-            VariablesMap static_variables;
-            virtual Object makeObject(ArgumentsList&);
+            ObjectVariableMap static_variables;
+            virtual Object makeObject(ArgumentList&) = 0;
         };
         struct NormalClass : public Class
         {
-            StatementsList slist;
-            Object makeObject(ArgumentsList&) override;
-        };
-        struct NativeClass : public Class
-        {
-            std::unordered_map<Identifier, ValueType, Identifier::hash> var;
-            VariablesMap default_value_map;
-            Object makeObject(ArgumentsList&) override;
+            StatementList slist;
+            Object makeObject(ArgumentList&) override;
         };
         using ClassMap = std::pair<std::unordered_map<Identifier, unsigned long, Identifier::hash>, std::unordered_map<unsigned long, Class>>;
 
@@ -383,7 +388,7 @@ namespace zyd2001
             Identifier type;
             Class *cl;
             std::vector<object_t*> bases;
-            std::vector<VariablesMap> local_env;
+            std::vector<ObjectVariableMap> local_env;
         };
         struct GraphNode
         {
@@ -415,15 +420,16 @@ namespace zyd2001
             void declareVariable(Identifier, ValueType, bool global = false);
             void declareVariable(Identifier, Identifier type, bool global = false);
             void changeVariable(Identifier, Value&, bool global = false);
-            void registerClass(NativeClass&);
-            void registerFunction(Identifier, NativeFunction&);
+            void registerClass(Class&);
+            void registerFunction(Identifier, function_t&);
+            std::vector<Value> resolveArgumentList(ArgumentList&);
             bool typeCheck(ValueType, Value&);
             bool typeCheck(Identifier, Value&);
             bool checkVariable(Identifier, bool global = false);
             Value &getVariable(Identifier, bool global = false);
 
             StatementType execute(const Statement &);
-            StatementType interpret(const StatementsList &);
+            StatementType interpret(const StatementList &);
             Value &evaluate(const Expression &);
             void err();
             void err(const std::string&);
@@ -451,9 +457,9 @@ namespace zyd2001
             Value temp_variable;
 
             //global scope
-            VariablesMap global_variables;
+            VariableMap global_variables;
 
-            StatementsList statements_list;
+            StatementList statement_list;
             VariablesStack variables_stack;
             ClassMap class_map;
             std::vector<std::unique_ptr<void *>> handle_list;

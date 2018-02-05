@@ -41,31 +41,31 @@
 %token<Expression> INT_LITERAL STRING_LITERAL DOUBLE_LITERAL BOOL_LITERAL
 %token<Identifier>     IDENTIFIER
 %token END  0  "end of file"
-        INT DOUBLE BOOL STRING ARRAY VAR GLOBAL IF ELSE ELSEIF FOR IN CLASS RETURN BREAK CONTINUE
-        LP RP LC RC LB RB SEMICOLON COMMA ASSIGN EXCLAMATION DOT NEW CONSTRUCTOR THIS PUBLIC PROTECTED PRIVATE SUPER
+        INT DOUBLE BOOL STRING ARRAY VAR GLOBAL IF ELSE ELSEIF FOR IN CLASS RETURN BREAK CONTINUE REF
+        LP RP LC RC LB RB SEMICOLON COMMA ASSIGN EXCLAMATION DOT NEW CONSTRUCTOR THIS PUBLIC PROTECTED PRIVATE SUPER INTERFACE
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
         INCREMENT DECREMENT REVERSE
         PRINT
 %type<Expression> expression function_call_expression primary_expression expression_optional binary_expression unary_expression array_expression index_expression dot_expression dot_pre_expression
 %type<Statement> statement block statement_optional class_definition declaration_statement assignment_statement
-%type<StatementsList> statements_list
-%type<ParametersList> parameters_list
-%type<ExpressionsList> expressions_list arguments_list
+%type<StatementList> statement_list
+%type<ParameterList> parameter_list
+%type<ExpressionList> expression_list argument_list
 %type<ValueType> type_tag
 %type<Parameter> parameter
 %type<DeclarationStatementItem> declaration_item
-%type<DeclarationStatementItemsList> declaration_items_list
+%type<DeclarationStatementItemList> declaration_item_list
 %%
-    eof: statements_list END
+    eof: statement_list END
 		{
-			inter.statements_list = $1;
+			inter.statement_list = $1;
 		}
 		;
-    statements_list: statement
+    statement_list: statement
         {
             $$.emplace_back($1);
         }
-        | statements_list statement
+        | statement_list statement
         {
             $1.emplace_back($2);
             $$.swap($1);
@@ -115,9 +115,9 @@
         {
             $$ = Statement(BREAK_STATEMENT, nullptr, yyget_lineno(scanner));
         }
-        | type_tag IDENTIFIER LP parameters_list RP block
+        | type_tag IDENTIFIER LP parameter_list RP block
         {
-            VariablesMap *vmap;
+            VariableMap *vmap;
             if (inter.in_class)
                 vmap = &inter.current_class->static_variables;
             else
@@ -165,10 +165,10 @@
                         break;
                     }
                 }
-                $$ = Statement(FUNCTION_DEFINITION_STATEMENT, new VariablesMap::value_type($2, function), yyget_lineno(scanner));
+                $$ = Statement(FUNCTION_DEFINITION_STATEMENT, new VariableMap::value_type($2, function), yyget_lineno(scanner));
             }
         }
-        | CONSTRUCTOR LP parameters_list RP block
+        | CONSTRUCTOR LP parameter_list RP block
         {
             auto &func = inter.current_class->ctor;
             if (func->overload_map.empty())
@@ -229,19 +229,19 @@
             $$ = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){$1, $3}, yyget_lineno(scanner));
         }
         ;
-    declaration_statement: type_tag declaration_items_list SEMICOLON
+    declaration_statement: type_tag declaration_item_list SEMICOLON
         {
             $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){false, $1, std::move($2)}, yyget_lineno(scanner));
         }
-		| GLOBAL type_tag declaration_items_list SEMICOLON
+		| GLOBAL type_tag declaration_item_list SEMICOLON
         {
             $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){true, $2, std::move($3)}, yyget_lineno(scanner));
         }
-        | IDENTIFIER declaration_items_list SEMICOLON
+        | IDENTIFIER declaration_item_list SEMICOLON
         {
             $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){false, OBJECT_TYPE, std::move($2), $1}, yyget_lineno(scanner));
         }
-        | GLOBAL IDENTIFIER declaration_items_list SEMICOLON
+        | GLOBAL IDENTIFIER declaration_item_list SEMICOLON
         {
             $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){true, OBJECT_TYPE, std::move($3), $2}, yyget_lineno(scanner));
         }
@@ -255,17 +255,17 @@
             $$ = {$1, $3};
         }
         ;
-    declaration_items_list: declaration_item
+    declaration_item_list: declaration_item
         {
             $$.emplace_back(std::move($1));
         }
-        | declaration_items_list COMMA declaration_item
+        | declaration_item_list COMMA declaration_item
         {
             $1.emplace_back(std::move($3));
             $$.swap($1);
         }
         ;
-    class_definition: CLASS IDENTIFIER LC statements_list RC
+    class_definition: CLASS IDENTIFIER LC statement_list RC
         {
             auto result = inter.class_map.find($2);
             if (result == inter.class_map.cend())
@@ -282,7 +282,7 @@
             else
                 inter.err("class_definition");
         }
-        | CLASS IDENTIFIER SEMICOLON IDENTIFIER LC statements_list RC
+        | CLASS IDENTIFIER SEMICOLON IDENTIFIER LC statement_list RC
         {
             auto result = inter.class_map.find($2), base = inter.class_map.find($4);
             if (base != inter.class_map.cend())
@@ -366,7 +366,7 @@
             $$ = Expression(INDEX_EXPRESSION, new (IndexExpression){$1, $3});
         }
         ;
-    array_expression: LB expressions_list RB
+    array_expression: LB expression_list RB
         {
             $$ = Expression(ARRAY_EXPRESSION, new ArrayExpression(std::move($2)));
         }
@@ -497,7 +497,7 @@
             $$ = Expression(UNARY_EXPRESSION, new (UnaryExpression){NOT, $2});
         }
         ;
-    function_call_expression: IDENTIFIER LP arguments_list RP
+    function_call_expression: IDENTIFIER LP argument_list RP
         {
             $$ = Expression(FUNCTION_CALL_EXPRESSION, new (FunctionCallExpression){Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression($1)), $3});
         }
@@ -519,11 +519,11 @@
             $$ = $1;
         }
         ;
-    expressions_list: expression
+    expression_list: expression
         {
             $$.emplace_back($1);
         }
-        | expressions_list COMMA expression
+        | expression_list COMMA expression
         {
             $1.emplace_back($3);
             $$.swap($1);
@@ -558,7 +558,7 @@
             
         }
         ;
-    block: LC statements_list RC
+    block: LC statement_list RC
         {
             $$ = Statement(BLOCK_STATEMENT, new BlockStatement(std::move($2)), yyget_lineno(scanner));
         }
@@ -567,7 +567,7 @@
             $$ = Statement(BLOCK_STATEMENT, new BlockStatement(), yyget_lineno(scanner));
         }
         ;
-    arguments_list: /* empty */
+    argument_list: /* empty */
         {
             $$;
         }
@@ -575,7 +575,7 @@
         {
             $$.emplace_back($1);
         }
-        | arguments_list COMMA expression
+        | argument_list COMMA expression
         {
             $1.emplace_back($3);
             $$.swap($1);
@@ -590,7 +590,7 @@
             $$ = {$1, $2, $4};
         }
         ;
-    parameters_list: /* empty */
+    parameter_list: /* empty */
         {
             $$;
         }
@@ -598,7 +598,7 @@
         {
             $$.emplace_back(std::move($1));
         }
-        | parameters_list COMMA parameter
+        | parameter_list COMMA parameter
         {
             $1.emplace_back(std::move($3));
             $$.swap($1);

@@ -110,10 +110,10 @@ Statement::~Statement()
                 delete_cast(AssignmentStatement*);
                 break;
             case FUNCTION_DEFINITION_STATEMENT:
-                delete_cast(VariablesMap::value_type*);
+                delete_cast(VariableMap::value_type*);
                 break;
             case zyd2001::NewBie::BLOCK_STATEMENT:
-                delete_cast(StatementsList*);
+                delete_cast(StatementList*);
                 break;
             case zyd2001::NewBie::IF_STATEMENT:
                 delete_cast(IfStatement*);
@@ -170,7 +170,7 @@ size_t zyd2001::NewBie::string_t::hash::operator()(const string_t &s) const
     return h(*s.ptr);
 }
 
-bool ParamsEqualTo::operator()(const ParametersList& lhs, const ParametersList& rhs) const
+bool ParamsEqualTo::operator()(const ParameterList& lhs, const ParameterList& rhs) const
 {
     if (lhs.size() != rhs.size())
         return false;
@@ -185,7 +185,7 @@ bool ParamsEqualTo::operator()(const ParametersList& lhs, const ParametersList& 
     }
 }
 
-std::size_t ParamsHash::operator()(const ParametersList& p) const
+std::size_t ParamsHash::operator()(const ParameterList& p) const
 {
     std::hash<ValueType> h;
     std::size_t seed = 0;
@@ -224,12 +224,22 @@ zyd2001::NewBie::Object::~Object()
     }
 }
 
-Value InterpreterImp::callFunc(Function &func, ArgumentsList &alist)
+Object zyd2001::NewBie::NormalClass::makeObject(ArgumentList &)
+{
+
+}
+
+Value & zyd2001::NewBie::NormalFunction::call(ArgumentList &)
+{
+    // TODO: 在此处插入 return 语句
+}
+
+Value InterpreterImp::callFunc(Function &func, ArgumentList &alist)
 {
     //initialize the function local variables
-    StatementsList temp_slist;
+    StatementList temp_slist;
     vector<Expression> temp_elist;
-    ParametersList temp_plist;
+    ParameterList temp_plist;
     for (auto &arg : alist)
     {
         temp_elist.emplace_back(Expression(LITERAL_EXPRESSION, new Value(evaluate(arg))));
@@ -238,7 +248,7 @@ Value InterpreterImp::callFunc(Function &func, ArgumentsList &alist)
     }
 
     variables_stack.push(make_stack_unit());
-    (*variables_stack.top()).push_back(VariablesMap());
+    (*variables_stack.top()).push_back(VariableMap());
     decltype(func->overload_map.begin()) fbody;
 
     if (func->can_overload)
@@ -253,7 +263,7 @@ Value InterpreterImp::callFunc(Function &func, ArgumentsList &alist)
     auto eiter = temp_elist.cbegin();
     for (auto param = fbody->first.cbegin(); param != fbody->first.cend(); param++)
     {
-        DeclarationStatementItemsList item;
+        DeclarationStatementItemList item;
         if (eiter != temp_elist.cend())
         {
             item.emplace_back(std::move(DeclarationStatementItem{ std::move(param->identifier), *eiter }));

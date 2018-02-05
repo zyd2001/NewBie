@@ -14,14 +14,14 @@ bool InterpreterImp::run()
     auto cp = GetConsoleOutputCP();
     SetConsoleOutputCP(CP_UTF8);
 #endif
-    if (statements_list.empty())
+    if (statement_list.empty())
     {
         throw runtime_error("No AST");
     }
     gc_graph.addVertex(root);
     variables_stack.push(make_stack_unit());
-    (*variables_stack.top()).emplace_back(VariablesMap());
-    interpret(statements_list);
+    (*variables_stack.top()).emplace_back(VariableMap());
+    interpret(statement_list);
     variables_stack.pop();
 #if defined(_MSC_VER)
     SetConsoleOutputCP(cp);
@@ -29,7 +29,7 @@ bool InterpreterImp::run()
     return true;
 }
 
-StatementType InterpreterImp::interpret(const StatementsList &s)
+StatementType InterpreterImp::interpret(const StatementList &s)
 {
     StatementType res;
     auto end = s.cend();
@@ -46,7 +46,7 @@ StatementType InterpreterImp::interpret(const StatementsList &s)
 
 int InterpreterImp::checkExist(const Identifier &id) //check all scope, 0 for global
 {
-    //vector<VariablesMap> &v = (*variables_stack.top());
+    //vector<VariableMap> &v = (*variables_stack.top());
     //for (auto i = v.size(); i > 0; i--)
     //{
     //    auto result = v[i - 1].find(id);
@@ -103,7 +103,7 @@ StatementType InterpreterImp::execute(const Statement &s)
                 int res = checkExist(iter.identifier);
                 if (res == -1)
                 {
-                    VariablesMap *vmap;
+                    VariableMap *vmap;
                     if (ds.global)
                         vmap = &global_variables;
                     else
@@ -136,7 +136,7 @@ StatementType InterpreterImp::execute(const Statement &s)
             {
                 // get the function in a class
                 auto &obj = current_object->get<Object>();
-                auto &func = s.get<VariablesMap::value_type>();
+                auto &func = s.get<VariableMap::value_type>();
                 obj->local_env.back()[func.first] = func.second;
             }
             break;
@@ -144,7 +144,7 @@ StatementType InterpreterImp::execute(const Statement &s)
         case zyd2001::NewBie::BLOCK_STATEMENT:
         {
             //new scope
-            v.emplace_back(VariablesMap());
+            v.emplace_back(VariableMap());
             StatementType res = interpret(s.get<BlockStatement>());
             v.pop_back();
 
@@ -160,7 +160,7 @@ StatementType InterpreterImp::execute(const Statement &s)
             {
                 StatementType res;
                 //new scope
-                v.emplace_back(VariablesMap());
+                v.emplace_back(VariableMap());
                 if (ifs.stat.type == BLOCK_STATEMENT)
                     res = interpret(ifs.stat.get<BlockStatement>());
                 else                
@@ -182,7 +182,7 @@ StatementType InterpreterImp::execute(const Statement &s)
                         {
                             StatementType res;
                             //new scope
-                            v.emplace_back(VariablesMap());
+                            v.emplace_back(VariableMap());
                             if (i.stat.type == BLOCK_STATEMENT)
                                 res = interpret(ifs.stat.get<BlockStatement>());
                             else
@@ -202,7 +202,7 @@ StatementType InterpreterImp::execute(const Statement &s)
                 {
                     StatementType res;
                     //new scope
-                    v.emplace_back(VariablesMap());
+                    v.emplace_back(VariableMap());
                     if (ifs.else_stat.type == BLOCK_STATEMENT)
                         res = interpret(ifs.else_stat.get<BlockStatement>());
                     else
@@ -220,7 +220,7 @@ StatementType InterpreterImp::execute(const Statement &s)
         {
             ForStatement &fs = s.get<ForStatement>();
             //new scope
-            v.emplace_back(VariablesMap());
+            v.emplace_back(VariableMap());
             for (execute(fs.pre); evaluate(fs.condition).change_type(BOOL_TYPE).get<bool>(); execute(fs.after))
             {
                 StatementType res;
@@ -250,7 +250,7 @@ StatementType InterpreterImp::execute(const Statement &s)
             Statement stat(DECLARATION_STATEMENT, ds, -1);
 
             //new scope
-            v.emplace_back(VariablesMap());
+            v.emplace_back(VariableMap());
             execute(stat);
             auto &var = v.back().at(fes.identifier);
             Value a = evaluate(fes.exp);

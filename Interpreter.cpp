@@ -60,7 +60,7 @@ void InterpreterImp::parse()
 
 void zyd2001::NewBie::InterpreterImp::declareVariable(Identifier id, ValueType type, bool global = false)
 {
-    VariablesMap *env;
+    VariableMap *env;
     if (global)
         env = &global_variables;
     else
@@ -87,7 +87,7 @@ void zyd2001::NewBie::InterpreterImp::declareVariable(Identifier id, Identifier 
 
 void zyd2001::NewBie::InterpreterImp::changeVariable(Identifier id, Value &v, bool global)
 {
-    VariablesMap *env;
+    VariableMap *env;
     if (global)
         env = &global_variables;
     else
@@ -117,7 +117,7 @@ void zyd2001::NewBie::InterpreterImp::changeVariable(Identifier id, Value &v, bo
     }
 }
 
-void zyd2001::NewBie::InterpreterImp::registerClass(NativeClass &cl)
+void zyd2001::NewBie::InterpreterImp::registerClass(Class &cl)
 {
     auto type = cl.type;
     auto result = class_map.first.find(type);
@@ -132,7 +132,7 @@ void zyd2001::NewBie::InterpreterImp::registerClass(NativeClass &cl)
     }
 }
 
-void zyd2001::NewBie::InterpreterImp::registerFunction(Identifier, NativeFunction &)
+void zyd2001::NewBie::InterpreterImp::registerFunction(Identifier, function_t &)
 {}
 
 bool zyd2001::NewBie::InterpreterImp::typeCheck(ValueType type, Value &v)
@@ -180,10 +180,10 @@ bool zyd2001::NewBie::InterpreterImp::typeCheck(Identifier type, Value &v)
     return false;
 }
 
-void zyd2001::NewBie::disabled_deleter(vector<VariablesMap> *p) {}
-void zyd2001::NewBie::enabled_deleter(vector<VariablesMap> *p) { delete p; }
-stack_unit zyd2001::NewBie::make_stack_unit() { return unique_ptr<std::vector<VariablesMap>, deleter>(new std::vector<VariablesMap>(), &enabled_deleter); }
-stack_unit zyd2001::NewBie::make_temp_unit(std::vector<VariablesMap> &u) { return unique_ptr<std::vector<VariablesMap>, deleter>(&u, &disabled_deleter); }
+void zyd2001::NewBie::disabled_deleter(vector<VariableMap> *p) {}
+void zyd2001::NewBie::enabled_deleter(vector<VariableMap> *p) { delete p; }
+stack_unit zyd2001::NewBie::make_stack_unit() { return unique_ptr<std::vector<VariableMap>, deleter>(new std::vector<VariableMap>(), &enabled_deleter); }
+stack_unit zyd2001::NewBie::make_temp_unit(std::vector<VariableMap> &u) { return unique_ptr<std::vector<VariableMap>, deleter>(&u, &disabled_deleter); }
 void InterpreterImp::initialize_obj_env(Value &o)
 {
     auto &obj = o.get<Object>();

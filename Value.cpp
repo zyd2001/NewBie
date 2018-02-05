@@ -127,16 +127,16 @@ Value::~Value()
         case zyd2001::NewBie::ARRAY_TYPE:
             delete_cast(Array*);
             break;
-        case zyd2001::NewBie::OBJECT_TYPE:
-        {
-            auto &node = this->get<Object>().node;
-            if (inter->in_object)
-                inter->gc_graph.delEdge(inter->current_object->get<Object>().node, node);
-            else
-                inter->gc_graph.delEdge(inter->root, node);
-            delete_cast(Object*);
-            break;
-        }
+        //case zyd2001::NewBie::OBJECT_TYPE:
+        //{
+        //    auto &node = this->get<Object>().node;
+        //    if (inter->in_object)
+        //        inter->gc_graph.delEdge(inter->current_object->get<Object>().node, node);
+        //    else
+        //        inter->gc_graph.delEdge(inter->root, node);
+        //    delete_cast(Object*);
+        //    break;
+        //}
         case FUNCTION_TYPE:
             delete_cast(Function*);
             break;
