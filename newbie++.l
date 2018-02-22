@@ -50,8 +50,6 @@ static zyd2001::NewBie::location loc;
 <INITIAL>"in"           return Parser::make_IN(loc);
 <INITIAL>"break"        return Parser::make_BREAK(loc);
 <INITIAL>"continue"     return Parser::make_CONTINUE(loc);
-<INITIAL>"constructor"  return Parser::make_CONSTRUCTOR(loc);
-<INITIAL>"ctor"         return Parser::make_CONSTRUCTOR(loc);
 <INITIAL>"return"       return Parser::make_RETURN(loc);
 <INITIAL>"class"        {inter.in_class = true; inter.current_class = new Class(); return Parser::make_CLASS(loc);}
 <INITIAL>"new"          return Parser::make_NEW(loc);
@@ -92,9 +90,8 @@ static zyd2001::NewBie::location loc;
 <INITIAL>"."            return Parser::make_DOT(loc);
 <INITIAL>"~"            return Parser::make_REVERSE(loc);
 <INITIAL>"ref"          return Parser::make_REF(loc);
-<INITIAL>"interface"    return Parser::make_INTERFACE(loc);
 <INITIAL>"public"       return Parser::make_PUBLIC(loc);
-<INITIAL>"protected"    return Parser::make_PROTECTED(loc);
+<INITIAL>"readonly"    return Parser::make_READONLY(loc);
 <INITIAL>"private"      return Parser::make_PRIVATE(loc);
 <INITIAL>"super"        return Parser::make_SUPER(loc);
 <INITIAL>"true" {       

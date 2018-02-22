@@ -46,6 +46,72 @@ bool InterpreterImp::changeSetting(const std::string &key, int value)
     }
 }
 
+void zyd2001::NewBie::InterpreterImp::performGC()
+{
+    auto result = gc_graph.dfs(root);
+    for (auto v : result)
+    {
+        if (!v.second)
+        {
+            gc_graph.delVertex(v.first);
+            delete v.first;
+        }
+    }
+}
+
+void zyd2001::NewBie::InterpreterImp::GC()
+{
+    performGC();
+}
+
+void zyd2001::NewBie::InterpreterImp::concurrentGC()
+{
+    thread(performGC);
+}
+
+RAIIStack::RAIIStack()
+{
+    inter->variables_stack.emplace(vector<ObjectMap>());
+    inter->variables_stack.top().emplace_back(ObjectMap());
+}
+
+RAIIStack::~RAIIStack()
+{
+    while (!inter->variables_stack.top().empty())
+    {
+        for (auto o : inter->variables_stack.top().back())
+            inter->delGCEdge(inter->root, o.second);
+        inter->variables_stack.top().pop_back();
+    }
+    inter->variables_stack.pop();
+}
+
+RAIIObject::RAIIObject(Object obj)
+{
+    inter->current_object = obj.obj;
+    inter->object_env_stack.push(obj.obj);
+    inter->in_object = true;
+}
+
+zyd2001::NewBie::RAIIObject::RAIIObject(object_t *obj)
+{
+    inter->current_object = obj;
+    inter->object_env_stack.push(obj);
+    inter->in_object = true;
+}
+
+RAIIObject::~RAIIObject()
+{
+    inter->object_env_stack.pop();
+    if (inter->object_env_stack.empty())
+    {
+        inter->in_object = false;
+        inter->current_object = nullptr;
+    }
+    else
+        inter->current_object = inter->object_env_stack.top();
+}
+
 void InterpreterImp::parse()
 {
     yyscan_t scanner;
@@ -58,66 +124,116 @@ void InterpreterImp::parse()
     fclose(fp);
 }
 
-void zyd2001::NewBie::InterpreterImp::declareVariable(Identifier id, ValueType type, bool global = false)
+void zyd2001::NewBie::InterpreterImp::declareVariable(Identifier id, ObjectType type, bool global = false)
 {
-    VariableMap *env;
+    ObjectMap *obj_map;
     if (global)
-        env = &global_variables;
+        obj_map = &global_variables;
     else
-        env = &variables_stack.top()->back();
-    auto result = env->find(id);
-    if (result != env->cend())
-        return;
-    else
-        env->at(id) = Value(type);
+        obj_map = current_variables;
+    auto v = obj_map->find(id);
+    if (v != obj_map->end())
+        throw exception();
+    auto cl = inter->class_map.second.at(type);
+    Object obj(cl->makeObject(ArgumentList()));
+    (*obj_map)[id] = obj;
+    addGCEdge(root, obj);
 }
 
-void zyd2001::NewBie::InterpreterImp::declareVariable(Identifier id, Identifier type, bool global)
+void zyd2001::NewBie::InterpreterImp::declareVariable(Identifier id, Identifier type_name, bool global)
 {
-    try
-    {
-        declareVariable(id, (ValueType)class_map.first.at(type), global);
-    }
-    catch (out_of_range e)
-    {
-        err();
-        return;
-    }
+    declareVariable(id, inter->class_map.first.at(type_name), global);
 }
 
-void zyd2001::NewBie::InterpreterImp::changeVariable(Identifier id, Value &v, bool global)
+void zyd2001::NewBie::InterpreterImp::declareVariable(Identifier id, Object obj, bool global)
 {
-    VariableMap *env;
+    ObjectMap *obj_map;
     if (global)
-        env = &global_variables;
+        obj_map = &global_variables;
     else
-        env = &variables_stack.top()->back();
-    try
-    {
-        auto lval = env->at(id);
-        if (lval.various)
-        {
-            v.various = true;
-            lval = v;
-        }
-        else if (typeCheck(lval.type, v))
-        {
-            v.various = false;
-            lval = v;
-        }
-        else
-        {
-            err();
-        }
-    }
-    catch (out_of_range e)
-    {
-        err();
-        return;
-    }
+        obj_map = current_variables;
+    auto v = obj_map->find(id);
+    if (v != obj_map->end())
+        throw exception();
+    (*obj_map)[id] = obj;
+    addGCEdge(root, obj);
 }
 
-void zyd2001::NewBie::InterpreterImp::registerClass(Class &cl)
+void zyd2001::NewBie::InterpreterImp::deleteVariable(Identifier id, bool global)
+{
+    ObjectMap *obj_map;
+    if (global)
+        obj_map = &global_variables;
+    else
+        obj_map = current_variables;
+    auto v = obj_map->find(id);
+    if (v == obj_map->end())
+        throw exception();
+    delGCEdge(root, v->second);
+    obj_map->erase(v);
+}
+
+Object zyd2001::NewBie::InterpreterImp::getVariable(Identifier, bool global)
+{
+    return Object();
+}
+
+void zyd2001::NewBie::InterpreterImp::changeVariable(Identifier id, Object v, bool global)
+{
+    ObjectMap *obj_map;
+    if (global)
+        obj_map = &global_variables;
+    else
+        obj_map = current_variables;
+}
+
+bool zyd2001::NewBie::InterpreterImp::typeCheck(Object l, Object r)
+{
+    if (l.obj->type == r.obj->type)
+        return true;
+    else
+    {
+        if (l.restrict_type == r.obj->type)
+            return true;
+        for (auto i : r.obj->bases)
+            if (l.restrict_type == i->type)
+                return true;
+    }
+    return false;
+}
+
+void zyd2001::NewBie::InterpreterImp::addGCVertex(Object o)
+{
+    gc_graph.addVertex(o.obj);
+}
+
+void zyd2001::NewBie::InterpreterImp::delGCVertex(Object o)
+{
+    gc_graph.delVertex(o.obj);
+    delete o.obj;
+}
+
+void zyd2001::NewBie::InterpreterImp::addGCEdge(object_t *v, Object w)
+{
+    gc_graph.addEdge(v, w.obj);
+}
+
+void zyd2001::NewBie::InterpreterImp::addGCEdge(Object v, Object w)
+{
+    gc_graph.addEdge(v.obj, w.obj);
+}
+
+void zyd2001::NewBie::InterpreterImp::delGCEdge(object_t *v, Object w)
+{
+    gc_graph.delEdge(v, w.obj);
+}
+
+void zyd2001::NewBie::InterpreterImp::delGCEdge(Object v, Object w)
+{
+    gc_graph.delEdge(v.obj, w.obj);
+}
+
+void zyd2001::NewBie::InterpreterImp::registerClass(Class cl)
 {
     auto type = cl.type;
     auto result = class_map.first.find(type);
@@ -132,77 +248,26 @@ void zyd2001::NewBie::InterpreterImp::registerClass(Class &cl)
     }
 }
 
-void zyd2001::NewBie::InterpreterImp::registerFunction(Identifier, function_t &)
-{}
-
-bool zyd2001::NewBie::InterpreterImp::typeCheck(ValueType type, Value &v)
+void zyd2001::NewBie::InterpreterImp::resolveClass(StatementList &slist)
 {
-    if (type == v.type)
-        return true;
-    else
-    {
-        auto obj = v.get<Object>();
-        if (obj->cl->id == type)
-            return true;
-        else
-        {
-            for (auto iter = obj->bases.crbegin(); iter != obj->bases.crend(); iter++)
-            {
-                if ((*iter)->cl->id == type)
-                    return true;
-            }
-        }
-    }
-    return false;
+    
 }
 
-bool zyd2001::NewBie::InterpreterImp::typeCheck(Identifier type, Value &v)
+std::vector<Value> zyd2001::NewBie::InterpreterImp::resolveArgumentList(ArgumentList &alist)
 {
-    try
-    {
-        auto id = class_map.first.at(type);
-        auto obj = v.get<Object>();
-        if (obj->cl->id == id)
-            return true;
-        else
-        {
-            for (auto iter = obj->bases.crbegin(); iter != obj->bases.crend(); iter++)
-            {
-                if ((*iter)->cl->id == id)
-                    return true;
-            }
-        }
-    }
-    catch (out_of_range e)
-    {
-        return false;
-    }
-    return false;
+    std::vector<Value> args;
+    for (auto a : alist)
+        args.emplace_back(evaluate(a));
+    return args;
 }
 
-void zyd2001::NewBie::disabled_deleter(vector<VariableMap> *p) {}
-void zyd2001::NewBie::enabled_deleter(vector<VariableMap> *p) { delete p; }
-stack_unit zyd2001::NewBie::make_stack_unit() { return unique_ptr<std::vector<VariableMap>, deleter>(new std::vector<VariableMap>(), &enabled_deleter); }
-stack_unit zyd2001::NewBie::make_temp_unit(std::vector<VariableMap> &u) { return unique_ptr<std::vector<VariableMap>, deleter>(&u, &disabled_deleter); }
-void InterpreterImp::initialize_obj_env(Value &o)
+ParameterList zyd2001::NewBie::InterpreterImp::ArgsToParams(std::vector<Value> &args)
 {
-    auto &obj = o.get<Object>();
-    in_object = true;
-    current_object = &o;
-    object_env_stack.push(current_object);
-}
-void InterpreterImp::restore_obj_env()
-{
-    object_env_stack.pop();
-    if (object_env_stack.empty())
+    ParameterList params;
+    for (auto arg : args)
     {
-        in_object = false;
-        current_object = nullptr;
+        params.emplace_back(Parameter());
+        params.back().type = arg.type;
     }
-    else
-    {
-        auto &env = object_env_stack.top();
-        current_object = env;
-    }
-    //variables_stack.pop();
+    return params;
 }

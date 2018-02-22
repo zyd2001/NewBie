@@ -4,11 +4,13 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <algorithm>
 #include <memory>
 #include <utility>
 #include <stack>
 #include <iostream>
 #include <functional>
+#include <thread>
 #include "Graph.hpp"
 
 /*For flex and bison*/
@@ -43,26 +45,27 @@ namespace zyd2001
 
         enum UnaryType
         {
-            MINUS,
+            NEGATE,
             NOT
         };
-
-        enum ValueType : unsigned long // when ValueType > 7, it will represent the class's id
-        {
-            NULL_TYPE = 0,
-            INT_TYPE,
-            DOUBLE_TYPE,
-            BOOL_TYPE,
-            STRING_TYPE,
-            VARIANT_TYPE,
-            ARRAY_TYPE,
-            FUNCTION_TYPE = 7
-        };
+        
+        using ObjectType = unsigned long;
+        //enum ValueType : ObjectType // when ValueType > 7, it will represent the class's id
+        //{
+        //    NULL_TYPE = 0,
+        //    INT_TYPE,
+        //    DOUBLE_TYPE,
+        //    BOOL_TYPE,
+        //    STRING_TYPE,
+        //    VARIANT_TYPE,
+        //    ARRAY_TYPE,
+        //    FUNCTION_TYPE = 7
+        //};
 
         enum AccessControl
         {
             PUBLIC,
-            PROTECTED,
+            READONLY,
             PRIVATE
         };
 
@@ -74,81 +77,211 @@ namespace zyd2001
         using char_t = char32_t;
 #endif
 
-        struct string_t
+        struct String
         {
             std::shared_ptr<std::basic_string<char_t>> ptr;
-            string_t();
-            string_t(const char_t*);
-            string_t(const std::basic_string<char_t>&);
-            string_t(const string_t &);
+            String();
+            String(const char_t*);
+            String(const std::basic_string<char_t>&);
+            String(const String &);
 
-            string_t &operator=(const string_t &);
-            string_t operator+(const string_t &);
-            string_t &operator+=(const string_t &);
-            bool operator==(const string_t &) const;
+            String &operator=(const String &);
+            String operator+(const String &);
+            String &operator+=(const String &);
+            bool operator==(const String &) const;
+            bool operator>(const String &) const;
+            bool operator<(const String &) const;
+            String copy();
 
             std::basic_string<char_t> &get();
 
             struct hash
             {
                 std::hash<std::basic_string<char_t>> h;
-                std::size_t operator()(const string_t&) const;
+                std::size_t operator()(const String&) const;
             };
         };
 
-        using Identifier = string_t;
+        using Identifier = String;
 
-        using Integer = std::shared_ptr<int>;
-        using Double = std::shared_ptr<double>;
-        using Boolean = std::shared_ptr<bool>;
-
-        struct Value
+        struct Integer
         {
-            ValueType type;
-            bool various = false;
-            void *content;
-
-            template<typename T>
-            T &get() const { return *static_cast<T*>(content); }
-            Value &change_type(ValueType);
-
-            Value();
-            Value(Value&&);
-            Value(ValueType);
-            Value(ValueType, void*);
-            Value(const Value&);
-            Value(const int&);
-            Value(const double&);
-            Value(const bool&);
-            Value(const string_t&);
-            Value(const char_t*);
-            ~Value();
-            void swap(Value &);
-            Value operator+(const Value&) const;
-            Value operator-(const Value&) const;
-            Value operator*(const Value&) const;
-            Value operator/(const Value&) const;
-            Value operator%(const Value&) const;
-            Value &operator=(const Value&);
-            Value &operator=(Value&&);
-            bool operator==(const Value&) const;
-            bool operator!=(const Value&) const;
-            bool operator>(const Value&) const;
-            bool operator>=(const Value&) const;
-            bool operator<(const Value&) const;
-            bool operator<=(const Value&) const;
-            bool operator&&(const Value&) const;
-            bool operator||(const Value&) const;
-            bool operator!() const;
-            Value operator-() const;
-            friend std::ostream &operator<<(std::ostream&, Value&);
+            std::shared_ptr<int> ptr;
+            Integer(int i) : ptr(std::make_shared<int>(i)) {}
+            Integer copy() { return Integer(*ptr); }
+            int &operator*() { return *ptr; }
+            int *operator->() { return ptr.get(); }
+        };
+        struct Double
+        {
+            std::shared_ptr<double> ptr;
+            Double(double i) : ptr(std::make_shared<double>(i)) {}
+            Double copy() { return Double(*ptr); }
+            double &operator*() { return *ptr; }
+            double *operator->() { return ptr.get(); }
+        };
+        struct Boolean
+        {
+            std::shared_ptr<bool> ptr;
+            Boolean(bool i) : ptr(std::make_shared<bool>(i)) {}
+            Boolean copy() { return Boolean(*ptr); }
+            bool &operator*() { return *ptr; }
+            bool *operator->() { return ptr.get(); }
         };
 
-        std::ostream &operator<<(std::ostream&, Value&);
-        Value change(const Value&, ValueType);
+        using ObjectMap = std::unordered_map<Identifier, Object, Identifier::hash>;
 
-        using Array = std::vector<Value>;
-        using VariableMap = std::unordered_map<Identifier, Value, Identifier::hash>;
+        struct object_t
+        {
+            Identifier type_name;
+            ObjectType type;
+            Class cl;
+            void *native_ptr;
+            std::function<void(void*)> deleter = [](void*) {};
+            std::vector<object_t*> bases;
+            std::vector<Function> op; //operator+ - * / % unary-, comp, []
+            std::unordered_map<Identifier, std::pair<Object, AccessControl>, Identifier::hash> local_variables;
+            Object getVariable(Identifier);
+            void changeVariable(Identifier, Object);
+            ~object_t() { deleter(native_ptr); }
+        };
+        struct Object
+        {
+            object_t *obj;
+            ObjectType restrict_type;
+            bool in_map = false;
+            Object() : obj(nullptr){}
+            Object(object_t *);
+            Object(const Object &);
+            Object(const int &);
+            Object(const double &);
+            Object(const bool &);
+            Object(const String &);
+            Object(const Function &);
+            Object operator+(const Object &) const;
+            Object operator-(const Object &) const;
+            Object operator*(const Object &) const;
+            Object operator/(const Object &) const;
+            Object operator%(const Object &) const;
+            Object &operator=(const Object &);
+            bool operator==(const Object&) const;
+            bool operator!=(const Object&) const;
+            bool operator>(const Object&) const;
+            bool operator>=(const Object&) const;
+            bool operator<(const Object&) const;
+            bool operator<=(const Object&) const;
+            bool operator&&(const Object&) const;
+            bool operator||(const Object&) const;
+            bool operator!() const;
+            Object operator-() const;
+            Object getVariable(Identifier);
+            void changeVariable(Identifier, Object);
+            ~Object() = default;
+        };
+
+        using IdentifierList = std::vector<Identifier>;
+        struct class_t
+        {
+            Identifier type_name;
+            ObjectType type;
+            std::vector<class_t*> base_list;
+            Function ctor;
+            std::unordered_map<Identifier, std::pair<Object, AccessControl>, Identifier::hash> static_variables;
+            virtual object_t *makeObject(ArgumentList&) = 0;
+            Object getStaticVariable(Identifier);
+            void changeStaticVariable(Identifier, Object);
+        };
+        struct NormalClass : public class_t
+        {
+            std::unordered_map<Identifier, std::tuple<ObjectType, AccessControl, Expression>, Identifier::hash> variables;
+            object_t *makeObject(ArgumentList&) override;
+        };
+        struct NativeClass : public class_t
+        {
+            std::function<object_t*(ArgumentList&, object_t*)> real;
+            object_t *makeObject(ArgumentList&) override;
+        };
+        using Class = std::shared_ptr<class_t>;
+        using ClassMap = std::pair<std::unordered_map<Identifier, ObjectType, Identifier::hash>, std::unordered_map<ObjectType, Class>>;
+
+        struct function_t
+        {
+            ObjectType return_type;
+            bool can_overload = true;
+            virtual Object call(ArgumentList&, object_t*) = 0;
+        };
+        struct NormalFunction : public function_t
+        {
+            std::unordered_map<ParameterList, Statement, ParamsHash, ParamsEqualTo> overload_map;
+            Object call(ArgumentList&, object_t*) override;
+        };
+        struct NativeFunction : public function_t
+        {
+            std::unordered_map<ParameterList, std::function<Object(ArgumentList&, object_t*)>, ParamsHash, ParamsEqualTo> native_func;
+            Object call(ArgumentList&, object_t*) override;
+        };
+        using Function = std::shared_ptr<function_t>;
+
+        using VariablesStack = std::stack<std::vector<ObjectMap>>;
+        struct RAIIStack
+        {
+            RAIIStack();
+            ~RAIIStack();
+        };
+#define newVariablesStack() zyd2001::NewBie::RAIIStack __newbie__stack__
+        struct RAIIObject
+        {
+            RAIIObject(Object);
+            RAIIObject(object_t*);
+            ~RAIIObject();
+        };
+#define useObject(obj) zyd2001::NewBie::RAIIObject __newbie__obj__(obj)
+
+        //struct Value
+        //{
+        //    ValueType type;
+        //    bool various = false;
+        //    void *content;
+
+        //    template<typename T>
+        //    T &get() const { return *static_cast<T*>(content); }
+        //    Value &change_type(ValueType);
+
+        //    Value();
+        //    Value(Value&&);
+        //    Value(ValueType);
+        //    Value(ValueType, void*);
+        //    Value(const Value&);
+        //    Value(const int&);
+        //    Value(const double&);
+        //    Value(const bool&);
+        //    Value(const String&);
+        //    Value(const char_t*);
+        //    ~Value();
+        //    Value ref();
+        //    void swap(Value &);
+        //    Value operator+(const Value&) const;
+        //    Value operator-(const Value&) const;
+        //    Value operator*(const Value&) const;
+        //    Value operator/(const Value&) const;
+        //    Value operator%(const Value&) const;
+        //    Value &operator=(const Value&);
+        //    Value &operator=(Value&&);
+        //    bool operator==(const Value&) const;
+        //    bool operator!=(const Value&) const;
+        //    bool operator>(const Value&) const;
+        //    bool operator>=(const Value&) const;
+        //    bool operator<(const Value&) const;
+        //    bool operator<=(const Value&) const;
+        //    bool operator&&(const Value&) const;
+        //    bool operator||(const Value&) const;
+        //    bool operator!() const;
+        //    Value operator-() const;
+        //    friend std::ostream &operator<<(std::ostream&, Value&);
+        //};
+
+        //std::ostream &operator<<(std::ostream&, Value&);
+        //Value change(const Value&, ValueType);
 
         enum ExpressionType
         {
@@ -173,6 +306,7 @@ namespace zyd2001
             int *ref_count;
 
             Expression();
+            Expression(Object);
             Expression(ExpressionType, void*);
             Expression(const Expression &);
             //Expression &operator=(const Expression&);
@@ -218,8 +352,8 @@ namespace zyd2001
 
         using ArrayExpression = std::vector<Expression>;
         using ExpressionList = ArrayExpression;
-        using IdentifierExpression = string_t;
-        using LiteralExpression = Value;
+        using IdentifierExpression = String;
+        using LiteralExpression = Object;
 
         enum StatementType
         {
@@ -268,16 +402,8 @@ namespace zyd2001
         struct DeclarationStatement
         {
             bool global;
-            ValueType type;
-            DeclarationStatementItemList items;
             Identifier obj_type;
-        };
-
-        struct ObjDeclarationStatement
-        {
-            Identifier type;
             DeclarationStatementItemList items;
-            bool global;
         };
 
         struct AssignmentStatement
@@ -316,6 +442,7 @@ namespace zyd2001
             bool reverse;
         };
 
+        using FunctionDefinitionStatement = std::pair<Identifier, Function>;
         using ExpressionStatement = Expression;
         using BlockStatement = StatementList;
         using ReturnStatement = Expression;
@@ -323,19 +450,11 @@ namespace zyd2001
 
         struct Parameter
         {
-            ValueType type;
+            ObjectType type;
             Identifier identifier;
-            Expression default_value_exp; //only Value
+            bool ref;
+            Expression default_value_exp; //only Object
         };
-
-        //stack unit
-        using deleter = std::function<void(std::vector<VariableMap>*)>;
-        using stack_unit = std::unique_ptr<std::vector<VariableMap>, deleter >;
-        void disabled_deleter(std::vector<VariableMap> *p);
-        void enabled_deleter(std::vector<VariableMap> *p);
-        stack_unit make_stack_unit();
-        stack_unit make_temp_unit(std::vector<VariableMap>&);
-        using VariablesStack = std::stack<stack_unit>;
 
         using ParameterList = std::vector<Parameter>;
         using ArgumentList = std::vector<Expression>;
@@ -349,63 +468,6 @@ namespace zyd2001
             bool operator()(const ParameterList& lhs, const ParameterList& rhs) const;
         };
 
-        struct function_t
-        {
-            ValueType return_type;
-            bool can_overload = true;
-            virtual Value& call(ArgumentList&) = 0;
-        };
-        struct NormalFunction : public function_t
-        {
-            std::unordered_map<ParameterList, Statement, ParamsHash, ParamsEqualTo> overload_map;
-            Value& call(ArgumentList&) override;
-        };
-        using Function = std::shared_ptr<function_t>;
-
-        using AccessControlMap = std::unordered_map<Identifier, AccessControl, Identifier::hash>;
-        struct ObjectVariableMap : public VariableMap
-        {
-            AccessControlMap accessbility;
-        };
-        struct Class
-        {
-            Identifier type;
-            unsigned long id; // start with 8, since ValueType takes 0 ~ 7
-            Class *base;
-            Function ctor;
-            ObjectVariableMap static_variables;
-            virtual Object makeObject(ArgumentList&) = 0;
-        };
-        struct NormalClass : public Class
-        {
-            StatementList slist;
-            Object makeObject(ArgumentList&) override;
-        };
-        using ClassMap = std::pair<std::unordered_map<Identifier, unsigned long, Identifier::hash>, std::unordered_map<unsigned long, Class>>;
-
-        struct object_t
-        {
-            Identifier type;
-            Class *cl;
-            std::vector<object_t*> bases;
-            std::vector<ObjectVariableMap> local_env;
-        };
-        struct GraphNode
-        {
-            unsigned long ref_count;
-            object_t *ptr;
-            GraphNode(object_t *);
-        };
-        struct Object
-        {
-            GraphNode *node;
-            Object(GraphNode *);
-            Object(const Object &);
-            object_t &operator*();
-            object_t *operator->();
-            ~Object();
-        };
-
         class InterpreterImp
         {
         public:
@@ -417,47 +479,57 @@ namespace zyd2001
             bool run();
             bool setFile(const std::string &name);
             bool changeSetting(const std::string &, int);
-            void declareVariable(Identifier, ValueType, bool global = false);
+            void performGC();
+            void GC();
+            void concurrentGC();
+            void declareVariable(Identifier, ObjectType, bool global = false);
             void declareVariable(Identifier, Identifier type, bool global = false);
-            void changeVariable(Identifier, Value&, bool global = false);
-            void registerClass(Class&);
-            void registerFunction(Identifier, function_t&);
-            std::vector<Value> resolveArgumentList(ArgumentList&);
-            bool typeCheck(ValueType, Value&);
-            bool typeCheck(Identifier, Value&);
-            bool checkVariable(Identifier, bool global = false);
-            Value &getVariable(Identifier, bool global = false);
+            void declareVariable(Identifier, Object, bool global = false);
+            void changeVariable(Identifier, Object, bool global = false);
+            void deleteVariable(Identifier, bool global = false);
+            Object getVariable(Identifier, bool global = false);
+            bool typeCheck(Object, Object);
+            void addGCVertex(Object);
+            void delGCVertex(Object);
+            void addGCEdge(object_t*, Object);
+            void addGCEdge(Object, Object);
+            void delGCEdge(object_t*, Object);
+            void delGCEdge(Object, Object);
+            void registerClass(Class);
+            void resolveClass(StatementList&);
+            void resolveClass(StatementList&, std::vector<Identifier>&);
+            std::vector<Object> resolveArgumentList(ArgumentList&);
+            ParameterList ArgsToParams(std::vector<Object>&);
 
             StatementType execute(const Statement &);
             StatementType interpret(const StatementList &);
-            Value &evaluate(const Expression &);
-            void err();
-            void err(const std::string&);
-            int checkExist(const Identifier &);
-            void initialize_obj_env(Value &);
-            void restore_obj_env();
+            Object &evaluate(const Expression &);
+            //void err();
+            //void err(const std::string&);
+            //int checkExist(const Identifier &);
 
             /*parsing time variables*/
             int level = 0;
             std::string filename;
             bool in_class = false;
-            Class *current_class;
+            Class current_class;
 
             /*runtime variables*/
-            GraphNode *root;
+            object_t *root;
             int current_lineno;
             long class_count = 0;
-            DirectedGraph<GraphNode*> gc_graph;
+            DirectedGraph<object_t*> gc_graph;
+            ObjectMap *current_variables;
             //support "this" expression
             bool in_object = false;
-            Value *current_object;
-            std::stack<Value*> object_env_stack;
+            object_t *current_object;
+            std::stack<object_t*> object_env_stack;
 
             //for return value
-            Value temp_variable;
+            //Object temp_variable;
 
             //global scope
-            VariableMap global_variables;
+            ObjectMap global_variables;
 
             StatementList statement_list;
             VariablesStack variables_stack;

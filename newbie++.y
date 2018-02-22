@@ -42,7 +42,7 @@
 %token<Identifier>     IDENTIFIER
 %token END  0  "end of file"
         INT DOUBLE BOOL STRING ARRAY VAR GLOBAL IF ELSE ELSEIF FOR IN CLASS RETURN BREAK CONTINUE REF
-        LP RP LC RC LB RB SEMICOLON COMMA ASSIGN EXCLAMATION DOT NEW CONSTRUCTOR THIS PUBLIC PROTECTED PRIVATE SUPER INTERFACE
+        LP RP LC RC LB RB SEMICOLON COMMA ASSIGN EXCLAMATION DOT NEW THIS PUBLIC READONLY PRIVATE SUPER
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
         INCREMENT DECREMENT REVERSE
         PRINT
@@ -51,6 +51,7 @@
 %type<StatementList> statement_list
 %type<ParameterList> parameter_list
 %type<ExpressionList> expression_list argument_list
+%type<IdentifierList> identifier_list
 %type<ValueType> type_tag
 %type<Parameter> parameter
 %type<DeclarationStatementItem> declaration_item
@@ -168,44 +169,6 @@
                 $$ = Statement(FUNCTION_DEFINITION_STATEMENT, new VariableMap::value_type($2, function), yyget_lineno(scanner));
             }
         }
-        | CONSTRUCTOR LP parameter_list RP block
-        {
-            auto &func = inter.current_class->ctor;
-            if (func->overload_map.empty())
-            {
-                func->can_overload = true;
-                func->overload_map[$3] = $5;
-                for (auto &i : $3)
-                {
-                    if (i.type == VARIANT_TYPE || i.default_value_exp.type != NULL_EXPRESSION)
-                    {
-                        func->can_overload = false;
-                        break;
-                    }
-                }
-            }
-            else if (func->can_overload)
-            {
-                auto exist = func->overload_map.find($3);
-                if (exist == func->overload_map.cend())
-                {
-                    for (auto &i : $3)
-                    {
-                        if (i.type == VARIANT_TYPE || i.default_value_exp.type != NULL_EXPRESSION)
-                        {
-                            inter.err();
-                            break;
-                        }
-                    }
-                    func->overload_map[$3] = $5;
-                }
-                else
-                    inter.err("exist");
-            }
-            else
-                inter.err("can_overload");
-            $$ = Statement();
-        }
         | block
         {
             $$ = $1;
@@ -265,42 +228,23 @@
             $$.swap($1);
         }
         ;
+    identifier_list: IDENTIFIER
+        {
+            $$.emplace_back($1);
+        }
+        | identifier_list COMMA IDENTIFIER
+        {
+            $1.emplace_back($3);
+            $$.swap($1);
+        }
+        ;
     class_definition: CLASS IDENTIFIER LC statement_list RC
         {
-            auto result = inter.class_map.find($2);
-            if (result == inter.class_map.cend())
-            {
-                inter.current_class->type = $2;
-                inter.current_class->slist = $4;
-                inter.current_class->base = nullptr;
-                inter.class_map[$2] = *inter.current_class;
-                delete inter.current_class;
-                inter.current_class = new Class();
-                $$ = Statement();
-                inter.in_class = false;
-            }
-            else
-                inter.err("class_definition");
+            inter.resolveClass($4);
         }
-        | CLASS IDENTIFIER SEMICOLON IDENTIFIER LC statement_list RC
+        | CLASS IDENTIFIER SEMICOLON identifier_list LC statement_list RC
         {
-            auto result = inter.class_map.find($2), base = inter.class_map.find($4);
-            if (base != inter.class_map.cend())
-                inter.err("no base");
-            
-            if (result == inter.class_map.cend())
-            {
-                inter.current_class->type = $2;
-                inter.current_class->slist = $6;
-                inter.current_class->base = &base->second;
-                inter.class_map[$2] = *inter.current_class;
-                delete inter.current_class;
-                inter.current_class = new Class();
-                $$ = Statement();
-                inter.in_class = false;
-            }
-            else 
-                inter.err("class exists");
+            inter.resolveClass($6, $4);
         }
         ;
     expression: binary_expression
