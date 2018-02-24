@@ -10,6 +10,7 @@
 #include <stack>
 #include <iostream>
 #include <functional>
+#include <typeinfo>
 #include <thread>
 #include "Graph.hpp"
 
@@ -140,10 +141,12 @@ namespace zyd2001
             std::function<void(void*)> deleter = [](void*) {};
             std::vector<object_t*> bases;
             std::vector<Function> op; //operator+ - * / % unary-, comp, []
-            std::unordered_map<Identifier, std::pair<Object, AccessControl>, Identifier::hash> local_variables;
+            void addVariable(Identifier, Object, AccessControl);
             Object getVariable(Identifier);
             void changeVariable(Identifier, Object);
             ~object_t() { deleter(native_ptr); }
+        private:
+            std::unordered_map<Identifier, std::pair<Object, AccessControl>, Identifier::hash> local_variables;
         };
         struct Object
         {
@@ -186,10 +189,13 @@ namespace zyd2001
             ObjectType type;
             std::vector<class_t*> base_list;
             Function ctor;
-            std::unordered_map<Identifier, std::pair<Object, AccessControl>, Identifier::hash> static_variables;
             virtual object_t *makeObject(ArgumentList&) = 0;
+            void addStaticVariable(Identifier, Object, AccessControl);
             Object getStaticVariable(Identifier);
             void changeStaticVariable(Identifier, Object);
+            virtual ~class_t() = default;
+        private:
+            std::unordered_map<Identifier, std::pair<Object, AccessControl>, Identifier::hash> static_variables;
         };
         struct NormalClass : public class_t
         {
@@ -207,18 +213,33 @@ namespace zyd2001
         struct function_t
         {
             ObjectType return_type;
+            Identifier name;
             bool can_overload = true;
             virtual Object call(ArgumentList&, object_t*) = 0;
+            virtual Object call(ArgumentList&, class_t*) = 0;
+            virtual Object call(ArgumentList&) = 0;
+            virtual ~function_t() = default;
         };
         struct NormalFunction : public function_t
         {
             std::unordered_map<ParameterList, Statement, ParamsHash, ParamsEqualTo> overload_map;
             Object call(ArgumentList&, object_t*) override;
+            Object call(ArgumentList&, class_t*) override;
+            Object call(ArgumentList&) override;
         };
         struct NativeFunction : public function_t
         {
-            std::unordered_map<ParameterList, std::function<Object(ArgumentList&, object_t*)>, ParamsHash, ParamsEqualTo> native_func;
+            std::unordered_map<ParameterList, std::function<Object(std::vector<Object>&, object_t*)>, ParamsHash, ParamsEqualTo> native_func;
             Object call(ArgumentList&, object_t*) override;
+            Object call(ArgumentList&, class_t*) override;
+            Object call(ArgumentList&) override;
+        };
+        struct NativeStaticFunction : public function_t
+        {
+            std::unordered_map<ParameterList, std::function<Object(std::vector<Object>&, class_t*)>, ParamsHash, ParamsEqualTo> native_func;
+            Object call(ArgumentList&, object_t*) override;
+            Object call(ArgumentList&, class_t*) override;
+            Object call(ArgumentList&) override;
         };
         using Function = std::shared_ptr<function_t>;
 
@@ -236,161 +257,168 @@ namespace zyd2001
             ~RAIIObject();
         };
 #define useObject(obj) zyd2001::NewBie::RAIIObject __newbie__obj__(obj)
+        struct RAIIClass
+        {
+            RAIIClass(Class);
+            RAIIClass(class_t*);
+            ~RAIIClass();
+        };
+#define useClass(cl) zyd2001::NewBie::RAIIClass __newbie__class__(cl)
 
-        //struct Value
+        //enum ExpressionType
         //{
-        //    ValueType type;
-        //    bool various = false;
+        //    NULL_EXPRESSION,
+        //    LITERAL_EXPRESSION,
+        //    IDENTIFIER_EXPRESSION,
+        //    BINARY_EXPRESSION,
+        //    UNARY_EXPRESSION,
+        //    FUNCTION_CALL_EXPRESSION,
+        //    ARRAY_EXPRESSION,
+        //    ARRAY_LENGTH_EXPRESSION,
+        //    INDEX_EXPRESSION,
+        //    THIS_EXPRESSION,
+        //    DOT_EXPRESSION,
+        //    NEW_OBJECT_EXPRESSION
+        //};
+
+        //struct Expression
+        //{
+        //    ExpressionType type;
         //    void *content;
+        //    int *ref_count;
+
+        //    Expression();
+        //    Expression(Object);
+        //    Expression(ExpressionType, void*);
+        //    Expression(const Expression &);
+        //    //Expression &operator=(const Expression&);
+        //    void swap(Expression &);
 
         //    template<typename T>
         //    T &get() const { return *static_cast<T*>(content); }
-        //    Value &change_type(ValueType);
 
-        //    Value();
-        //    Value(Value&&);
-        //    Value(ValueType);
-        //    Value(ValueType, void*);
-        //    Value(const Value&);
-        //    Value(const int&);
-        //    Value(const double&);
-        //    Value(const bool&);
-        //    Value(const String&);
-        //    Value(const char_t*);
-        //    ~Value();
-        //    Value ref();
-        //    void swap(Value &);
-        //    Value operator+(const Value&) const;
-        //    Value operator-(const Value&) const;
-        //    Value operator*(const Value&) const;
-        //    Value operator/(const Value&) const;
-        //    Value operator%(const Value&) const;
-        //    Value &operator=(const Value&);
-        //    Value &operator=(Value&&);
-        //    bool operator==(const Value&) const;
-        //    bool operator!=(const Value&) const;
-        //    bool operator>(const Value&) const;
-        //    bool operator>=(const Value&) const;
-        //    bool operator<(const Value&) const;
-        //    bool operator<=(const Value&) const;
-        //    bool operator&&(const Value&) const;
-        //    bool operator||(const Value&) const;
-        //    bool operator!() const;
-        //    Value operator-() const;
-        //    friend std::ostream &operator<<(std::ostream&, Value&);
+        //    ~Expression();
         //};
 
-        //std::ostream &operator<<(std::ostream&, Value&);
-        //Value change(const Value&, ValueType);
-
-        enum ExpressionType
+        struct expression_t
         {
-            NULL_EXPRESSION,
-            LITERAL_EXPRESSION,
-            IDENTIFIER_EXPRESSION,
-            BINARY_EXPRESSION,
-            UNARY_EXPRESSION,
-            FUNCTION_CALL_EXPRESSION,
-            ARRAY_EXPRESSION,
-            ARRAY_LENGTH_EXPRESSION,
-            INDEX_EXPRESSION,
-            THIS_EXPRESSION,
-            DOT_EXPRESSION,
-            NEW_OBJECT_EXPRESSION
+            virtual Object evaluate() = 0;
+            virtual ~expression_t() = default;
+        };
+        using Expression = std::shared_ptr<expression_t>;
+        using ExpressionList = ArrayExpression;
+
+        struct NullExpression : public expression_t
+        {
+            Object evaluate() override
+            {
+                return Object();
+            }
         };
 
-        struct Expression
+        struct IdentifierExpression : public expression_t
         {
-            ExpressionType type;
-            void *content;
-            int *ref_count;
-
-            Expression();
-            Expression(Object);
-            Expression(ExpressionType, void*);
-            Expression(const Expression &);
-            //Expression &operator=(const Expression&);
-            void swap(Expression &);
-
-            template<typename T>
-            T &get() const { return *static_cast<T*>(content); }
-
-            ~Expression();
+            String str;
+            Object evaluate() override;
+        };
+        
+        struct LiteralExpression : public expression_t
+        {
+            Object obj;
+            Object evaluate() override;
         };
 
+        struct ArrayExpression : public expression_t
+        {
+            ExpressionList list;
+            Object evaluate() override;
+        };
 
-        struct BinaryExpression
+        struct BinaryExpression : public expression_t
         {
             BinaryType type;
             Expression lexp;
             Expression rexp;
+            Object evaluate() override;
         };
 
-        struct UnaryExpression
+        struct UnaryExpression : public expression_t
         {
             UnaryType type;
             Expression exp;
+            Object evaluate() override;
         };
 
-        struct FunctionCallExpression
+        struct FunctionCallExpression : public expression_t
         {
             Expression identifier;
-            std::vector<Expression> alist;
+            ExpressionList alist;
+            Object evaluate() override;
         };
 
-        struct IndexExpression
+        struct NewObjectExpression : public expression_t
+        {
+            Expression identifier;
+            ExpressionList alist;
+            Object evaluate() override;
+        };
+
+        struct IndexExpression : public expression_t
         {
             Expression exp;
             Expression index;
+            Object evaluate() override;
         };
 
-        struct DotExpression
+        struct DotExpression : public expression_t
         {
             Expression obj;
             Expression exp;
+            Object evaluate() override;
         };
 
-        using ArrayExpression = std::vector<Expression>;
-        using ExpressionList = ArrayExpression;
-        using IdentifierExpression = String;
-        using LiteralExpression = Object;
+        //enum StatementType
+        //{
+        //    NULL_STATEMENT,
+        //    FUNCTION_DEFINITION_STATEMENT,
+        //    EXPRESSION_STATEMENT,
+        //    ASSIGNMENT_STATEMENT,
+        //    DECLARATION_STATEMENT,
+        //    BLOCK_STATEMENT,
+        //    IF_STATEMENT,
+        //    FOR_STATEMENT,
+        //    FOREACH_STATEMENT,
+        //    RETURN_STATEMENT,
+        //    CONTINUE_STATEMENT,
+        //    BREAK_STATEMENT,
+        //    DEBUG_STATEMENT
+        //};
 
-        enum StatementType
+        //struct Statement
+        //{
+        //    StatementType type;
+        //    void *content;
+        //    int lineno;
+        //    int *ref_count;
+
+        //    Statement();
+        //    Statement(StatementType, void*, int);
+        //    Statement(const Statement &);
+        //    //Statement &operator=(const Statement &);
+        //    void swap(Statement &);
+
+        //    template<typename T>
+        //    T &get() const { return *static_cast<T*>(content); }
+
+        //    ~Statement();
+        //};
+
+        struct statement_t
         {
-            NULL_STATEMENT,
-            FUNCTION_DEFINITION_STATEMENT,
-            EXPRESSION_STATEMENT,
-            ASSIGNMENT_STATEMENT,
-            DECLARATION_STATEMENT,
-            BLOCK_STATEMENT,
-            IF_STATEMENT,
-            FOR_STATEMENT,
-            FOREACH_STATEMENT,
-            RETURN_STATEMENT,
-            CONTINUE_STATEMENT,
-            BREAK_STATEMENT,
-            DEBUG_STATEMENT
+            virtual void execute() = 0;
+            virtual ~statement_t() = default;
         };
-
-        struct Statement
-        {
-            StatementType type;
-            void *content;
-            int lineno;
-            int *ref_count;
-
-            Statement();
-            Statement(StatementType, void*, int);
-            Statement(const Statement &);
-            //Statement &operator=(const Statement &);
-            void swap(Statement &);
-
-            template<typename T>
-            T &get() const { return *static_cast<T*>(content); }
-
-            ~Statement();
-        };
-
+        using Statement = std::shared_ptr<statement_t>;
         using StatementList = std::vector<Statement>;
 
         struct DeclarationStatementItem
@@ -399,17 +427,19 @@ namespace zyd2001
             Expression initial_value;
         };
         using DeclarationStatementItemList = std::vector<DeclarationStatementItem>;
-        struct DeclarationStatement
+        struct DeclarationStatement : public statement_t
         {
             bool global;
             Identifier obj_type;
             DeclarationStatementItemList items;
+            void execute() override;
         };
 
-        struct AssignmentStatement
+        struct AssignmentStatement : public statement_t
         {
             Expression lvalue;
             Expression rvalue;
+            void execute() override;
         };
 
         struct ElseIf
@@ -418,35 +448,56 @@ namespace zyd2001
             Statement stat;
         };
 
-        struct IfStatement
+        struct IfStatement : public statement_t
         {
             Expression condition;
             Statement stat;
             std::vector<ElseIf> elseif;
             Statement else_stat;
+            void execute() override;
         };
 
-        struct ForStatement
+        struct ForStatement : public statement_t
         {
             Statement pre;
             Expression condition;
             Statement after;
             Statement stat;
+            void execute() override;
         };
 
-        struct ForeachStatement
+        struct ForeachStatement : public statement_t
         {
             Identifier identifier;
             Expression exp;
             Statement stat;
             bool reverse;
+            void execute() override;
         };
 
-        using FunctionDefinitionStatement = std::pair<Identifier, Function>;
-        using ExpressionStatement = Expression;
-        using BlockStatement = StatementList;
-        using ReturnStatement = Expression;
-        using DebugStatement = Expression;
+        struct FunctionDefinitionStatement : public statement_t
+        {
+            Function func;
+            void execute() override;
+        };
+
+        struct ExpressionStatement : public statement_t
+        {
+            Expression exp;
+            void execute() override;
+        };
+
+        struct BlockStatement : public statement_t
+        {
+            StatementList slist;
+            void execute() override;
+        };
+
+        struct ReturnStatement : public statement_t
+        {
+            Expression exp;
+            void execute() override;
+        };
 
         struct Parameter
         {
@@ -501,9 +552,9 @@ namespace zyd2001
             std::vector<Object> resolveArgumentList(ArgumentList&);
             ParameterList ArgsToParams(std::vector<Object>&);
 
-            StatementType execute(const Statement &);
-            StatementType interpret(const StatementList &);
-            Object &evaluate(const Expression &);
+            //StatementType execute(const Statement &);
+            void interpret(const StatementList &);
+            //Object &evaluate(const Expression &);
             //void err();
             //void err(const std::string&);
             //int checkExist(const Identifier &);
@@ -511,8 +562,7 @@ namespace zyd2001
             /*parsing time variables*/
             int level = 0;
             std::string filename;
-            bool in_class = false;
-            Class current_class;
+
 
             /*runtime variables*/
             object_t *root;
@@ -520,6 +570,10 @@ namespace zyd2001
             long class_count = 0;
             DirectedGraph<object_t*> gc_graph;
             ObjectMap *current_variables;
+            //support "static"
+            bool in_class = false;
+            class_t* current_class;
+            std::stack<class_t*> class_env_stack;
             //support "this" expression
             bool in_object = false;
             object_t *current_object;

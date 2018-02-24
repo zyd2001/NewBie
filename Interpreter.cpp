@@ -66,7 +66,8 @@ void zyd2001::NewBie::InterpreterImp::GC()
 
 void zyd2001::NewBie::InterpreterImp::concurrentGC()
 {
-    thread(performGC);
+    thread t(&InterpreterImp::performGC, this);
+    t.detach();
 }
 
 RAIIStack::RAIIStack()
@@ -110,6 +111,32 @@ RAIIObject::~RAIIObject()
     }
     else
         inter->current_object = inter->object_env_stack.top();
+}
+
+RAIIClass::RAIIClass(Class cl)
+{
+    inter->current_class = cl.get();;
+    inter->class_env_stack.push(cl.get());
+    inter->in_class = true;
+}
+
+zyd2001::NewBie::RAIIClass::RAIIClass(class_t *cl)
+{
+    inter->current_class = cl;
+    inter->class_env_stack.push(cl);
+    inter->in_class = true;
+}
+
+RAIIClass::~RAIIClass()
+{
+    inter->class_env_stack.pop();
+    if (inter->class_env_stack.empty())
+    {
+        inter->in_class = false;
+        inter->current_class = nullptr;
+    }
+    else
+        inter->current_class = inter->class_env_stack.top();
 }
 
 void InterpreterImp::parse()
@@ -173,18 +200,28 @@ void zyd2001::NewBie::InterpreterImp::deleteVariable(Identifier id, bool global)
     obj_map->erase(v);
 }
 
-Object zyd2001::NewBie::InterpreterImp::getVariable(Identifier, bool global)
-{
-    return Object();
-}
-
-void zyd2001::NewBie::InterpreterImp::changeVariable(Identifier id, Object v, bool global)
+Object zyd2001::NewBie::InterpreterImp::getVariable(Identifier id, bool global)
 {
     ObjectMap *obj_map;
     if (global)
         obj_map = &global_variables;
     else
         obj_map = current_variables;
+    return obj_map->at(id);
+}
+
+void zyd2001::NewBie::InterpreterImp::changeVariable(Identifier id, Object o, bool global)
+{
+    ObjectMap *obj_map;
+    if (global)
+        obj_map = &global_variables;
+    else
+        obj_map = current_variables;
+    auto v = obj_map->at(id);
+    if (typeCheck(v, o))
+        v = o;
+    else
+        throw exception();
 }
 
 bool zyd2001::NewBie::InterpreterImp::typeCheck(Object l, Object r)
@@ -233,41 +270,21 @@ void zyd2001::NewBie::InterpreterImp::delGCEdge(Object v, Object w)
     gc_graph.delEdge(v.obj, w.obj);
 }
 
-void zyd2001::NewBie::InterpreterImp::registerClass(Class cl)
+std::vector<Object> zyd2001::NewBie::InterpreterImp::resolveArgumentList(ArgumentList &alist)
 {
-    auto type = cl.type;
-    auto result = class_map.first.find(type);
-    if (result != class_map.first.cend())
-        return;
-    else
-    {
-        class_count++;
-        cl.id = class_count + 7;
-        class_map.first[type] = cl.id;
-        class_map.second[cl.id] = cl;
-    }
-}
-
-void zyd2001::NewBie::InterpreterImp::resolveClass(StatementList &slist)
-{
-    
-}
-
-std::vector<Value> zyd2001::NewBie::InterpreterImp::resolveArgumentList(ArgumentList &alist)
-{
-    std::vector<Value> args;
+    std::vector<Object> args;
     for (auto a : alist)
         args.emplace_back(evaluate(a));
     return args;
 }
 
-ParameterList zyd2001::NewBie::InterpreterImp::ArgsToParams(std::vector<Value> &args)
+ParameterList zyd2001::NewBie::InterpreterImp::ArgsToParams(std::vector<Object> &args)
 {
     ParameterList params;
     for (auto arg : args)
     {
         params.emplace_back(Parameter());
-        params.back().type = arg.type;
+        params.back().type = arg.obj->type;
     }
     return params;
 }

@@ -16,10 +16,64 @@ wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 #endif
 
+void zyd2001::NewBie::class_t::addStaticVariable(Identifier id, Object o, AccessControl a)
+{
+    inter->addGCEdge(inter->root, o);
+    static_variables[id] = make_pair(o, a);
+}
+
+Object zyd2001::NewBie::class_t::getStaticVariable(Identifier id)
+{
+    auto v = static_variables.at(id);
+    switch (v.second)
+    {
+        case PUBLIC:
+        case READONLY:
+            return v.first;
+        case PRIVATE:
+            if (inter->in_class && inter->current_class == this)
+                return v.first;
+            else
+                throw exception();
+    }
+}
+
+void zyd2001::NewBie::class_t::changeStaticVariable(Identifier id, Object o)
+{
+    auto v = static_variables.at(id);
+    switch (v.second)
+    {
+        case PUBLIC:
+            if (inter->typeCheck(v.first, o))
+            {
+                inter->delGCEdge(inter->root, v.first);
+                v.first = o;
+                inter->addGCEdge(inter->root, o);
+            }
+            else
+                throw exception();
+        case PRIVATE:
+        case READONLY:
+            if (inter->in_class && inter->current_class == this)
+            {
+                if (inter->typeCheck(v.first, o))
+                {
+                    inter->delGCEdge(inter->root, v.first);
+                    v.first = o;
+                    inter->addGCEdge(inter->root, o);
+                }
+                else
+                    throw exception();
+            }
+            else
+                throw exception();
+    }
+}
+
 object_t * zyd2001::NewBie::NormalClass::makeObject(ArgumentList &args)
 {
     object_t *obj = new object_t();
-    obj->cl = make_shared<Class>(this);
+    obj->cl = make_shared<class_t>(this);
     obj->type = type;
     obj->type_name = type_name;
     for (auto cl : base_list)
@@ -32,6 +86,7 @@ object_t * zyd2001::NewBie::NormalClass::makeObject(ArgumentList &args)
             obj->local_variables[v.first] = make_pair(inter->evaluate(get<Expression>(v.second)), get<AccessControl>(v.second));
     }
     ctor->call(args, obj);
+    inter->addGCVertex(obj);
     return obj;
 }
 
@@ -40,7 +95,15 @@ object_t *zyd2001::NewBie::NativeClass::makeObject(ArgumentList &args)
     object_t *obj = new object_t();
     for (auto cl : base_list)
         obj->bases.emplace_back(cl->makeObject(ArgumentList()));
-    return real(args, obj);
+    obj = real(args, obj);
+    inter->addGCVertex(obj);
+    return obj;
+}
+
+void zyd2001::NewBie::object_t::addVariable(Identifier id, Object o, AccessControl a)
+{
+    inter->addGCEdge(inter->root, o);
+    local_variables[id] = make_pair(o, a);
 }
 
 Object zyd2001::NewBie::object_t::getVariable(Identifier id)
@@ -62,7 +125,7 @@ Object zyd2001::NewBie::object_t::getVariable(Identifier id)
             return v->second.first;
             break;
         case PRIVATE:
-            if (inter->current_object == this)
+            if (inter->in_object && inter->current_object == this)
                 return v->second.first;
             else
                 throw exception();
@@ -80,18 +143,18 @@ void zyd2001::NewBie::object_t::changeVariable(Identifier id, Object o)
             {
                 inter->delGCEdge(this, v.first);
                 v.first = o;
-                inter->addGCEdge(this, v.first);
+                inter->addGCEdge(this, o);
             }
             break;
         case READONLY:
         case PRIVATE:
-            if (inter->current_object == this)
+            if (inter->in_object && inter->current_object == this)
             {
                 if (inter->typeCheck(v.first, o))
                 {
                     inter->delGCEdge(this, v.first);
                     v.first = o;
-                    inter->addGCEdge(this, v.first);
+                    inter->addGCEdge(this, o);
                 }
                 else
                     throw exception();
@@ -132,23 +195,28 @@ zyd2001::NewBie::Object::Object(const Function &)
 
 Object zyd2001::NewBie::Object::operator+(const Object &o) const
 {
-    return obj->op[0]->call({ Expression(o) }, obj);
+    auto alist = ArgumentList({ Expression(o) });
+    return obj->op[0]->call(alist, obj);
 }
 Object zyd2001::NewBie::Object::operator-(const Object &o) const
 {
-    return obj->op[1]->call({ Expression(o) }, obj);
+    auto alist = ArgumentList({ Expression(o) });
+    return obj->op[1]->call(alist, obj);
 }
 Object zyd2001::NewBie::Object::operator*(const Object &o) const
 {
-    return obj->op[2]->call({ Expression(o) }, obj);
+    auto alist = ArgumentList({ Expression(o) });
+    return obj->op[2]->call(alist, obj);
 }
 Object zyd2001::NewBie::Object::operator/(const Object &o) const
 {
-    return obj->op[3]->call({ Expression(o) }, obj);
+    auto alist = ArgumentList({ Expression(o) });
+    return obj->op[3]->call(alist, obj);
 }
 Object zyd2001::NewBie::Object::operator%(const Object &o) const
 {
-    return obj->op[4]->call({ Expression(o) }, obj);
+    auto alist = ArgumentList({ Expression(o) });
+    return obj->op[4]->call(alist, obj);
 }
 Object & zyd2001::NewBie::Object::operator=(const Object &o)
 {
@@ -163,7 +231,8 @@ Object Object::operator-() const
 #define compare(tag)\
 bool zyd2001::NewBie::Object::operator##tag (const Object &o) const\
 {\
-    return obj->op[6]->call({ Expression(o) }, obj) tag 0;\
+    auto alist = ArgumentList({ Expression(o) });\
+    return obj->op[6]->call(alist, obj) tag 0;\
 }
 compare(==)
 compare(!=)

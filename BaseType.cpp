@@ -9,136 +9,136 @@ using namespace std;
 
 extern InterpreterImp *inter;
 
-Expression::Expression() : type(NULL_EXPRESSION), content(nullptr), ref_count(new int(1)) {}
-zyd2001::NewBie::Expression::Expression(Object o) : type(LITERAL_EXPRESSION), ref_count(new int(1)), content(new Object(o)) {}
-Expression &Expression::operator=(const Expression &e)
-{
-    if (this == &e)
-        return *this;
-    Expression temp(e);
-    this->swap(temp);
-    return *this;
-}
-void zyd2001::NewBie::Expression::swap(Expression &e)
-{
-    std::swap(type, e.type);
-    std::swap(content, e.content);
-    std::swap(ref_count, e.ref_count);
-}
-Expression::Expression(const Expression &e) : type(e.type), ref_count(e.ref_count), content(e.content)
-{
-    (*ref_count)++;
-}
-Expression::Expression(ExpressionType t, void *ptr) : type(t), content(ptr), ref_count(new int(1)) {}
-Expression::~Expression()
-{
-    (*ref_count)--;
-    if (*ref_count == 0)
-    {
-        delete ref_count;
-        switch (type)
-        {
-            case zyd2001::NewBie::LITERAL_EXPRESSION:
-                delete_cast(LiteralExpression*);
-                break;
-            case zyd2001::NewBie::IDENTIFIER_EXPRESSION:
-                delete_cast(IdentifierExpression*);
-                break;
-            case zyd2001::NewBie::BINARY_EXPRESSION:
-                delete_cast(BinaryExpression*);
-                break;
-            case zyd2001::NewBie::UNARY_EXPRESSION:
-                delete_cast(UnaryExpression*);
-                break;
-            case NEW_OBJECT_EXPRESSION:
-            case zyd2001::NewBie::FUNCTION_CALL_EXPRESSION:
-                delete_cast(FunctionCallExpression*);
-                break;
-            case zyd2001::NewBie::ARRAY_EXPRESSION:
-                delete_cast(ArrayExpression*);
-                break;
-            case ARRAY_LENGTH_EXPRESSION:
-                delete_cast(Expression*);
-                break;
-            case zyd2001::NewBie::INDEX_EXPRESSION:
-                delete_cast(IndexExpression*);
-                break;
-            case DOT_EXPRESSION:
-                delete_cast(DotExpression*);
-                break;
-            default:
-                break;
-        }
-    }
-}
-
-Statement::Statement() : type(NULL_STATEMENT), content(nullptr), ref_count(new int(1)) {}
-Statement::Statement(const Statement &s) : type(s.type), lineno(s.lineno), ref_count(s.ref_count), content(s.content)
-{
-    (*ref_count)++;
-}
-Statement & zyd2001::NewBie::Statement::operator=(const Statement &s)
-{
-    if (this == &s)
-        return *this;
-    Statement temp(s);
-    this->swap(temp);
-    return *this;
-}
-void zyd2001::NewBie::Statement::swap(Statement &s)
-{
-    std::swap(type, s.type);
-    std::swap(content, s.content);
-    std::swap(lineno, s.lineno);
-    std::swap(ref_count, s.ref_count);
-}
-Statement::Statement(StatementType t, void *ptr, int l) : type(t), content(ptr), lineno(l), ref_count(new int(1)) {}
-Statement::~Statement()
-{
-    (*ref_count)--;
-    if (*ref_count == 0)
-    {
-        delete ref_count;
-        switch (type)
-        {
-            case zyd2001::NewBie::EXPRESSION_STATEMENT:
-                delete_cast(Expression*);
-                break;
-            case zyd2001::NewBie::DECLARATION_STATEMENT:
-                delete_cast(DeclarationStatement*);
-                break;
-            case zyd2001::NewBie::ASSIGNMENT_STATEMENT:
-                delete_cast(AssignmentStatement*);
-                break;
-            case FUNCTION_DEFINITION_STATEMENT:
-                delete_cast(VariableMap::value_type*);
-                break;
-            case zyd2001::NewBie::BLOCK_STATEMENT:
-                delete_cast(StatementList*);
-                break;
-            case zyd2001::NewBie::IF_STATEMENT:
-                delete_cast(IfStatement*);
-                break;
-            case zyd2001::NewBie::FOR_STATEMENT:
-                delete_cast(ForStatement*);
-                break;
-            case zyd2001::NewBie::FOREACH_STATEMENT:
-                delete_cast(ForeachStatement*);
-                break;
-            case zyd2001::NewBie::RETURN_STATEMENT:
-                delete_cast(ReturnStatement*);
-                break;
-            case zyd2001::NewBie::CONTINUE_STATEMENT:
-                break;
-            case zyd2001::NewBie::BREAK_STATEMENT:
-                break;
-            case DEBUG_STATEMENT:
-                delete_cast(DebugStatement*);
-            default:
-                break;
-        }
-    }
-}
+//Expression::Expression() : type(NULL_EXPRESSION), content(nullptr), ref_count(new int(1)) {}
+//zyd2001::NewBie::Expression::Expression(Object o) : type(LITERAL_EXPRESSION), ref_count(new int(1)), content(new Object(o)) {}
+//Expression &Expression::operator=(const Expression &e)
+//{
+//    if (this == &e)
+//        return *this;
+//    Expression temp(e);
+//    this->swap(temp);
+//    return *this;
+//}
+//void zyd2001::NewBie::Expression::swap(Expression &e)
+//{
+//    std::swap(type, e.type);
+//    std::swap(content, e.content);
+//    std::swap(ref_count, e.ref_count);
+//}
+//Expression::Expression(const Expression &e) : type(e.type), ref_count(e.ref_count), content(e.content)
+//{
+//    (*ref_count)++;
+//}
+//Expression::Expression(ExpressionType t, void *ptr) : type(t), content(ptr), ref_count(new int(1)) {}
+//Expression::~Expression()
+//{
+//    (*ref_count)--;
+//    if (*ref_count == 0)
+//    {
+//        delete ref_count;
+//        switch (type)
+//        {
+//            case zyd2001::NewBie::LITERAL_EXPRESSION:
+//                delete_cast(LiteralExpression*);
+//                break;
+//            case zyd2001::NewBie::IDENTIFIER_EXPRESSION:
+//                delete_cast(IdentifierExpression*);
+//                break;
+//            case zyd2001::NewBie::BINARY_EXPRESSION:
+//                delete_cast(BinaryExpression*);
+//                break;
+//            case zyd2001::NewBie::UNARY_EXPRESSION:
+//                delete_cast(UnaryExpression*);
+//                break;
+//            case NEW_OBJECT_EXPRESSION:
+//            case zyd2001::NewBie::FUNCTION_CALL_EXPRESSION:
+//                delete_cast(FunctionCallExpression*);
+//                break;
+//            case zyd2001::NewBie::ARRAY_EXPRESSION:
+//                delete_cast(ArrayExpression*);
+//                break;
+//            case ARRAY_LENGTH_EXPRESSION:
+//                delete_cast(Expression*);
+//                break;
+//            case zyd2001::NewBie::INDEX_EXPRESSION:
+//                delete_cast(IndexExpression*);
+//                break;
+//            case DOT_EXPRESSION:
+//                delete_cast(DotExpression*);
+//                break;
+//            default:
+//                break;
+//        }
+//    }
+//}
+//
+//Statement::Statement() : type(NULL_STATEMENT), content(nullptr), ref_count(new int(1)) {}
+//Statement::Statement(const Statement &s) : type(s.type), lineno(s.lineno), ref_count(s.ref_count), content(s.content)
+//{
+//    (*ref_count)++;
+//}
+//Statement & zyd2001::NewBie::Statement::operator=(const Statement &s)
+//{
+//    if (this == &s)
+//        return *this;
+//    Statement temp(s);
+//    this->swap(temp);
+//    return *this;
+//}
+//void zyd2001::NewBie::Statement::swap(Statement &s)
+//{
+//    std::swap(type, s.type);
+//    std::swap(content, s.content);
+//    std::swap(lineno, s.lineno);
+//    std::swap(ref_count, s.ref_count);
+//}
+//Statement::Statement(StatementType t, void *ptr, int l) : type(t), content(ptr), lineno(l), ref_count(new int(1)) {}
+//Statement::~Statement()
+//{
+//    (*ref_count)--;
+//    if (*ref_count == 0)
+//    {
+//        delete ref_count;
+//        switch (type)
+//        {
+//            case zyd2001::NewBie::EXPRESSION_STATEMENT:
+//                delete_cast(Expression*);
+//                break;
+//            case zyd2001::NewBie::DECLARATION_STATEMENT:
+//                delete_cast(DeclarationStatement*);
+//                break;
+//            case zyd2001::NewBie::ASSIGNMENT_STATEMENT:
+//                delete_cast(AssignmentStatement*);
+//                break;
+//            case FUNCTION_DEFINITION_STATEMENT:
+//                delete_cast(Function*);
+//                break;
+//            case zyd2001::NewBie::BLOCK_STATEMENT:
+//                delete_cast(StatementList*);
+//                break;
+//            case zyd2001::NewBie::IF_STATEMENT:
+//                delete_cast(IfStatement*);
+//                break;
+//            case zyd2001::NewBie::FOR_STATEMENT:
+//                delete_cast(ForStatement*);
+//                break;
+//            case zyd2001::NewBie::FOREACH_STATEMENT:
+//                delete_cast(ForeachStatement*);
+//                break;
+//            case zyd2001::NewBie::RETURN_STATEMENT:
+//                delete_cast(ReturnStatement*);
+//                break;
+//            case zyd2001::NewBie::CONTINUE_STATEMENT:
+//                break;
+//            case zyd2001::NewBie::BREAK_STATEMENT:
+//                break;
+//            case DEBUG_STATEMENT:
+//                delete_cast(DebugStatement*);
+//            default:
+//                break;
+//        }
+//    }
+//}
 
 String::String() : ptr(make_shared<basic_string<char_t>>()) {}
 String::String(const char_t *str) : ptr(make_shared<basic_string<char_t>>(str)) {}
@@ -212,8 +212,18 @@ std::size_t ParamsHash::operator()(const ParameterList& p) const
 
 Object zyd2001::NewBie::NormalFunction::call(ArgumentList &alist, object_t *obj)
 {
-    if (obj != nullptr)
-        useObject(obj);
+    useObject(obj);
+    call(alist);
+}
+
+Object zyd2001::NewBie::NormalFunction::call(ArgumentList &alist, class_t *cl)
+{
+    useClass(cl);
+    call(alist);
+}
+
+Object zyd2001::NewBie::NormalFunction::call(ArgumentList &alist)
+{
     if (can_overload)
     {
         auto args = inter->resolveArgumentList(alist);
@@ -233,11 +243,49 @@ Object zyd2001::NewBie::NormalFunction::call(ArgumentList &alist, object_t *obj)
         auto args = inter->resolveArgumentList(alist);
         auto func = overload_map.begin();
         for (int i = 0; i < func->first.size(); i++)
-        {
-            inter->declareVariable(func->first[i].identifier, func->first[i].type);
-        }
+            inter->declareVariable(func->first[i].identifier, (i < args.size() ? args[i] : func->first[i].default_value_exp->evaluate()));
         inter->interpret(func->second.get<BlockStatement>());
     }
+}
+
+Object zyd2001::NewBie::NativeFunction::call(ArgumentList &alist, object_t *obj)
+{
+    useObject(obj);
+    auto args = inter->resolveArgumentList(alist);
+    if (can_overload)
+        return native_func.at(inter->ArgsToParams(args))(args, obj);
+    else
+        return native_func.begin()->second(args, obj);
+}
+
+Object zyd2001::NewBie::NativeFunction::call(ArgumentList &alist, class_t *cl)
+{
+    throw exception();
+}
+
+Object zyd2001::NewBie::NativeFunction::call(ArgumentList &alist)
+{
+    throw exception();
+}
+
+Object zyd2001::NewBie::NativeStaticFunction::call(ArgumentList &alist, object_t *o)
+{
+    throw exception();
+}
+
+Object zyd2001::NewBie::NativeStaticFunction::call(ArgumentList &alist, class_t *cl)
+{
+    useClass(cl);
+    auto args = inter->resolveArgumentList(alist);
+    if (can_overload)
+        return native_func.at(inter->ArgsToParams(args))(args, cl);
+    else
+        return native_func.begin()->second(args, cl);
+}
+
+Object zyd2001::NewBie::NativeStaticFunction::call(ArgumentList &alist)
+{
+    throw exception();
 }
 
 //Value InterpreterImp::callFunc(Function &func, ArgumentList &alist)
