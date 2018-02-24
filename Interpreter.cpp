@@ -70,10 +70,11 @@ void zyd2001::NewBie::InterpreterImp::concurrentGC()
     t.detach();
 }
 
-RAIIStack::RAIIStack()
+IRAIIStack::RAIIStack()
 {
     inter->variables_stack.emplace(vector<ObjectMap>());
     inter->variables_stack.top().emplace_back(ObjectMap());
+    inter->current_variables = &inter->variables_stack.top().back();
 }
 
 RAIIStack::~RAIIStack()
@@ -85,6 +86,21 @@ RAIIStack::~RAIIStack()
         inter->variables_stack.top().pop_back();
     }
     inter->variables_stack.pop();
+    inter->current_variables = &inter->variables_stack.top().back();
+}
+
+zyd2001::NewBie::RAIIScope::RAIIScope()
+{
+    inter->variables_stack.top().emplace_back(ObjectMap());
+    inter->current_variables = &inter->variables_stack.top().back();
+}
+
+zyd2001::NewBie::RAIIScope::~RAIIScope()
+{
+    for (auto o : inter->variables_stack.top().back())
+        inter->delGCEdge(inter->root, o.second);
+    inter->variables_stack.top().pop_back();
+    inter->current_variables = &inter->variables_stack.top().back();
 }
 
 RAIIObject::RAIIObject(Object obj)
@@ -274,7 +290,7 @@ std::vector<Object> zyd2001::NewBie::InterpreterImp::resolveArgumentList(Argumen
 {
     std::vector<Object> args;
     for (auto a : alist)
-        args.emplace_back(evaluate(a));
+        args.emplace_back(a->evaluate());
     return args;
 }
 

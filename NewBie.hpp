@@ -152,8 +152,7 @@ namespace zyd2001
         {
             object_t *obj;
             ObjectType restrict_type;
-            bool in_map = false;
-            Object() : obj(nullptr){}
+            Object() : obj(nullptr), restrict_type(0){}
             Object(object_t *);
             Object(const Object &);
             Object(const int &);
@@ -167,6 +166,7 @@ namespace zyd2001
             Object operator/(const Object &) const;
             Object operator%(const Object &) const;
             Object &operator=(const Object &);
+            explicit operator bool() const;
             bool operator==(const Object&) const;
             bool operator!=(const Object&) const;
             bool operator>(const Object&) const;
@@ -250,6 +250,12 @@ namespace zyd2001
             ~RAIIStack();
         };
 #define newVariablesStack() zyd2001::NewBie::RAIIStack __newbie__stack__
+        struct RAIIScope
+        {
+            RAIIScope();
+            ~RAIIScope();
+        };
+#define newVariablesScope() zyd2001::NewBie::RAIIScope __newbie__scope__
         struct RAIIObject
         {
             RAIIObject(Object);
@@ -308,17 +314,9 @@ namespace zyd2001
         using Expression = std::shared_ptr<expression_t>;
         using ExpressionList = ArrayExpression;
 
-        struct NullExpression : public expression_t
-        {
-            Object evaluate() override
-            {
-                return Object();
-            }
-        };
-
         struct IdentifierExpression : public expression_t
         {
-            String str;
+            Identifier id;
             Object evaluate() override;
         };
         
@@ -358,7 +356,7 @@ namespace zyd2001
 
         struct NewObjectExpression : public expression_t
         {
-            Expression identifier;
+            Identifier id;
             ExpressionList alist;
             Object evaluate() override;
         };
@@ -394,32 +392,17 @@ namespace zyd2001
         //    DEBUG_STATEMENT
         //};
 
-        //struct Statement
-        //{
-        //    StatementType type;
-        //    void *content;
-        //    int lineno;
-        //    int *ref_count;
-
-        //    Statement();
-        //    Statement(StatementType, void*, int);
-        //    Statement(const Statement &);
-        //    //Statement &operator=(const Statement &);
-        //    void swap(Statement &);
-
-        //    template<typename T>
-        //    T &get() const { return *static_cast<T*>(content); }
-
-        //    ~Statement();
-        //};
-
         struct statement_t
         {
             virtual void execute() = 0;
             virtual ~statement_t() = default;
         };
         using Statement = std::shared_ptr<statement_t>;
-        using StatementList = std::vector<Statement>;
+        struct StatementList
+        {
+            std::vector<Statement> list;
+            void interpret();
+        };
 
         struct DeclarationStatementItem
         {
@@ -438,6 +421,13 @@ namespace zyd2001
         struct AssignmentStatement : public statement_t
         {
             Expression lvalue;
+            Expression rvalue;
+            void execute() override;
+        };
+
+        struct ObjectAssignmentStatement : public statement_t
+        {
+            std::shared_ptr<DotExpression> lvalue;
             Expression rvalue;
             void execute() override;
         };

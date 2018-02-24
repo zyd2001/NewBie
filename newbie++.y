@@ -1,7 +1,7 @@
 %skeleton "lalr1.cc"
 %require "3.0.4"
 %defines "Parser.hpp"
-%output "Parser.cpp"
+%output "ParserT.cpp"
 %define parser_class_name {Parser}
 
 %code requires
@@ -190,6 +190,9 @@
     assignment_statement: expression ASSIGN expression SEMICOLON
         {
             $$ = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){$1, $3}, yyget_lineno(scanner));
+        }
+        | dot_expression ASSIGN expression SEMICOLON
+        {
         }
         ;
     declaration_statement: type_tag declaration_item_list SEMICOLON

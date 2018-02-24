@@ -18,6 +18,8 @@ wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 
 void zyd2001::NewBie::class_t::addStaticVariable(Identifier id, Object o, AccessControl a)
 {
+    if (static_variables.find(id) != static_variables.end())
+        throw exception();
     inter->addGCEdge(inter->root, o);
     static_variables[id] = make_pair(o, a);
 }
@@ -80,10 +82,10 @@ object_t * zyd2001::NewBie::NormalClass::makeObject(ArgumentList &args)
         obj->bases.emplace_back(cl->makeObject(ArgumentList()));
     for (auto v : variables)
     {
-        if (get<Expression>(v.second).type == NULL_EXPRESSION)
-            obj->local_variables[v.first] = make_pair(Object(inter->class_map.second[get<ObjectType>(v.second)]->makeObject(ArgumentList())), get<AccessControl>(v.second));
+        if (get<Expression>(v.second).get() != nullptr)
+            obj->addVariable(v.first, Object(inter->class_map.second[get<ObjectType>(v.second)]->makeObject(ArgumentList())), get<AccessControl>(v.second));
         else
-            obj->local_variables[v.first] = make_pair(inter->evaluate(get<Expression>(v.second)), get<AccessControl>(v.second));
+            obj->addVariable(v.first, get<Expression>(v.second)->evaluate(), get<AccessControl>(v.second));
     }
     ctor->call(args, obj);
     inter->addGCVertex(obj);
@@ -102,7 +104,9 @@ object_t *zyd2001::NewBie::NativeClass::makeObject(ArgumentList &args)
 
 void zyd2001::NewBie::object_t::addVariable(Identifier id, Object o, AccessControl a)
 {
-    inter->addGCEdge(inter->root, o);
+    if (local_variables.find(id) != local_variables.end())
+        throw exception();
+    inter->addGCEdge(this, o);
     local_variables[id] = make_pair(o, a);
 }
 
@@ -195,27 +199,27 @@ zyd2001::NewBie::Object::Object(const Function &)
 
 Object zyd2001::NewBie::Object::operator+(const Object &o) const
 {
-    auto alist = ArgumentList({ Expression(o) });
+    auto alist = ArgumentList({ make_shared<LiteralExpression>(o) });
     return obj->op[0]->call(alist, obj);
 }
 Object zyd2001::NewBie::Object::operator-(const Object &o) const
 {
-    auto alist = ArgumentList({ Expression(o) });
+    auto alist = ArgumentList({ make_shared<LiteralExpression>(o) });
     return obj->op[1]->call(alist, obj);
 }
 Object zyd2001::NewBie::Object::operator*(const Object &o) const
 {
-    auto alist = ArgumentList({ Expression(o) });
+    auto alist = ArgumentList({ make_shared<LiteralExpression>(o) });
     return obj->op[2]->call(alist, obj);
 }
 Object zyd2001::NewBie::Object::operator/(const Object &o) const
 {
-    auto alist = ArgumentList({ Expression(o) });
+    auto alist = ArgumentList({ make_shared<LiteralExpression>(o) });
     return obj->op[3]->call(alist, obj);
 }
 Object zyd2001::NewBie::Object::operator%(const Object &o) const
 {
-    auto alist = ArgumentList({ Expression(o) });
+    auto alist = ArgumentList({ make_shared<LiteralExpression>(o) });
     return obj->op[4]->call(alist, obj);
 }
 Object & zyd2001::NewBie::Object::operator=(const Object &o)
@@ -231,7 +235,7 @@ Object Object::operator-() const
 #define compare(tag)\
 bool zyd2001::NewBie::Object::operator##tag (const Object &o) const\
 {\
-    auto alist = ArgumentList({ Expression(o) });\
+    auto alist = ArgumentList({ make_shared<LiteralExpression>(o) });\
     return obj->op[6]->call(alist, obj) tag 0;\
 }
 compare(==)
