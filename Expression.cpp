@@ -4,7 +4,7 @@
 using namespace zyd2001::NewBie;
 using namespace std;
 
-extern InterpreterImp *inter;
+//extern InterpreterImp *inter;
 
 //Value &InterpreterImp::evaluate(const Expression &e)
 //{
@@ -283,23 +283,27 @@ Object zyd2001::NewBie::UnaryExpression::evaluate()
     }
 }
 
-//Object zyd2001::NewBie::FunctionCallExpression::evaluate()
-//{
-//    auto func = identifier->evaluate();
-//}
+Object zyd2001::NewBie::FunctionCallExpression::evaluate()
+{
+    auto f = func->evaluate();
+    if (f.restrict_type) //TODO: not function
+        return f.obj->useNativePointer<Function>()->call(alist);
+    else
+        throw exception();
+}
 
 Object zyd2001::NewBie::NewObjectExpression::evaluate()
 {
-    auto cl = inter->class_map.second.at(inter->class_map.first.at(id));
+    auto cl = inter->findClass(id);
     return Object(cl->makeObject(alist));
 }
 
-Object zyd2001::NewBie::IndexExpression::evaluate()
-{
-    return Object();
-}
+//Object zyd2001::NewBie::IndexExpression::evaluate()
+//{
+//    return Object();
+//}
 
 Object zyd2001::NewBie::DotExpression::evaluate()
 {
-    return Object();
+    return obj->evaluate().getVariable(id);
 }

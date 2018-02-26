@@ -8,7 +8,7 @@
 using namespace zyd2001::NewBie;
 using namespace std;
 
-extern InterpreterImp *inter;
+//extern InterpreterImp *inter;
 
 #if defined(_MSC_VER)
 wstring_convert<codecvt_utf8<char_t>, char_t> conv;
@@ -139,25 +139,36 @@ Object zyd2001::NewBie::object_t::getVariable(Identifier id)
 
 void zyd2001::NewBie::object_t::changeVariable(Identifier id, Object o)
 {
-    auto v = local_variables.at(id);
-    switch (v.second)
+    auto v = local_variables.find(id);
+    if (v == local_variables.end())
+        for (auto base : bases)
+        {
+            v = base->local_variables.find(id);
+            if (v != base->local_variables.end())
+                break;
+        }
+    if (v == bases.back()->local_variables.end())
+        throw exception();
+    switch (v->second.second)
     {
         case PUBLIC:
-            if (inter->typeCheck(v.first, o))
+            if (inter->typeCheck(v->second.first, o))
             {
-                inter->delGCEdge(this, v.first);
-                v.first = o;
+                inter->delGCEdge(this, v->second.first);
+                v->second.first = o;
                 inter->addGCEdge(this, o);
             }
+            else
+                throw exception();
             break;
         case READONLY:
         case PRIVATE:
             if (inter->in_object && inter->current_object == this)
             {
-                if (inter->typeCheck(v.first, o))
+                if (inter->typeCheck(v->second.first, o))
                 {
-                    inter->delGCEdge(this, v.first);
-                    v.first = o;
+                    inter->delGCEdge(this, v->second.first);
+                    v->second.first = o;
                     inter->addGCEdge(this, o);
                 }
                 else

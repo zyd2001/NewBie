@@ -7,7 +7,7 @@ using namespace std;
 #define delete_cast(...) delete static_cast<__VA_ARGS__>(content)
 #define replace(...) do {delete_cast(__VA_ARGS__); content = ptr;} while(0)
 
-extern InterpreterImp *inter;
+//extern InterpreterImp *inter;
 
 //Expression::Expression() : type(NULL_EXPRESSION), content(nullptr), ref_count(new int(1)) {}
 //zyd2001::NewBie::Expression::Expression(Object o) : type(LITERAL_EXPRESSION), ref_count(new int(1)), content(new Object(o)) {}

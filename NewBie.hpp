@@ -131,9 +131,9 @@ namespace zyd2001
         };
 
         using ObjectMap = std::unordered_map<Identifier, Object, Identifier::hash>;
-
         struct object_t
         {
+            InterpreterImp *inter;
             Identifier type_name;
             ObjectType type;
             Class cl;
@@ -144,6 +144,13 @@ namespace zyd2001
             void addVariable(Identifier, Object, AccessControl);
             Object getVariable(Identifier);
             void changeVariable(Identifier, Object);
+
+            template<typename T>
+            T &useNativePointer()
+            {
+                return *static_cast<T*>(native_ptr);
+            }
+
             ~object_t() { deleter(native_ptr); }
         private:
             std::unordered_map<Identifier, std::pair<Object, AccessControl>, Identifier::hash> local_variables;
@@ -185,6 +192,7 @@ namespace zyd2001
         using IdentifierList = std::vector<Identifier>;
         struct class_t
         {
+            InterpreterImp *inter;
             Identifier type_name;
             ObjectType type;
             std::vector<class_t*> base_list;
@@ -212,6 +220,7 @@ namespace zyd2001
 
         struct function_t
         {
+            InterpreterImp *inter;
             ObjectType return_type;
             Identifier name;
             bool can_overload = true;
@@ -246,30 +255,34 @@ namespace zyd2001
         using VariablesStack = std::stack<std::vector<ObjectMap>>;
         struct RAIIStack
         {
-            RAIIStack();
+            InterpreterImp *inter;
+            RAIIStack(InterpreterImp *inter);
             ~RAIIStack();
         };
-#define newVariablesStack() zyd2001::NewBie::RAIIStack __newbie__stack__
+#define newVariablesStack() zyd2001::NewBie::RAIIStack __newbie__stack__(inter)
         struct RAIIScope
         {
-            RAIIScope();
+            InterpreterImp *inter;
+            RAIIScope(InterpreterImp *inter);
             ~RAIIScope();
         };
-#define newVariablesScope() zyd2001::NewBie::RAIIScope __newbie__scope__
+#define newVariablesScope() zyd2001::NewBie::RAIIScope __newbie__scope__(inter)
         struct RAIIObject
         {
-            RAIIObject(Object);
-            RAIIObject(object_t*);
+            InterpreterImp *inter;
+            RAIIObject(Object, InterpreterImp *inter);
+            RAIIObject(object_t*, InterpreterImp *inter);
             ~RAIIObject();
         };
-#define useObject(obj) zyd2001::NewBie::RAIIObject __newbie__obj__(obj)
+#define useObject(obj) zyd2001::NewBie::RAIIObject __newbie__obj__(obj, inter)
         struct RAIIClass
         {
-            RAIIClass(Class);
-            RAIIClass(class_t*);
+            InterpreterImp *inter;
+            RAIIClass(Class, InterpreterImp *inter);
+            RAIIClass(class_t*, InterpreterImp *inter);
             ~RAIIClass();
         };
-#define useClass(cl) zyd2001::NewBie::RAIIClass __newbie__class__(cl)
+#define useClass(cl) zyd2001::NewBie::RAIIClass __newbie__class__(cl, inter)
 
         //enum ExpressionType
         //{
@@ -308,6 +321,7 @@ namespace zyd2001
 
         struct expression_t
         {
+            InterpreterImp *inter;
             virtual Object evaluate() = 0;
             virtual ~expression_t() = default;
         };
@@ -349,7 +363,7 @@ namespace zyd2001
 
         struct FunctionCallExpression : public expression_t
         {
-            Expression identifier;
+            Expression func;
             ExpressionList alist;
             Object evaluate() override;
         };
@@ -371,30 +385,30 @@ namespace zyd2001
         struct DotExpression : public expression_t
         {
             Expression obj;
-            Expression exp;
+            Identifier id;
             Object evaluate() override;
         };
 
-        //enum StatementType
-        //{
-        //    NULL_STATEMENT,
-        //    FUNCTION_DEFINITION_STATEMENT,
-        //    EXPRESSION_STATEMENT,
-        //    ASSIGNMENT_STATEMENT,
-        //    DECLARATION_STATEMENT,
-        //    BLOCK_STATEMENT,
-        //    IF_STATEMENT,
-        //    FOR_STATEMENT,
-        //    FOREACH_STATEMENT,
-        //    RETURN_STATEMENT,
-        //    CONTINUE_STATEMENT,
-        //    BREAK_STATEMENT,
-        //    DEBUG_STATEMENT
-        //};
+        enum StatementType
+        {
+            NULL_STATEMENT,
+            FUNCTION_DEFINITION_STATEMENT,
+            EXPRESSION_STATEMENT,
+            ASSIGNMENT_STATEMENT,
+            DECLARATION_STATEMENT,
+            BLOCK_STATEMENT,
+            IF_STATEMENT,
+            FOR_STATEMENT,
+            FOREACH_STATEMENT,
+            RETURN_STATEMENT,
+            CONTINUE_STATEMENT,
+            BREAK_STATEMENT
+        };
 
         struct statement_t
         {
-            virtual void execute() = 0;
+            InterpreterImp *inter;
+            virtual std::tuple<StatementType, Object> execute() = 0;
             virtual ~statement_t() = default;
         };
         using Statement = std::shared_ptr<statement_t>;
@@ -415,21 +429,21 @@ namespace zyd2001
             bool global;
             Identifier obj_type;
             DeclarationStatementItemList items;
-            void execute() override;
+            std::tuple<StatementType, Object> execute() override;
         };
 
         struct AssignmentStatement : public statement_t
         {
-            Expression lvalue;
+            Identifier id;
             Expression rvalue;
-            void execute() override;
+            std::tuple<StatementType, Object> execute() override;
         };
 
         struct ObjectAssignmentStatement : public statement_t
         {
             std::shared_ptr<DotExpression> lvalue;
             Expression rvalue;
-            void execute() override;
+            std::tuple<StatementType, Object> execute() override;
         };
 
         struct ElseIf
@@ -444,7 +458,7 @@ namespace zyd2001
             Statement stat;
             std::vector<ElseIf> elseif;
             Statement else_stat;
-            void execute() override;
+            std::tuple<StatementType, Object> execute() override;
         };
 
         struct ForStatement : public statement_t
@@ -453,40 +467,40 @@ namespace zyd2001
             Expression condition;
             Statement after;
             Statement stat;
-            void execute() override;
+            std::tuple<StatementType, Object> execute() override;
         };
 
-        struct ForeachStatement : public statement_t
-        {
-            Identifier identifier;
-            Expression exp;
-            Statement stat;
-            bool reverse;
-            void execute() override;
-        };
+        //struct ForeachStatement : public statement_t
+        //{
+        //    Identifier identifier;
+        //    Expression exp;
+        //    Statement stat;
+        //    bool reverse;
+        //    std::tuple<StatementType, Object> execute() override;
+        //};
 
         struct FunctionDefinitionStatement : public statement_t
         {
             Function func;
-            void execute() override;
+            std::tuple<StatementType, Object> execute() override;
         };
 
         struct ExpressionStatement : public statement_t
         {
             Expression exp;
-            void execute() override;
+            std::tuple<StatementType, Object> execute() override;
         };
 
         struct BlockStatement : public statement_t
         {
             StatementList slist;
-            void execute() override;
+            std::tuple<StatementType, Object> execute() override;
         };
 
         struct ReturnStatement : public statement_t
         {
             Expression exp;
-            void execute() override;
+            std::tuple<StatementType, Object> execute() override;
         };
 
         struct Parameter
@@ -525,11 +539,12 @@ namespace zyd2001
             void concurrentGC();
             void declareVariable(Identifier, ObjectType, bool global = false);
             void declareVariable(Identifier, Identifier type, bool global = false);
-            void declareVariable(Identifier, Object, bool global = false);
+            void declareVariable(Identifier, ObjectType, Object, bool global = false);
             void changeVariable(Identifier, Object, bool global = false);
             void deleteVariable(Identifier, bool global = false);
             Object getVariable(Identifier, bool global = false);
             bool typeCheck(Object, Object);
+            bool typeCheck(ObjectType, Object);
             void addGCVertex(Object);
             void delGCVertex(Object);
             void addGCEdge(object_t*, Object);
@@ -537,8 +552,8 @@ namespace zyd2001
             void delGCEdge(object_t*, Object);
             void delGCEdge(Object, Object);
             void registerClass(Class);
-            void resolveClass(StatementList&);
-            void resolveClass(StatementList&, std::vector<Identifier>&);
+            Class findClass(Identifier);
+            ObjectType findClassId(Identifier);
             std::vector<Object> resolveArgumentList(ArgumentList&);
             ParameterList ArgsToParams(std::vector<Object>&);
 

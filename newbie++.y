@@ -318,11 +318,7 @@
             $$ = Expression(ARRAY_EXPRESSION, new ArrayExpression(std::move($2)));
         }
         ;
-    dot_expression: dot_pre_expression DOT function_call_expression
-        {
-            $$ = Expression(DOT_EXPRESSION, new (DotExpression){$1, $3});
-        }
-        | dot_pre_expression DOT IDENTIFIER
+    dot_expression: dot_pre_expression DOT IDENTIFIER
         {
             $$ = Expression(DOT_EXPRESSION, new (DotExpression){$1, Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression($3))});
         }
@@ -447,6 +443,9 @@
     function_call_expression: IDENTIFIER LP argument_list RP
         {
             $$ = Expression(FUNCTION_CALL_EXPRESSION, new (FunctionCallExpression){Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression($1)), $3});
+        }
+        | dot_expression LP argument_list RP
+        {
         }
         ;
     primary_expression: INT_LITERAL
