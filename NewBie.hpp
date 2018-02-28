@@ -399,6 +399,7 @@ namespace zyd2001
             BLOCK_STATEMENT,
             IF_STATEMENT,
             FOR_STATEMENT,
+            WHILE_STATEMENT,
             FOREACH_STATEMENT,
             RETURN_STATEMENT,
             CONTINUE_STATEMENT,
@@ -415,7 +416,7 @@ namespace zyd2001
         struct StatementList
         {
             std::vector<Statement> list;
-            void interpret();
+            std::tuple<StatementType, Object> interpret();
         };
 
         struct DeclarationStatementItem
@@ -467,6 +468,13 @@ namespace zyd2001
             Expression condition;
             Statement after;
             Statement stat;
+            std::tuple<StatementType, Object> execute() override;
+        };
+
+        struct WhileStatement : public statement_t
+        {
+            Statement stat;
+            Expression condition;
             std::tuple<StatementType, Object> execute() override;
         };
 

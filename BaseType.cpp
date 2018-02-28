@@ -232,8 +232,8 @@ Object zyd2001::NewBie::NormalFunction::call(ArgumentList &alist)
         {
             newVariablesStack();
             for (int i = 0; i < func->first.size(); i++)
-                inter->declareVariable(func->first[i].identifier, args[i]);
-            inter->interpret(func->second.get<BlockStatement>());
+                inter->declareVariable(func->first[i].identifier, func->first[i].type, args[i]);
+            return get<Object>(func->second->execute());
         }
         else
             throw exception();
@@ -242,9 +242,10 @@ Object zyd2001::NewBie::NormalFunction::call(ArgumentList &alist)
     {
         auto args = inter->resolveArgumentList(alist);
         auto func = overload_map.begin();
+        newVariablesStack();
         for (int i = 0; i < func->first.size(); i++)
-            inter->declareVariable(func->first[i].identifier, (i < args.size() ? args[i] : func->first[i].default_value_exp->evaluate()));
-        inter->interpret(func->second.get<BlockStatement>());
+            inter->declareVariable(func->first[i].identifier, func->first[i].type, (i < args.size() ? args[i] : func->first[i].default_value_exp->evaluate()));
+        return get<Object>(func->second->execute());
     }
 }
 
@@ -252,6 +253,7 @@ Object zyd2001::NewBie::NativeFunction::call(ArgumentList &alist, object_t *obj)
 {
     useObject(obj);
     auto args = inter->resolveArgumentList(alist);
+    newVariablesStack();
     if (can_overload)
         return native_func.at(inter->ArgsToParams(args))(args, obj);
     else
@@ -277,6 +279,7 @@ Object zyd2001::NewBie::NativeStaticFunction::call(ArgumentList &alist, class_t 
 {
     useClass(cl);
     auto args = inter->resolveArgumentList(alist);
+    newVariablesStack();
     if (can_overload)
         return native_func.at(inter->ArgsToParams(args))(args, cl);
     else

@@ -46,6 +46,7 @@ static zyd2001::NewBie::location loc;
 <INITIAL>"elif"         return Parser::make_ELSEIF(loc);
 <INITIAL>"elsif"        return Parser::make_ELSEIF(loc);
 <INITIAL>"for"          return Parser::make_FOR(loc);
+<INITIAL>"while"        return Parser::make_WHILE(loc);
 <INITIAL>"foreach"      return Parser::make_FOR(loc);
 <INITIAL>"in"           return Parser::make_IN(loc);
 <INITIAL>"break"        return Parser::make_BREAK(loc);
@@ -91,7 +92,7 @@ static zyd2001::NewBie::location loc;
 <INITIAL>"~"            return Parser::make_REVERSE(loc);
 <INITIAL>"ref"          return Parser::make_REF(loc);
 <INITIAL>"public"       return Parser::make_PUBLIC(loc);
-<INITIAL>"readonly"    return Parser::make_READONLY(loc);
+<INITIAL>"readonly"     return Parser::make_READONLY(loc);
 <INITIAL>"private"      return Parser::make_PRIVATE(loc);
 <INITIAL>"super"        return Parser::make_SUPER(loc);
 <INITIAL>"true" {       

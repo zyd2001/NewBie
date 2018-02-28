@@ -326,6 +326,29 @@ using namespace std;
 //    return s.type;
 //}
 
+std::tuple<StatementType, Object> zyd2001::NewBie::ExpressionStatement::execute()
+{
+    return make_tuple(EXPRESSION_STATEMENT, exp->evaluate());
+}
+
+tuple<StatementType, Object> zyd2001::NewBie::StatementList::interpret()
+{
+    for (auto &s : list)
+    {
+        auto result = s->execute();
+        switch (get<StatementType>(result))
+        {
+            case RETURN_STATEMENT:
+            case BREAK_STATEMENT:
+            case CONTINUE_STATEMENT:
+                return result;
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 std::tuple<StatementType, Object> zyd2001::NewBie::DeclarationStatement::execute()
 {
     auto type = inter->findClassId(obj_type);
@@ -353,6 +376,71 @@ std::tuple<StatementType, Object> zyd2001::NewBie::ObjectAssignmentStatement::ex
 
 std::tuple<StatementType, Object> zyd2001::NewBie::IfStatement::execute()
 {
-
+    if (condition->evaluate())
+    {
+        newVariablesScope();
+        return stat->execute();
+    }
+    else
+    {
+        if (elseif.size() > 0)
+        {
+            for (auto &i : elseif)
+                if (i.condition->evaluate())
+                {
+                    newVariablesScope();
+                    return i.stat->execute();
+                }
+        }
+        if (else_stat.get() != nullptr)
+        {
+            newVariablesScope();
+            return else_stat->execute();
+        }
+    }
     return make_tuple(IF_STATEMENT, Object());
+}
+
+std::tuple<StatementType, Object> ForStatement::execute()
+{
+    newVariablesScope();
+    for (pre->execute(); condition->evaluate(); after->execute())
+    {
+        auto result = stat->execute();
+        auto t = get<StatementType>(result);
+        if (t == CONTINUE_STATEMENT)
+            continue;
+        else if (t == BREAK_STATEMENT)
+            return make_tuple(FOR_STATEMENT, Object());
+        else if (t == RETURN_STATEMENT)
+            return result;
+    }
+    return make_tuple(FOR_STATEMENT, Object());
+}
+
+std::tuple<StatementType, Object> zyd2001::NewBie::WhileStatement::execute()
+{
+    newVariablesScope();
+    while (condition->evaluate())
+    {
+        auto result = stat->execute();
+        auto t = get<StatementType>(result);
+        if (t == CONTINUE_STATEMENT)
+            continue;
+        else if (t == BREAK_STATEMENT)
+            return make_tuple(FOR_STATEMENT, Object());
+        else if (t == RETURN_STATEMENT)
+            return result;
+    }
+    return make_tuple(WHILE_STATEMENT, Object());
+}
+
+std::tuple<StatementType, Object> zyd2001::NewBie::BlockStatement::execute()
+{
+    return slist.interpret();
+}
+
+std::tuple<StatementType, Object> zyd2001::NewBie::ReturnStatement::execute()
+{
+    return make_tuple(RETURN_STATEMENT, exp->evaluate());
 }
