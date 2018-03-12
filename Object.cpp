@@ -78,28 +78,42 @@ object_t * zyd2001::NewBie::NormalClass::makeObject(ArgumentList &args)
     obj->cl = make_shared<class_t>(this);
     obj->type = type;
     obj->type_name = type_name;
-    for (auto cl : base_list)
-        obj->bases.emplace_back(cl->makeObject(ArgumentList()));
-    for (auto v : variables)
+    for (auto &cl : base_list)
     {
-        if (get<Expression>(v.second).get() != nullptr)
-            obj->addVariable(v.first, Object(inter->class_map.second[get<ObjectType>(v.second)]->makeObject(ArgumentList())), get<AccessControl>(v.second));
-        else
-            obj->addVariable(v.first, get<Expression>(v.second)->evaluate(), get<AccessControl>(v.second));
+        
     }
-    ctor->call(args, obj);
+    //for (auto cl : base_list)
+    //    obj->bases.emplace_back(cl->makeObject(ArgumentList()));
+    //for (auto v : variables)
+    //{
+    //    if (get<Expression>(v.second).get() != nullptr)
+    //        obj->addVariable(v.first, Object(inter->class_map.second[get<ObjectType>(v.second)]->makeObject(ArgumentList())), get<AccessControl>(v.second));
+    //    else
+    //        obj->addVariable(v.first, get<Expression>(v.second)->evaluate(), get<AccessControl>(v.second));
+    //}
+    //ctor->call(args, obj);
     inter->addGCVertex(obj);
     return obj;
+}
+
+ObjectMapA & zyd2001::NewBie::NormalClass::makeObjectAsBase(ArgumentList &args, object_t *o)
+{
+    
 }
 
 object_t *zyd2001::NewBie::NativeClass::makeObject(ArgumentList &args)
 {
     object_t *obj = new object_t();
     for (auto cl : base_list)
-        obj->bases.emplace_back(cl->makeObject(ArgumentList()));
+        obj->bases.emplace_back(cl->makeObjectAsBase(ArgumentList(), obj));
     obj = real(args, obj);
     inter->addGCVertex(obj);
     return obj;
+}
+
+ObjectMapA &zyd2001::NewBie::NativeClass::makeObjectAsBase(ArgumentList &args, object_t *o)
+{
+
 }
 
 void zyd2001::NewBie::object_t::addVariable(Identifier id, Object o, AccessControl a)
@@ -180,6 +194,14 @@ void zyd2001::NewBie::object_t::changeVariable(Identifier id, Object o)
     }
 }
 
+zyd2001::NewBie::object_t::~object_t()
+{
+    if (native_ptr != nullptr)
+        cl->native_deleter(native_ptr);
+    for (auto i : bases)
+        delete i;
+}
+
 zyd2001::NewBie::Object::Object(object_t *o) : obj(o), restrict_type(o->type)
 {
     //inter->addGCVertex(node);
@@ -190,7 +212,8 @@ zyd2001::NewBie::Object::Object(object_t *o) : obj(o), restrict_type(o->type)
     //node->ref_count++;
 }
 
-Object::Object(const Object &o) : obj(o.obj), restrict_type(o.restrict_type) {}
+Object::Object(const Object &o) : obj(o.obj), restrict_type(o.restrict_type) 
+{}
 
 zyd2001::NewBie::Object::Object(const int &i)
 {
@@ -208,6 +231,11 @@ zyd2001::NewBie::Object::Object(const String &str)
 zyd2001::NewBie::Object::Object(const Function &)
 {}
 
+Object & zyd2001::NewBie::Object::operator=(const Object &o)
+{
+    obj = o.obj;
+    return *this;
+}
 Object zyd2001::NewBie::Object::operator+(const Object &o) const
 {
     auto alist = ArgumentList({ make_shared<LiteralExpression>(o) });
@@ -232,11 +260,6 @@ Object zyd2001::NewBie::Object::operator%(const Object &o) const
 {
     auto alist = ArgumentList({ make_shared<LiteralExpression>(o) });
     return obj->op[4]->call(alist, obj);
-}
-Object & zyd2001::NewBie::Object::operator=(const Object &o)
-{
-    obj = o.obj;
-    return *this;
 }
 Object Object::operator-() const
 {

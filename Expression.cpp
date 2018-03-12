@@ -307,3 +307,8 @@ Object zyd2001::NewBie::DotExpression::evaluate()
 {
     return obj->evaluate().getVariable(id);
 }
+
+Object zyd2001::NewBie::ThisExpression::evaluate()
+{
+    return inter->current_object;
+}

@@ -8,6 +8,8 @@
 {
 #include "NewBie_Lang.hpp"
 #include "NewBie.hpp"
+#define makeStatement(type, ...) std::make_shared<type>(&inter, yyget_lineno(scanner), __VA_ARGS__)
+#define makeExpression(type, ...) std::make_shared<type>(&inter, __VA_ARGS__)
 }
 
 %code
@@ -41,8 +43,8 @@
 %token<Expression> INT_LITERAL STRING_LITERAL DOUBLE_LITERAL BOOL_LITERAL
 %token<Identifier>     IDENTIFIER
 %token END  0  "end of file"
-        INT DOUBLE BOOL STRING ARRAY VAR GLOBAL IF ELSE ELSEIF FOR WHILE IN CLASS RETURN BREAK CONTINUE REF
-        LP RP LC RC LB RB SEMICOLON COMMA ASSIGN EXCLAMATION DOT NEW THIS PUBLIC READONLY PRIVATE SUPER
+        INT DOUBLE BOOL STRING ARRAY VAR GLOBAL IF ELSE ELSEIF FOR WHILE IN FINAL CLASS RETURN BREAK CONTINUE REF
+        LP RP LC RC LB RB SEMICOLON COMMA ASSIGN EXCLAMATION DOT NEW THIS PUBLIC READONLY PRIVATE BASE
         ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
         INCREMENT DECREMENT REVERSE
         PRINT
@@ -52,34 +54,34 @@
 %type<ParameterList> parameter_list
 %type<ExpressionList> expression_list argument_list
 %type<IdentifierList> identifier_list
-%type<ValueType> type_tag
+%type<ObjectType> type_tag
 %type<Parameter> parameter
 %type<DeclarationStatementItem> declaration_item
 %type<DeclarationStatementItemList> declaration_item_list
 %%
     eof: statement_list END
 		{
-			inter.statement_list = $1;
+			inter.statement_list.swap($1);
 		}
 		;
     statement_list: statement
         {
-            $$.emplace_back($1);
+            $$.list.emplace_back($1);
         }
         | statement_list statement
         {
-            $1.emplace_back($2);
+            $1.list.emplace_back($2);
             $$.swap($1);
         }
         ;
     statement: expression SEMICOLON
         {
-            $$ = Statement(EXPRESSION_STATEMENT, new ExpressionStatement($1), yyget_lineno(scanner));
+            $$ = makeStatement(ExpressionStatement, $1);
         }
         | IF LP expression RP statement
         {
-            current_if = new (IfStatement){$3, $5};
-            $$ = Statement(IF_STATEMENT, current_if, yyget_lineno(scanner));
+            current_if = makeStatement(IfStatement, $3, $5);
+            $$ = current_if;
         }
         | ELSE statement
         {
@@ -94,27 +96,50 @@
         }
         | FOR LP statement_optional SEMICOLON expression_optional SEMICOLON statement_optional RP statement
         {
-            $$ = Statement(FOR_STATEMENT, new (ForStatement){$3, $5, $7, $9}, yyget_lineno(scanner));
+            $$ = makeStatement(ForStatement, $3, $5, $7, $9);
         }
-        | FOR LP IDENTIFIER IN expression RP block
+        | WHILE LP statement_optional RP statement
         {
-            $$ = Statement(FOREACH_STATEMENT, new (ForeachStatement){$3, $5, $7, false}, yyget_lineno(scanner));
-        }
-        | FOR LP IDENTIFIER IN REVERSE expression RP block
-        {
-            $$ = Statement(FOREACH_STATEMENT, new (ForeachStatement){$3, $6, $8, true}, yyget_lineno(scanner));
+            $$ = makeStatement(WhileStatement, $3, $5);
         }
         | RETURN expression SEMICOLON
         {
-            $$ = Statement(RETURN_STATEMENT, new ReturnStatement($2), yyget_lineno(scanner));
+            $$ = makeStatement(ExpressionStatement, $2);
         }
         | CONTINUE SEMICOLON
         {
-            $$ = Statement(CONTINUE_STATEMENT, nullptr, yyget_lineno(scanner));
+            $$ = makeStatement(ContinueStatement);
         }
         | BREAK SEMICOLON
         {
-            $$ = Statement(BREAK_STATEMENT, nullptr, yyget_lineno(scanner));
+            $$ = makeStatement(BreakStatement);
+        }
+        | IDENTIFIER LP parameter_list RP block
+        {
+            if ($1 != inter.current_class->type_name)
+                throw exception();
+            else
+                inter.current_class->ctor.overload_map[$3] = {$5};
+        }
+        | IDENTIFIER LP parameter_list RP SEMICOLON ctor_args_list RP block
+        {
+            if ($1 != inter.current_class->type_name)
+                throw exception();
+            else
+            {
+                ctor c;
+                c.stat = $8;
+                for (auto &i : $6)
+                    c.overload_map[i.type] = i.args;
+                inter.current_class->ctor.overload_map[$3] = c;
+            }
+        }
+        | IDENTIFIER LP parameter_list RP SEMICOLON THIS LP parameter_list RP block
+        {
+            if ($1 != inter.current_class->type_name)
+                throw exception();
+            else
+                inter.current_class->ctor.overload_map[$3] = {$10, {0, $8}};
         }
         | type_tag IDENTIFIER LP parameter_list RP block
         {
@@ -173,10 +198,6 @@
         {
             $$ = $1;
         }
-        | PRINT expression SEMICOLON
-        {
-            $$ = Statement(DEBUG_STATEMENT, new DebugStatement($2), yyget_lineno(scanner));
-        }
         | declaration_statement
         {
             $$ = $1;
@@ -185,31 +206,36 @@
         {
             $$ = $1;
         }
+        | visibility COLON
+        {
+            $$ = makeStatement(AccessControlStatement($1));
+        }
         | class_definition
         ;
-    assignment_statement: expression ASSIGN expression SEMICOLON
+    assignment_statement: IDENTIFIER ASSIGN expression SEMICOLON
         {
-            $$ = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){$1, $3}, yyget_lineno(scanner));
+            $$ = makeStatement(AssignmentStatement, $1, $3);
         }
         | dot_expression ASSIGN expression SEMICOLON
         {
+            $$ = makeStatement(ObjectAssignmentStatement, $1, $3);
         }
         ;
     declaration_statement: type_tag declaration_item_list SEMICOLON
         {
-            $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){false, $1, std::move($2)}, yyget_lineno(scanner));
+            $$ = makeStatement(BuiltInDeclarationStatement, false, $1, std::move($2));
         }
 		| GLOBAL type_tag declaration_item_list SEMICOLON
         {
-            $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){true, $2, std::move($3)}, yyget_lineno(scanner));
+            $$ = makeStatement(BuiltInDeclarationStatement, true, $2, std::move($3));
         }
         | IDENTIFIER declaration_item_list SEMICOLON
         {
-            $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){false, OBJECT_TYPE, std::move($2), $1}, yyget_lineno(scanner));
+            $$ = makeStatement(DeclarationStatement, false, $1, std::move($2));
         }
         | GLOBAL IDENTIFIER declaration_item_list SEMICOLON
         {
-            $$ = Statement(DECLARATION_STATEMENT, new (DeclarationStatement){true, OBJECT_TYPE, std::move($3), $2}, yyget_lineno(scanner));
+            $$ = makeStatement(DeclarationStatement, true, $2, std::move($3));
         }
         ;
     declaration_item: IDENTIFIER 
@@ -229,6 +255,18 @@
         {
             $1.emplace_back(std::move($3));
             $$.swap($1);
+        }
+        ;
+    ctor_args: IDENTIFIER LP argument_list RP
+        {
+            $$ = {inter.findClassId($1), $3};
+        }
+        ;
+    ctor_args_list: ctor_args
+        {
+        }
+        | ctor_args_list COMMA ctor_args
+        {
         }
         ;
     identifier_list: IDENTIFIER
@@ -268,7 +306,7 @@
         }
         | IDENTIFIER
         {
-            $$ = Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression($1));
+            $$ = makeExpression(IdentifierExpression, $1);
         }
         | LP expression RP
         {
@@ -286,14 +324,9 @@
         {
             $$ = $1;
         }
-        | NEW function_call_expression
+        | NEW IDENTIFIER LP argument_list RP
         {
-            $2.type = NEW_OBJECT_EXPRESSION;
-            $$ = $2;
-        }
-        | ARRAY LP expression RP
-        {
-            $$ = Expression(ARRAY_LENGTH_EXPRESSION, new Expression($3));
+            $$ = makeExpression(NewObjectExpression, $2, $4);
         }
         ;
     index_expression: IDENTIFIER LB expression RB
@@ -320,7 +353,7 @@
         ;
     dot_expression: dot_pre_expression DOT IDENTIFIER
         {
-            $$ = Expression(DOT_EXPRESSION, new (DotExpression){$1, Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression($3))});
+            $$ = makeExpression(DotExpression, $1, $3);
         }
         ;
     dot_pre_expression: primary_expression
@@ -333,7 +366,7 @@
         }
         | IDENTIFIER
         {
-            $$ = Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression($1));
+            $$ = makeExpression(IdentifierExpression, $1);
         }
         | LP expression RP
         {
@@ -349,7 +382,7 @@
         }
         | THIS
         {
-            $$ = Expression(THIS_EXPRESSION, nullptr);
+            $$ = makeExpression(ThisExpression);
         }
         ;
     expression_optional: /* empty */
@@ -367,11 +400,15 @@
         }
         | expression
         {
-            $$ = Statement(EXPRESSION_STATEMENT, new ExpressionStatement($1), yyget_lineno(scanner));
+            $$ = makeStatement(ExpressionStatement, $1);
         }
-        | expression ASSIGN expression
+        | IDENTIFIER ASSIGN expression
         {
-            $$ = Statement(ASSIGNMENT_STATEMENT, new (AssignmentStatement){$1, $3}, yyget_lineno(scanner));
+            $$ = makeStatement(AssignmentStatement, $1, $3);
+        }
+        | dot_expression ASSIGN expression
+        {
+            $$ = makeStatement(ObjectAssignmentStatement, $1, $3);
         }
         | declaration_statement
         {
@@ -380,72 +417,69 @@
         ;
     binary_expression: expression ADD expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){ADD, $1, $3});
+            $$ = makeExpression(BinaryExpression, ADD, $1, $3);
         }
         | expression SUB expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){SUB, $1, $3});
+            $$ = makeExpression(BinaryExpression, SUB, $1, $3);
         }
         | expression MUL expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){MUL, $1, $3});
+            $$ = makeExpression(BinaryExpression, MUL, $1, $3);
         }
         | expression DIV expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){DIV, $1, $3});
+            $$ = makeExpression(BinaryExpression, DIV, $1, $3);
         }
         | expression MOD expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){MOD, $1, $3});
+            $$ = makeExpression(BinaryExpression, MOD, $1, $3);
         }
         | expression EQ expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){EQ, $1, $3});
+            $$ = makeExpression(BinaryExpression, EQ, $1, $3);
         }
         | expression NE expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){NE, $1, $3});
+            $$ = makeExpression(BinaryExpression, NE, $1, $3);
         }
         | expression GT expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){GT, $1, $3});
+            $$ = makeExpression(BinaryExpression, GT, $1, $3);
         }
         | expression GE expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){GE, $1, $3});
+            $$ = makeExpression(BinaryExpression, GE, $1, $3);
         }
         | expression LT expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){LT, $1, $3});
+            $$ = makeExpression(BinaryExpression, LT, $1, $3);
         }
         | expression LE expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){LE, $1, $3});
+            $$ = makeExpression(BinaryExpression, LE, $1, $3);
         }
         | expression LOGICAL_AND expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){AND, $1, $3});
+            $$ = makeExpression(BinaryExpression, AND, $1, $3);
         }
         | expression LOGICAL_OR expression
         {
-            $$ = Expression(BINARY_EXPRESSION, new (BinaryExpression){OR, $1, $3});
+            $$ = makeExpression(BinaryExpression, OR, $1, $3);
         }
         ;
     unary_expression: SUB expression %prec UMINUS
         {
-            $$ = Expression(UNARY_EXPRESSION, new (UnaryExpression){MINUS, $2});
+            $$ = makeExpression(UnaryExpression, NEGAT, $2);
         }
         | EXCLAMATION expression %prec UMINUS
         {
-            $$ = Expression(UNARY_EXPRESSION, new (UnaryExpression){NOT, $2});
+            $$ = makeExpression(UnaryExpression, NOT, $2);
         }
         ;
-    function_call_expression: IDENTIFIER LP argument_list RP
+    function_call_expression: expression LP argument_list RP
         {
-            $$ = Expression(FUNCTION_CALL_EXPRESSION, new (FunctionCallExpression){Expression(IDENTIFIER_EXPRESSION, new IdentifierExpression($1)), $3});
-        }
-        | dot_expression LP argument_list RP
-        {
+            $$ = makeExpression(FunctionCallExpression, $1, std::move($3));
         }
         ;
     primary_expression: INT_LITERAL
@@ -475,42 +509,34 @@
             $$.swap($1);
         }
         ;
-    type_tag: INT
+    type_tag: VAR
         {
-            $$ = INT_TYPE;
+            $$ = 0;
+        }
+        | INT
+        {
+            $$ = 2;
         }
         | DOUBLE
         {
-            $$ = DOUBLE_TYPE;
+            $$ = 3;
         }
         | BOOL
         {
-            $$ = BOOL_TYPE;
+            $$ = 4;
         }
         | STRING
         {
-            $$ = STRING_TYPE;
-        }
-        | ARRAY
-        {
-            $$ = ARRAY_TYPE;
-        }
-        | VAR
-        {
-            $$ = VARIANT_TYPE;
-        }
-        | IDENTIFIER
-        {
-            
+            $$ = 5;
         }
         ;
     block: LC statement_list RC
         {
-            $$ = Statement(BLOCK_STATEMENT, new BlockStatement(std::move($2)), yyget_lineno(scanner));
+            $$ = makeStatement(BlockStatement, std::move($2));
         }
         | LC RC
         {
-            $$ = Statement(BLOCK_STATEMENT, new BlockStatement(), yyget_lineno(scanner));
+            $$ = makeStatement(BlockStatement, StatementList());
         }
         ;
     argument_list: /* empty */

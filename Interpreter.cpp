@@ -49,7 +49,7 @@ bool InterpreterImp::changeSetting(const std::string &key, int value)
 void zyd2001::NewBie::InterpreterImp::performGC()
 {
     auto result = gc_graph.dfs(root);
-    for (auto v : result)
+    for (auto &v : result)
     {
         if (!v.second)
         {
@@ -293,9 +293,11 @@ bool zyd2001::NewBie::InterpreterImp::typeCheck(Object l, Object r)
 
 bool zyd2001::NewBie::InterpreterImp::typeCheck(ObjectType t, Object o)
 {
+    if (t == 0) //variant type
+        return true;
     if (t == o.obj->type)
         return true;
-    for (auto i : o.obj->bases)
+    for (auto &i : o.obj->bases)
         if (t == i->type)
             return true;
     return false;
@@ -303,33 +305,41 @@ bool zyd2001::NewBie::InterpreterImp::typeCheck(ObjectType t, Object o)
 
 void zyd2001::NewBie::InterpreterImp::addGCVertex(Object o)
 {
-    gc_graph.addVertex(o.obj);
+    if (!o.obj->cl->RAII)
+        gc_graph.addVertex(o.obj);
 }
 
 void zyd2001::NewBie::InterpreterImp::delGCVertex(Object o)
 {
-    gc_graph.delVertex(o.obj);
-    delete o.obj;
+    if (!o.obj->cl->RAII)
+    {
+        gc_graph.delVertex(o.obj);
+        delete o.obj;
+    }
 }
 
 void zyd2001::NewBie::InterpreterImp::addGCEdge(object_t *v, Object w)
 {
-    gc_graph.addEdge(v, w.obj);
+    if (!w.obj->cl->RAII)
+        gc_graph.addEdge(v, w.obj);
 }
 
 void zyd2001::NewBie::InterpreterImp::addGCEdge(Object v, Object w)
 {
-    gc_graph.addEdge(v.obj, w.obj);
+    if (!w.obj->cl->RAII)
+        gc_graph.addEdge(v.obj, w.obj);
 }
 
 void zyd2001::NewBie::InterpreterImp::delGCEdge(object_t *v, Object w)
 {
-    gc_graph.delEdge(v, w.obj);
+    if (!w.obj->cl->RAII)
+        gc_graph.delEdge(v, w.obj);
 }
 
 void zyd2001::NewBie::InterpreterImp::delGCEdge(Object v, Object w)
 {
-    gc_graph.delEdge(v.obj, w.obj);
+    if (!w.obj->cl->RAII)
+        gc_graph.delEdge(v.obj, w.obj);
 }
 
 Class zyd2001::NewBie::InterpreterImp::findClass(Identifier id)

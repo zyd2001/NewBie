@@ -52,7 +52,8 @@ static zyd2001::NewBie::location loc;
 <INITIAL>"break"        return Parser::make_BREAK(loc);
 <INITIAL>"continue"     return Parser::make_CONTINUE(loc);
 <INITIAL>"return"       return Parser::make_RETURN(loc);
-<INITIAL>"class"        {inter.in_class = true; inter.current_class = new Class(); return Parser::make_CLASS(loc);}
+<INITIAL>"final"        return Parser::make_FINAL(loc);
+<INITIAL>"class"        {inter.in_class = true; inter.current_class = new class_t();; return Parser::make_CLASS(loc);}
 <INITIAL>"new"          return Parser::make_NEW(loc);
 <INITIAL>"this"         return Parser::make_THIS(loc);
 <INITIAL>"__print__"    return Parser::make_PRINT(loc);
@@ -94,7 +95,7 @@ static zyd2001::NewBie::location loc;
 <INITIAL>"public"       return Parser::make_PUBLIC(loc);
 <INITIAL>"readonly"     return Parser::make_READONLY(loc);
 <INITIAL>"private"      return Parser::make_PRIVATE(loc);
-<INITIAL>"super"        return Parser::make_SUPER(loc);
+<INITIAL>"base"         return Parser::make_BASE(loc);
 <INITIAL>"true" {       
     return Parser::make_BOOL_LITERAL(Expression(LITERAL_EXPRESSION, new LiteralExpression(true)), loc);
 }

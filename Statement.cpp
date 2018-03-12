@@ -331,6 +331,11 @@ std::tuple<StatementType, Object> zyd2001::NewBie::ExpressionStatement::execute(
     return make_tuple(EXPRESSION_STATEMENT, exp->evaluate());
 }
 
+void zyd2001::NewBie::StatementList::swap(StatementList &s)
+{
+    s.list.swap(list);
+}
+
 tuple<StatementType, Object> zyd2001::NewBie::StatementList::interpret()
 {
     for (auto &s : list)
@@ -352,6 +357,18 @@ tuple<StatementType, Object> zyd2001::NewBie::StatementList::interpret()
 std::tuple<StatementType, Object> zyd2001::NewBie::DeclarationStatement::execute()
 {
     auto type = inter->findClassId(obj_type);
+    for (auto &i : items)
+    {
+        if (i.initial_value.get() == nullptr)
+            inter->declareVariable(i.identifier, type, i.initial_value->evaluate(), global);
+        else
+            inter->declareVariable(i.identifier, type, global);
+    }
+    return make_tuple(DECLARATION_STATEMENT, Object());
+}
+
+std::tuple<StatementType, Object> zyd2001::NewBie::BuiltInDeclarationStatement::execute()
+{
     for (auto &i : items)
     {
         if (i.initial_value.get() == nullptr)

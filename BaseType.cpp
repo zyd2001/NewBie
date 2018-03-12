@@ -260,21 +260,6 @@ Object zyd2001::NewBie::NativeFunction::call(ArgumentList &alist, object_t *obj)
         return native_func.begin()->second(args, obj);
 }
 
-Object zyd2001::NewBie::NativeFunction::call(ArgumentList &alist, class_t *cl)
-{
-    throw exception();
-}
-
-Object zyd2001::NewBie::NativeFunction::call(ArgumentList &alist)
-{
-    throw exception();
-}
-
-Object zyd2001::NewBie::NativeStaticFunction::call(ArgumentList &alist, object_t *o)
-{
-    throw exception();
-}
-
 Object zyd2001::NewBie::NativeStaticFunction::call(ArgumentList &alist, class_t *cl)
 {
     useClass(cl);
@@ -284,11 +269,6 @@ Object zyd2001::NewBie::NativeStaticFunction::call(ArgumentList &alist, class_t 
         return native_func.at(inter->ArgsToParams(args))(args, cl);
     else
         return native_func.begin()->second(args, cl);
-}
-
-Object zyd2001::NewBie::NativeStaticFunction::call(ArgumentList &alist)
-{
-    throw exception();
 }
 
 //Value InterpreterImp::callFunc(Function &func, ArgumentList &alist)

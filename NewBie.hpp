@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <algorithm>
+#include <list>
 #include <memory>
 #include <utility>
 #include <stack>
@@ -131,14 +132,14 @@ namespace zyd2001
         };
 
         using ObjectMap = std::unordered_map<Identifier, Object, Identifier::hash>;
+        using ObjectMapA = std::unordered_map<Identifier, std::pair<Object, AccessControl>, Identifier::hash>;
         struct object_t
         {
             InterpreterImp *inter;
             Identifier type_name;
             ObjectType type;
             Class cl;
-            void *native_ptr;
-            std::function<void(void*)> deleter = [](void*) {};
+            void *native_ptr = nullptr;
             std::vector<object_t*> bases;
             std::vector<Function> op; //operator+ - * / % unary-, comp, []
             void addVariable(Identifier, Object, AccessControl);
@@ -151,9 +152,9 @@ namespace zyd2001
                 return *static_cast<T*>(native_ptr);
             }
 
-            ~object_t() { deleter(native_ptr); }
+            ~object_t();
         private:
-            std::unordered_map<Identifier, std::pair<Object, AccessControl>, Identifier::hash> local_variables;
+            ObjectMapA local_variables;
         };
         struct Object
         {
@@ -186,7 +187,11 @@ namespace zyd2001
             Object operator-() const;
             Object getVariable(Identifier);
             void changeVariable(Identifier, Object);
-            ~Object() = default;
+            ~Object()
+            {
+                if (obj->cl->RAII)
+                    delete obj;
+            }
         };
 
         using IdentifierList = std::vector<Identifier>;
@@ -195,25 +200,33 @@ namespace zyd2001
             InterpreterImp *inter;
             Identifier type_name;
             ObjectType type;
-            std::vector<class_t*> base_list;
-            Function ctor;
+            std::vector<Class> base_list;
+            bool RAII = false;
+            Constructor ctor;
+            Function dtor;
+            Function copy_ctor;
+            std::function<object_t*(const object_t &)> native_copyer = [](const object_t &) -> object_t* {};
+            std::function<void(void*)> native_deleter = [](void*) {};
             virtual object_t *makeObject(ArgumentList&) = 0;
+            virtual ObjectMapA &makeObjectAsBase(ArgumentList&, object_t*) = 0;
             void addStaticVariable(Identifier, Object, AccessControl);
             Object getStaticVariable(Identifier);
             void changeStaticVariable(Identifier, Object);
             virtual ~class_t() = default;
         private:
-            std::unordered_map<Identifier, std::pair<Object, AccessControl>, Identifier::hash> static_variables;
+            ObjectMapA static_variables;
         };
         struct NormalClass : public class_t
         {
             std::unordered_map<Identifier, std::tuple<ObjectType, AccessControl, Expression>, Identifier::hash> variables;
             object_t *makeObject(ArgumentList&) override;
+            ObjectMapA & makeObjectAsBase(ArgumentList&, object_t*) override;
         };
         struct NativeClass : public class_t
         {
             std::function<object_t*(ArgumentList&, object_t*)> real;
             object_t *makeObject(ArgumentList&) override;
+            ObjectMapA & makeObjectAsBase(ArgumentList&, object_t*) override;
         };
         using Class = std::shared_ptr<class_t>;
         using ClassMap = std::pair<std::unordered_map<Identifier, ObjectType, Identifier::hash>, std::unordered_map<ObjectType, Class>>;
@@ -224,9 +237,9 @@ namespace zyd2001
             ObjectType return_type;
             Identifier name;
             bool can_overload = true;
-            virtual Object call(ArgumentList&, object_t*) = 0;
-            virtual Object call(ArgumentList&, class_t*) = 0;
-            virtual Object call(ArgumentList&) = 0;
+            virtual Object call(ArgumentList&, object_t*) { throw exception(); }
+            virtual Object call(ArgumentList&, class_t*) { throw exception(); }
+            virtual Object call(ArgumentList&) { throw exception(); }
             virtual ~function_t() = default;
         };
         struct NormalFunction : public function_t
@@ -240,17 +253,30 @@ namespace zyd2001
         {
             std::unordered_map<ParameterList, std::function<Object(std::vector<Object>&, object_t*)>, ParamsHash, ParamsEqualTo> native_func;
             Object call(ArgumentList&, object_t*) override;
-            Object call(ArgumentList&, class_t*) override;
-            Object call(ArgumentList&) override;
         };
         struct NativeStaticFunction : public function_t
         {
             std::unordered_map<ParameterList, std::function<Object(std::vector<Object>&, class_t*)>, ParamsHash, ParamsEqualTo> native_func;
-            Object call(ArgumentList&, object_t*) override;
             Object call(ArgumentList&, class_t*) override;
-            Object call(ArgumentList&) override;
         };
         using Function = std::shared_ptr<function_t>;
+
+        struct ctorArgs
+        {
+            ObjectType type;
+            ArgumentList args;
+        };
+        using ctorArgsList = std::vector<ctorArgs>;
+        struct ctor
+        {
+            Statement stat;
+            std::unordered_map<ObjectType, ArgumentList> base_args;
+        };
+        struct constructor_t
+        {
+            std::unordered_map<ParameterList, ctor, ParamsHash> overload_map;
+        };
+        using Constructor = std::shared_ptr<constructor_t>;
 
         using VariablesStack = std::stack<std::vector<ObjectMap>>;
         struct RAIIStack
@@ -322,6 +348,7 @@ namespace zyd2001
         struct expression_t
         {
             InterpreterImp *inter;
+            expression_t(InterpreterImp *i) : inter(i) {}
             virtual Object evaluate() = 0;
             virtual ~expression_t() = default;
         };
@@ -331,12 +358,14 @@ namespace zyd2001
         struct IdentifierExpression : public expression_t
         {
             Identifier id;
+            IdentifierExpression(InterpreterImp *inter, Identifier i) : expression_t(inter), id(i) {}
             Object evaluate() override;
         };
         
         struct LiteralExpression : public expression_t
         {
             Object obj;
+            LiteralExpression(InterpreterImp *inter, Object o) : expression_t(inter), obj(o) {}
             Object evaluate() override;
         };
 
@@ -351,6 +380,7 @@ namespace zyd2001
             BinaryType type;
             Expression lexp;
             Expression rexp;
+            BinaryExpression(InterpreterImp *inter, BinaryType t, Expression l, Expression r) : expression_t(inter), type(t), lexp(l), rexp(r) {}
             Object evaluate() override;
         };
 
@@ -358,6 +388,7 @@ namespace zyd2001
         {
             UnaryType type;
             Expression exp;
+            UnaryExpression(InterpreterImp *inter, UnaryType t, Expression e) : expression_t(inter), type(t), exp(e) {}
             Object evaluate() override;
         };
 
@@ -365,6 +396,7 @@ namespace zyd2001
         {
             Expression func;
             ExpressionList alist;
+            FunctionCallExpression(InterpreterImp *inter, Expression f, ExpressionList list) : expression_t(inter), func(f), alist(list) {}
             Object evaluate() override;
         };
 
@@ -372,6 +404,7 @@ namespace zyd2001
         {
             Identifier id;
             ExpressionList alist;
+            NewObjectExpression(InterpreterImp *inter, Identifier i, ExpressionList list) : expression_t(inter), id(i), alist(list) {}
             Object evaluate() override;
         };
 
@@ -386,6 +419,13 @@ namespace zyd2001
         {
             Expression obj;
             Identifier id;
+            DotExpression(InterpreterImp *inter, Expression o, Identifier i) : expression_t(inter), obj(o), id(i) {}
+            Object evaluate() override;
+        };
+
+        struct ThisExpression : public expression_t
+        {
+            ThisExpression(InterpreterImp *imp) : expression_t(inter) {}
             Object evaluate() override;
         };
 
@@ -409,14 +449,25 @@ namespace zyd2001
         struct statement_t
         {
             InterpreterImp *inter;
+            int lineno;
+            statement_t(InterpreterImp *i, int line) : inter(i), lineno(line) {}
+            virtual StatementType type() = 0;
             virtual std::tuple<StatementType, Object> execute() = 0;
             virtual ~statement_t() = default;
         };
         using Statement = std::shared_ptr<statement_t>;
         struct StatementList
         {
-            std::vector<Statement> list;
+            std::list<Statement> list;
+            void swap(StatementList&);
             std::tuple<StatementType, Object> interpret();
+        };
+
+        struct AccessControlStatement : public statement_t
+        {
+            AccessControl visibility;
+            AccessControlStatement(InterpreterImp *i, int line, AccessControl a) : statement_t(i, line), visibility(a) {}
+            StatementType type() override;
         };
 
         struct DeclarationStatementItem
@@ -430,6 +481,17 @@ namespace zyd2001
             bool global;
             Identifier obj_type;
             DeclarationStatementItemList items;
+            DeclarationStatement(InterpreterImp *i, int line, bool g, Identifier t, DeclarationStatementItemList list) : statement_t(i, line), global(g), obj_type(t), items(list) {}
+            StatementType type() override;
+            std::tuple<StatementType, Object> execute() override;
+        };
+        struct BuiltInDeclarationStatement : public statement_t
+        {
+            bool global;
+            ObjectType type;
+            DeclarationStatementItemList items;
+            BuiltInDeclarationStatement(InterpreterImp *i, int line, bool g, ObjectType t, DeclarationStatementItemList list) : statement_t(i, line), global(g), type(t), items(list) {}
+            StatementType type() override;
             std::tuple<StatementType, Object> execute() override;
         };
 
@@ -437,6 +499,8 @@ namespace zyd2001
         {
             Identifier id;
             Expression rvalue;
+            AssignmentStatement(InterpreterImp *i, int line, Identifier l, Expression r) : statement_t(i, line), id(l), rvalue(r) {}
+            StatementType type() override;
             std::tuple<StatementType, Object> execute() override;
         };
 
@@ -444,6 +508,8 @@ namespace zyd2001
         {
             std::shared_ptr<DotExpression> lvalue;
             Expression rvalue;
+            ObjectAssignmentStatement(InterpreterImp *i, int line, std::shared_ptr<DotExpression> l, Expression r) : statement_t(i, line), lvalue(l), rvalue(r) {}
+            StatementType type() override;
             std::tuple<StatementType, Object> execute() override;
         };
 
@@ -459,6 +525,8 @@ namespace zyd2001
             Statement stat;
             std::vector<ElseIf> elseif;
             Statement else_stat;
+            IfStatement(InterpreterImp *i, int line, Expression e, Statement s) : statement_t(i, line), condition(e), stat(s) {}
+            StatementType type() override;
             std::tuple<StatementType, Object> execute() override;
         };
 
@@ -468,13 +536,17 @@ namespace zyd2001
             Expression condition;
             Statement after;
             Statement stat;
+            ForStatement(InterpreterImp *i, int line, Statement p, Expression e, Statement a, Statement s) : statement_t(i, line), condition(e), pre(p), after(a), stat(s) {}
+            StatementType type() override;
             std::tuple<StatementType, Object> execute() override;
         };
 
         struct WhileStatement : public statement_t
         {
-            Statement stat;
             Expression condition;
+            Statement stat;
+            WhileStatement(InterpreterImp *i, int line, Expression e, Statement s) : statement_t(i, line), condition(e), stat(s) {}
+            StatementType type() override;
             std::tuple<StatementType, Object> execute() override;
         };
 
@@ -487,27 +559,33 @@ namespace zyd2001
         //    std::tuple<StatementType, Object> execute() override;
         //};
 
-        struct FunctionDefinitionStatement : public statement_t
-        {
-            Function func;
-            std::tuple<StatementType, Object> execute() override;
-        };
+        //struct FunctionDefinitionStatement : public statement_t
+        //{
+        //    Function func;
+        //    std::tuple<StatementType, Object> execute() override;
+        //};
 
         struct ExpressionStatement : public statement_t
         {
             Expression exp;
+            ExpressionStatement(InterpreterImp *i, int line, Expression e) : statement_t(i, line), exp(e) {}
+            StatementType type() override;
             std::tuple<StatementType, Object> execute() override;
         };
 
         struct BlockStatement : public statement_t
         {
             StatementList slist;
+            BlockStatement(InterpreterImp *i, int line, StatementList s) : statement_t(i, line), slist(s) {}
+            StatementType type() override;
             std::tuple<StatementType, Object> execute() override;
         };
 
         struct ReturnStatement : public statement_t
         {
             Expression exp;
+            ReturnStatement(InterpreterImp *i, int line, Expression e) : statement_t(i, line), exp(e) {}
+            StatementType type() override;
             std::tuple<StatementType, Object> execute() override;
         };
 
@@ -559,7 +637,8 @@ namespace zyd2001
             void addGCEdge(Object, Object);
             void delGCEdge(object_t*, Object);
             void delGCEdge(Object, Object);
-            void registerClass(Class);
+            void registerClass(Identifier, StatementList &);
+            void registerClass(Identifier, StatementList &, IdentifierList &);
             Class findClass(Identifier);
             ObjectType findClassId(Identifier);
             std::vector<Object> resolveArgumentList(ArgumentList&);
@@ -575,7 +654,7 @@ namespace zyd2001
             /*parsing time variables*/
             int level = 0;
             std::string filename;
-
+            AccessControl current_visibility;
 
             /*runtime variables*/
             object_t *root;
