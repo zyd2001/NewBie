@@ -286,10 +286,7 @@ Object zyd2001::NewBie::UnaryExpression::evaluate()
 Object zyd2001::NewBie::FunctionCallExpression::evaluate()
 {
     auto f = func->evaluate();
-    if (f.restrict_type) //TODO: not function
-        return f.obj->useNativePointer<Function>()->call(alist);
-    else
-        throw exception();
+    f.obj->cl->op[8]->call(alist);
 }
 
 Object zyd2001::NewBie::NewObjectExpression::evaluate()

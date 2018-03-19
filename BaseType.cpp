@@ -210,19 +210,23 @@ std::size_t ParamsHash::operator()(const ParameterList& p) const
     return seed;
 }
 
-Object zyd2001::NewBie::NormalFunction::call(ArgumentList &alist, object_t *obj)
+Object zyd2001::NewBie::NormalFunction::call(InterpreterImp::Runner &runner, ArgumentList &alist)
 {
-    useObject(obj);
-    call(alist);
+    if (cl.get() != nullptr)
+    {
+        useClass(cl);
+        return real_call(runner, alist);
+    }
+    else if (obj != nullptr)
+    {
+        useObject(obj);
+        return real_call(runner, alist);
+    }
+    else
+        return real_call(runner, alist);
 }
 
-Object zyd2001::NewBie::NormalFunction::call(ArgumentList &alist, class_t *cl)
-{
-    useClass(cl);
-    call(alist);
-}
-
-Object zyd2001::NewBie::NormalFunction::call(ArgumentList &alist)
+Object zyd2001::NewBie::NormalFunction::real_call(InterpreterImp::Runner &runner, ArgumentList &alist)
 {
     if (can_overload)
     {
@@ -233,7 +237,7 @@ Object zyd2001::NewBie::NormalFunction::call(ArgumentList &alist)
             newVariablesStack();
             for (int i = 0; i < func->first.size(); i++)
                 inter->declareVariable(func->first[i].identifier, func->first[i].type, args[i]);
-            return get<Object>(func->second->execute());
+            return runner.execute(func->second);
         }
         else
             throw exception();
@@ -245,11 +249,11 @@ Object zyd2001::NewBie::NormalFunction::call(ArgumentList &alist)
         newVariablesStack();
         for (int i = 0; i < func->first.size(); i++)
             inter->declareVariable(func->first[i].identifier, func->first[i].type, (i < args.size() ? args[i] : func->first[i].default_value_exp->evaluate()));
-        return get<Object>(func->second->execute());
+        return runner.execute(func->second);
     }
 }
 
-Object zyd2001::NewBie::NativeFunction::call(ArgumentList &alist, object_t *obj)
+Object zyd2001::NewBie::NativeFunction::call(InterpreterImp::Runner &runner, ArgumentList &alist)
 {
     useObject(obj);
     auto args = inter->resolveArgumentList(alist);
@@ -260,7 +264,7 @@ Object zyd2001::NewBie::NativeFunction::call(ArgumentList &alist, object_t *obj)
         return native_func.begin()->second(args, obj);
 }
 
-Object zyd2001::NewBie::NativeStaticFunction::call(ArgumentList &alist, class_t *cl)
+Object zyd2001::NewBie::NativeStaticFunction::call(InterpreterImp::Runner &runner, ArgumentList &alist)
 {
     useClass(cl);
     auto args = inter->resolveArgumentList(alist);

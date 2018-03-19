@@ -105,8 +105,8 @@ zyd2001::NewBie::RAIIScope::~RAIIScope()
 
 RAIIObject::RAIIObject(Object obj, InterpreterImp *inter)
 {
-    inter->current_object = obj.obj;
-    inter->object_env_stack.push(obj.obj);
+    inter->current_object = obj.obj();
+    inter->object_env_stack.push(obj.obj());
     inter->in_object = true;
 }
 
@@ -161,10 +161,17 @@ void InterpreterImp::parse()
     yylex_init(&scanner);
     FILE *fp = fopen(filename.c_str(), "r");
     yyset_in(fp, scanner);
-    Parser parser(*this, scanner);
+    zyd2001::NewBie::Parser parser(*this, scanner);
     parser.parse();
     yylex_destroy(scanner);
     fclose(fp);
+}
+
+bool zyd2001::NewBie::InterpreterImp::run()
+{
+    Runner runner(this);
+    runner.interpret(statement_list);
+    return false;
 }
 
 void zyd2001::NewBie::InterpreterImp::declareVariable(Identifier id, ObjectType type, bool global = false)
@@ -221,7 +228,7 @@ void zyd2001::NewBie::InterpreterImp::deleteVariable(Identifier id, bool global)
     obj_map->erase(v);
 }
 
-Object zyd2001::NewBie::InterpreterImp::getVariable(Identifier id, bool global)
+Object &zyd2001::NewBie::InterpreterImp::getVariable(Identifier id, bool global)
 {
     if (global)
         return global_variables.at(id);
@@ -243,49 +250,49 @@ Object zyd2001::NewBie::InterpreterImp::getVariable(Identifier id, bool global)
     }
 }
 
-void zyd2001::NewBie::InterpreterImp::changeVariable(Identifier id, Object o, bool global)
-{
-    if (global)
-    {
-        auto v = global_variables.at(id);
-        if (typeCheck(v, o))
-        {
-            delGCEdge(root, v);
-            v = o;
-            addGCEdge(root, o);
-        }
-        else
-            throw exception();
-    }
-    else
-    {
-        auto v = current_variables->find(id);
-        if (v == current_variables->end())
-        {
-            auto iter = variables_stack.top().rbegin() + 1;
-            for (; iter != variables_stack.top().rend(); iter++)
-            {
-                v = iter->find(id);
-                if (v != iter->end())
-                    break;
-            }
-            if (v == iter->end())
-                throw exception();
-        }
-        if (typeCheck(v->second, o))
-        {
-            delGCEdge(root, v->second);
-            v->second = o;
-            addGCEdge(root, o);
-        }
-        else
-            throw exception();
-    }
-}
+//void zyd2001::NewBie::InterpreterImp::changeVariable(Identifier id, Object o, bool global)
+//{
+//    if (global)
+//    {
+//        auto v = global_variables.at(id);
+//        if (typeCheck(v, o))
+//        {
+//            delGCEdge(root, v);
+//            v = o;
+//            addGCEdge(root, o);
+//        }
+//        else
+//            throw exception();
+//    }
+//    else
+//    {
+//        auto v = current_variables->find(id);
+//        if (v == current_variables->end())
+//        {
+//            auto iter = variables_stack.top().rbegin() + 1;
+//            for (; iter != variables_stack.top().rend(); iter++)
+//            {
+//                v = iter->find(id);
+//                if (v != iter->end())
+//                    break;
+//            }
+//            if (v == iter->end())
+//                throw exception();
+//        }
+//        if (typeCheck(v->second, o))
+//        {
+//            delGCEdge(root, v->second);
+//            v->second = o;
+//            addGCEdge(root, o);
+//        }
+//        else
+//            throw exception();
+//    }
+//}
 
 bool zyd2001::NewBie::InterpreterImp::typeCheck(Object l, Object r)
 {
-    if (l.obj->type == r.obj->type)
+    if (l.obj()->type == r.obj()->type)
         return true;
     else
         return typeCheck(l.restrict_type, r);
@@ -295,9 +302,9 @@ bool zyd2001::NewBie::InterpreterImp::typeCheck(ObjectType t, Object o)
 {
     if (t == 0) //variant type
         return true;
-    if (t == o.obj->type)
+    if (t == o.obj()->type)
         return true;
-    for (auto &i : o.obj->bases)
+    for (auto &i : o.obj()->bases)
         if (t == i->type)
             return true;
     return false;
@@ -305,41 +312,41 @@ bool zyd2001::NewBie::InterpreterImp::typeCheck(ObjectType t, Object o)
 
 void zyd2001::NewBie::InterpreterImp::addGCVertex(Object o)
 {
-    if (!o.obj->cl->RAII)
-        gc_graph.addVertex(o.obj);
+    if (!o.obj()->cl->RAII)
+        gc_graph.addVertex(o.obj());
 }
 
 void zyd2001::NewBie::InterpreterImp::delGCVertex(Object o)
 {
-    if (!o.obj->cl->RAII)
+    if (!o.obj()->cl->RAII)
     {
-        gc_graph.delVertex(o.obj);
-        delete o.obj;
+        gc_graph.delVertex(o.obj());
+        delete o.obj();
     }
 }
 
 void zyd2001::NewBie::InterpreterImp::addGCEdge(object_t *v, Object w)
 {
-    if (!w.obj->cl->RAII)
-        gc_graph.addEdge(v, w.obj);
+    if (!w.obj()->cl->RAII)
+        gc_graph.addEdge(v, w.obj());
 }
 
 void zyd2001::NewBie::InterpreterImp::addGCEdge(Object v, Object w)
 {
-    if (!w.obj->cl->RAII)
-        gc_graph.addEdge(v.obj, w.obj);
+    if (!w.obj()->cl->RAII)
+        gc_graph.addEdge(v.obj(), w.obj());
 }
 
 void zyd2001::NewBie::InterpreterImp::delGCEdge(object_t *v, Object w)
 {
-    if (!w.obj->cl->RAII)
-        gc_graph.delEdge(v, w.obj);
+    if (!w.obj()->cl->RAII)
+        gc_graph.delEdge(v, w.obj());
 }
 
 void zyd2001::NewBie::InterpreterImp::delGCEdge(Object v, Object w)
 {
-    if (!w.obj->cl->RAII)
-        gc_graph.delEdge(v.obj, w.obj);
+    if (!w.obj()->cl->RAII)
+        gc_graph.delEdge(v.obj(), w.obj());
 }
 
 Class zyd2001::NewBie::InterpreterImp::findClass(Identifier id)
@@ -366,7 +373,7 @@ ParameterList zyd2001::NewBie::InterpreterImp::ArgsToParams(std::vector<Object> 
     for (auto &arg : args)
     {
         params.emplace_back(Parameter());
-        params.back().type = arg.obj->type;
+        params.back().type = arg.obj()->type;
     }
     return params;
 }

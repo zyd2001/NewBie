@@ -96,7 +96,7 @@ object_t * zyd2001::NewBie::NormalClass::makeObject(ArgumentList &args)
     return obj;
 }
 
-ObjectMapA & zyd2001::NewBie::NormalClass::makeObjectAsBase(ArgumentList &args, object_t *o)
+object_t *zyd2001::NewBie::NormalClass::makeObjectAsBase(ArgumentList &args)
 {
     
 }
@@ -105,13 +105,13 @@ object_t *zyd2001::NewBie::NativeClass::makeObject(ArgumentList &args)
 {
     object_t *obj = new object_t();
     for (auto cl : base_list)
-        obj->bases.emplace_back(cl->makeObjectAsBase(ArgumentList(), obj));
+        obj->bases.emplace_back(cl->makeObjectAsBase(ArgumentList()));
     obj = real(args, obj);
     inter->addGCVertex(obj);
     return obj;
 }
 
-ObjectMapA &zyd2001::NewBie::NativeClass::makeObjectAsBase(ArgumentList &args, object_t *o)
+object_t *zyd2001::NewBie::NativeClass::makeObjectAsBase(ArgumentList &args)
 {
 
 }
@@ -124,7 +124,7 @@ void zyd2001::NewBie::object_t::addVariable(Identifier id, Object o, AccessContr
     local_variables[id] = make_pair(o, a);
 }
 
-Object zyd2001::NewBie::object_t::getVariable(Identifier id)
+Object &zyd2001::NewBie::object_t::getVariable(Identifier id)
 {
     auto v = local_variables.find(id);
     if (v == local_variables.end())
@@ -233,9 +233,34 @@ zyd2001::NewBie::Object::Object(const Function &)
 
 Object & zyd2001::NewBie::Object::operator=(const Object &o)
 {
-    obj = o.obj;
-    return *this;
+    if (ref)
+    {
+        (*static_cast<Object*>(content)) = o;
+        return *this;
+    }
+    else
+    {
+        auto inter = obj()->inter;
+        auto ptr = o.obj();
+        if (inter->typeCheck(restrict_type, o))
+        {
+            inter->delGCEdge(belongs_to, obj());
+            content = ptr;
+            inter->addGCEdge(belongs_to, ptr);
+        }
+        else
+            throw exception();
+    }
 }
+
+object_t * zyd2001::NewBie::Object::obj() const
+{
+    if (ref)
+        return static_cast<object_t*>(static_cast<Object*>(content)->content);
+    else
+        return static_cast<object_t*>(content);
+}
+
 Object zyd2001::NewBie::Object::operator+(const Object &o) const
 {
     auto alist = ArgumentList({ make_shared<LiteralExpression>(o) });
@@ -279,7 +304,7 @@ compare(>=)
 compare(<)
 compare(<=)
 
-Object zyd2001::NewBie::Object::getVariable(Identifier id)
+Object &zyd2001::NewBie::Object::getVariable(Identifier id)
 {
     return obj->getVariable(id);
 }
@@ -287,6 +312,11 @@ Object zyd2001::NewBie::Object::getVariable(Identifier id)
 void zyd2001::NewBie::Object::changeVariable(Identifier id, Object o)
 {
     obj->changeVariable(id, o);
+}
+
+void zyd2001::NewBie::Object::refCountIncrement()
+{
+    
 }
 
 //Value::Value() : type(NULL_TYPE), content(nullptr) {}

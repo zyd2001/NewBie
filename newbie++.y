@@ -8,7 +8,7 @@
 {
 #include "NewBie_Lang.hpp"
 #include "NewBie.hpp"
-#define makeStatement(type, ...) std::make_shared<type>(&inter, yyget_lineno(scanner), __VA_ARGS__)
+#define makeStatement(type, ...) std::make_shared<type>(yyget_lineno(scanner), __VA_ARGS__)
 #define makeExpression(type, ...) std::make_shared<type>(&inter, __VA_ARGS__)
 }
 
@@ -212,13 +212,21 @@
         }
         | class_definition
         ;
-    assignment_statement: IDENTIFIER ASSIGN expression SEMICOLON
+    assignment_statement: legal_lvalue_expression ASSIGN expression SEMICOLON
         {
             $$ = makeStatement(AssignmentStatement, $1, $3);
         }
-        | dot_expression ASSIGN expression SEMICOLON
+    legal_lvalue_expression: dot_expression
         {
-            $$ = makeStatement(ObjectAssignmentStatement, $1, $3);
+            $$ = $1;
+        }
+        | function_call_expression
+        {
+            $$ = $1;
+        }
+        | IDENTIFIER
+        {
+            $$ = makeExpression(IdentifierExpression, $1);
         }
         ;
     declaration_statement: type_tag declaration_item_list SEMICOLON
@@ -328,6 +336,10 @@
         {
             $$ = makeExpression(NewObjectExpression, $2, $4);
         }
+        | THIS
+        {
+            $$ = makeExpression(ThisExpression);
+        }
         ;
     index_expression: IDENTIFIER LB expression RB
         {
@@ -351,38 +363,9 @@
             $$ = Expression(ARRAY_EXPRESSION, new ArrayExpression(std::move($2)));
         }
         ;
-    dot_expression: dot_pre_expression DOT IDENTIFIER
+    dot_expression: expression DOT IDENTIFIER
         {
             $$ = makeExpression(DotExpression, $1, $3);
-        }
-        ;
-    dot_pre_expression: primary_expression
-        {
-            $$ = $1;
-        }
-        | function_call_expression
-        {
-            $$ = $1;
-        }
-        | IDENTIFIER
-        {
-            $$ = makeExpression(IdentifierExpression, $1);
-        }
-        | LP expression RP
-        {
-            $$ = $2;
-        }
-        | index_expression
-        {
-            $$ = $1;
-        }
-        | dot_expression
-        {
-            $$ = $1;
-        }
-        | THIS
-        {
-            $$ = makeExpression(ThisExpression);
         }
         ;
     expression_optional: /* empty */
