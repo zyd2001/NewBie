@@ -1,11 +1,18 @@
 #include "NewBie_Lang.hpp"
 #include "NewBie.hpp"
 
+#include <codecvt>
+#include <locale>
+#include <cstdio>
+
 using namespace zyd2001::NewBie;
 using namespace std;
 
-#define delete_cast(...) delete static_cast<__VA_ARGS__>(content)
-#define replace(...) do {delete_cast(__VA_ARGS__); content = ptr;} while(0)
+#if defined(_MSC_VER)
+wstring_convert<codecvt_utf8<char_t>, char_t> conv;
+#elif defined(__GNUC__)
+wstring_convert<codecvt_utf8<char_t>, char_t> conv;
+#endif
 
 //extern InterpreterImp *inter;
 
@@ -140,7 +147,59 @@ using namespace std;
 //    }
 //}
 
+object_t * intCopy(InterpreterImp::Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+{
+    int &i = args[0]->get()->useNativePointer<int>();
+    return new object_t(runner.getInter(), i);
+}
+#define intBiOp(name, op)\
+object_t * int ## name (InterpreterImp::Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)\
+{\
+    int &i1 = args[0]->get()->useNativePointer<int>();\
+    int &i2 = args[1]->get()->useNativePointer<int>();\
+    return new object_t(runner.getInter(), i1 op i2);\
+}
+intBiOp(Add, +)
+intBiOp(Add, -)
+intBiOp(Add, *)
+intBiOp(Add, /)
+intBiOp(Add, %)
+object_t * intComp(InterpreterImp::Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+{
+    int &i1 = args[0]->get()->useNativePointer<int>();
+    int &i2 = args[1]->get()->useNativePointer<int>();
+    return new object_t(runner.getInter(), i1 - i2);
+}
+object_t * intNegate(InterpreterImp::Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+{
+    int &i = args[0]->get()->useNativePointer<int>();
+    return new object_t(runner.getInter(), -i);
+}
+object_t * intCopy(InterpreterImp::Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+{
+    int &i = args[0]->get()->useNativePointer<int>();
+    return new object_t(runner.getInter(), i);
+}
+object_t * intToBool(InterpreterImp::Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+{
+    int &i = args[0]->get()->useNativePointer<int>();
+    return new object_t(runner.getInter(), bool(i));
+}
+object_t * intDtor(InterpreterImp::Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+{
+    delete static_cast<int*>(args[0]->get()->native_ptr);
+    return runner.getInter->null;
+}
+
+Class intClass = make_shared<NativeClass>();
+Class doubleClass = make_shared<NativeClass>();
+Class booleanClass = make_shared<NativeClass>();
+Class stringClass = make_shared<NativeClass>();
+
+std::array<Class, 4> primitive_class = { intClass, doubleClass, booleanClass, stringClass };
+
 String::String() : ptr(make_shared<basic_string<char_t>>()) {}
+String::String(const std::string &s) : ptr(make_shared<basic_string<char_t>>(conv.from_bytes(s))) {}
 String::String(const char_t *str) : ptr(make_shared<basic_string<char_t>>(str)) {}
 String::String(const basic_string<char_t> &str) : ptr(make_shared<basic_string<char_t>>(str)) {}
 String::String(const String &str) : ptr(str.ptr) {}
@@ -163,7 +222,10 @@ String &String::operator=(const String &str)
 }
 bool String::operator==(const String &str) const
 {
-    return *(this->ptr) == *str.ptr;
+    if (this->ptr == str.ptr)
+        return true;
+    else
+        return *(this->ptr) == *str.ptr;
 }
 
 bool zyd2001::NewBie::String::operator>(const String &s) const
@@ -210,114 +272,125 @@ std::size_t ParamsHash::operator()(const ParameterList& p) const
     return seed;
 }
 
-Object zyd2001::NewBie::NormalFunction::call(InterpreterImp::Runner &runner, ArgumentList &alist)
+String intToString(int &i)
 {
-    if (cl.get() != nullptr)
-    {
-        useClass(cl);
-        return real_call(runner, alist);
-    }
-    else if (obj != nullptr)
-    {
-        useObject(obj);
-        return real_call(runner, alist);
-    }
-    else
-        return real_call(runner, alist);
+    return String(std::to_string(i));
 }
 
-Object zyd2001::NewBie::NormalFunction::real_call(InterpreterImp::Runner &runner, ArgumentList &alist)
+object_t * zyd2001::NewBie::object_t::makeInt(InterpreterImp * inter, const int &i)
 {
-    if (can_overload)
-    {
-        auto args = inter->resolveArgumentList(alist);
-        auto func = overload_map.find(inter->ArgsToParams(args));
-        if (func != overload_map.end())
-        {
-            newVariablesStack();
-            for (int i = 0; i < func->first.size(); i++)
-                inter->declareVariable(func->first[i].identifier, func->first[i].type, args[i]);
-            return runner.execute(func->second);
-        }
-        else
-            throw exception();
-    }
-    else
-    {
-        auto args = inter->resolveArgumentList(alist);
-        auto func = overload_map.begin();
-        newVariablesStack();
-        for (int i = 0; i < func->first.size(); i++)
-            inter->declareVariable(func->first[i].identifier, func->first[i].type, (i < args.size() ? args[i] : func->first[i].default_value_exp->evaluate()));
-        return runner.execute(func->second);
-    }
+    object_t * o = new object_t(inter, primitive_class[0]);
+    o->native_ptr = new int(i);
 }
 
-Object zyd2001::NewBie::NativeFunction::call(InterpreterImp::Runner &runner, ArgumentList &alist)
-{
-    useObject(obj);
-    auto args = inter->resolveArgumentList(alist);
-    newVariablesStack();
-    if (can_overload)
-        return native_func.at(inter->ArgsToParams(args))(args, obj);
-    else
-        return native_func.begin()->second(args, obj);
-}
-
-Object zyd2001::NewBie::NativeStaticFunction::call(InterpreterImp::Runner &runner, ArgumentList &alist)
-{
-    useClass(cl);
-    auto args = inter->resolveArgumentList(alist);
-    newVariablesStack();
-    if (can_overload)
-        return native_func.at(inter->ArgsToParams(args))(args, cl);
-    else
-        return native_func.begin()->second(args, cl);
-}
-
-//Value InterpreterImp::callFunc(Function &func, ArgumentList &alist)
+//Object zyd2001::NewBie::NormalFunction::call(InterpreterImp::Runner &runner, ArgumentList &alist)
 //{
-//    //initialize the function local variables
-//    StatementList temp_slist;
-//    vector<Expression> temp_elist;
-//    ParameterList temp_plist;
-//    for (auto &arg : alist)
+//    if (cl.get() != nullptr)
 //    {
-//        temp_elist.emplace_back(Expression(LITERAL_EXPRESSION, new Value(evaluate(arg))));
-//        temp_plist.emplace_back(Parameter());
-//        temp_plist.back().type = temp_elist.back().get<LiteralExpression>().type;
+//        useClass(cl);
+//        return real_call(runner, alist);
 //    }
-//
-//    variables_stack.push(make_stack_unit());
-//    (*variables_stack.top()).push_back(VariableMap());
-//    decltype(func->overload_map.begin()) fbody;
-//
-//    if (func->can_overload)
+//    else if (obj != nullptr)
 //    {
-//        fbody = func->overload_map.find(temp_plist);
-//        if (fbody == func->overload_map.cend())
-//            err();
+//        useObject(obj);
+//        return real_call(runner, alist);
 //    }
 //    else
-//        fbody = func->overload_map.begin();
+//        return real_call(runner, alist);
+//}
 //
-//    auto eiter = temp_elist.cbegin();
-//    for (auto param = fbody->first.cbegin(); param != fbody->first.cend(); param++)
+//Object zyd2001::NewBie::NormalFunction::real_call(InterpreterImp::Runner &runner, ArgumentList &alist)
+//{
+//    if (can_overload)
 //    {
-//        DeclarationStatementItemList item;
-//        if (eiter != temp_elist.cend())
+//        auto args = inter->resolveArgumentList(alist);
+//        auto func = overload_map.find(inter->ArgsToParams(args));
+//        if (func != overload_map.end())
 //        {
-//            item.emplace_back(std::move(DeclarationStatementItem{ std::move(param->identifier), *eiter }));
-//            eiter++;
+//            newVariablesStack();
+//            for (int i = 0; i < func->first.size(); i++)
+//                inter->declareVariable(func->first[i].identifier, func->first[i].type, args[i]);
+//            return runner.execute(func->second);
 //        }
 //        else
-//            item.emplace_back(std::move(DeclarationStatementItem{ std::move(param->identifier), param->default_value_exp }));
-//        Statement temp(DECLARATION_STATEMENT, new (DeclarationStatement){ false, param->type, item }, -1);
-//        execute(temp);
+//            throw exception();
 //    }
-//
-//    interpret(fbody->second.get<BlockStatement>());
-//    variables_stack.pop();
-//
-//    return temp_variable;
+//    else
+//    {
+//        auto args = inter->resolveArgumentList(alist);
+//        auto func = overload_map.begin();
+//        newVariablesStack();
+//        for (int i = 0; i < func->first.size(); i++)
+//            inter->declareVariable(func->first[i].identifier, func->first[i].type, (i < args.size() ? args[i] : func->first[i].default_value_exp->evaluate()));
+//        return runner.execute(func->second);
+//    }
 //}
+//
+//Object zyd2001::NewBie::NativeFunction::call(InterpreterImp::Runner &runner, ArgumentList &alist)
+//{
+//    useObject(obj);
+//    auto args = inter->resolveArgumentList(alist);
+//    newVariablesStack();
+//    if (can_overload)
+//        return native_func.at(inter->ArgsToParams(args))(args, obj);
+//    else
+//        return native_func.begin()->second(args, obj);
+//}
+//
+//Object zyd2001::NewBie::NativeStaticFunction::call(InterpreterImp::Runner &runner, ArgumentList &alist)
+//{
+//    useClass(cl);
+//    auto args = inter->resolveArgumentList(alist);
+//    newVariablesStack();
+//    if (can_overload)
+//        return native_func.at(inter->ArgsToParams(args))(args, cl);
+//    else
+//        return native_func.begin()->second(args, cl);
+//}
+//
+////Value InterpreterImp::callFunc(Function &func, ArgumentList &alist)
+////{
+////    //initialize the function local variables
+////    StatementList temp_slist;
+////    vector<Expression> temp_elist;
+////    ParameterList temp_plist;
+////    for (auto &arg : alist)
+////    {
+////        temp_elist.emplace_back(Expression(LITERAL_EXPRESSION, new Value(evaluate(arg))));
+////        temp_plist.emplace_back(Parameter());
+////        temp_plist.back().type = temp_elist.back().get<LiteralExpression>().type;
+////    }
+////
+////    variables_stack.push(make_stack_unit());
+////    (*variables_stack.top()).push_back(VariableMap());
+////    decltype(func->overload_map.begin()) fbody;
+////
+////    if (func->can_overload)
+////    {
+////        fbody = func->overload_map.find(temp_plist);
+////        if (fbody == func->overload_map.cend())
+////            err();
+////    }
+////    else
+////        fbody = func->overload_map.begin();
+////
+////    auto eiter = temp_elist.cbegin();
+////    for (auto param = fbody->first.cbegin(); param != fbody->first.cend(); param++)
+////    {
+////        DeclarationStatementItemList item;
+////        if (eiter != temp_elist.cend())
+////        {
+////            item.emplace_back(std::move(DeclarationStatementItem{ std::move(param->identifier), *eiter }));
+////            eiter++;
+////        }
+////        else
+////            item.emplace_back(std::move(DeclarationStatementItem{ std::move(param->identifier), param->default_value_exp }));
+////        Statement temp(DECLARATION_STATEMENT, new (DeclarationStatement){ false, param->type, item }, -1);
+////        execute(temp);
+////    }
+////
+////    interpret(fbody->second.get<BlockStatement>());
+////    variables_stack.pop();
+////
+////    return temp_variable;
+////}

@@ -1,298 +1,304 @@
 #include "NewBie_Lang.hpp"
 #include "NewBie.hpp"
 
-#include <codecvt>
-#include <locale>
-#include <cstdio>
-
 using namespace zyd2001::NewBie;
 using namespace std;
 
-//extern InterpreterImp *inter;
-
-#if defined(_MSC_VER)
-wstring_convert<codecvt_utf8<char_t>, char_t> conv;
-#elif defined(__GNUC__)
-wstring_convert<codecvt_utf8<char_t>, char_t> conv;
-#endif
-
-void zyd2001::NewBie::class_t::addStaticVariable(Identifier id, Object o, AccessControl a)
+void zyd2001::NewBie::class_t::addStaticVariable(Identifier id, object_t * o, AccessControl a)
 {
     if (static_variables.find(id) != static_variables.end())
         throw exception();
     inter->addGCEdge(inter->root, o);
-    static_variables[id] = make_pair(o, a);
+    static_variables[id] = o;
 }
 
-Object zyd2001::NewBie::class_t::getStaticVariable(Identifier id)
+ObjectContainer zyd2001::NewBie::class_t::getStaticVariable(Identifier id)
 {
-    auto v = static_variables.at(id);
-    switch (v.second)
-    {
-        case PUBLIC:
-        case READONLY:
-            return v.first;
-        case PRIVATE:
-            if (inter->in_class && inter->current_class == this)
-                return v.first;
-            else
-                throw exception();
-    }
+    return static_variables.at(id);
 }
 
-void zyd2001::NewBie::class_t::changeStaticVariable(Identifier id, Object o)
+object_t * zyd2001::NewBie::NormalClass::makeObject(InterpreterImp::Runner &runner, ArgumentList &alist)
 {
-    auto v = static_variables.at(id);
-    switch (v.second)
+    object_t * obj = new object_t(inter, make_shared<class_t>(this));
+    auto args = runner.resolveArgumentList(alist);
+    auto plist = runner.ArgsToParams(args);
+    auto constructor = ctor->overload_map.at(plist);
+    for (int i = 0; i < base_list.size(); i++)
     {
-        case PUBLIC:
-            if (inter->typeCheck(v.first, o))
+        auto b = base_list[i]->makeObjectAsBase(runner, constructor.base_args[i], obj);
+        obj->bases.emplace_back(b);
+        obj->bases_mapped.emplace(b->type, b);
+        for (auto &item : b->local_variables)
+        {
+            switch (item.second.visibility)
             {
-                inter->delGCEdge(inter->root, v.first);
-                v.first = o;
-                inter->addGCEdge(inter->root, o);
+                case PUBLIC:
+                case PROTECTED:
+                    obj->local_variables[item.first] = item.second;
             }
-            else
-                throw exception();
-        case PRIVATE:
-        case READONLY:
-            if (inter->in_class && inter->current_class == this)
-            {
-                if (inter->typeCheck(v.first, o))
-                {
-                    inter->delGCEdge(inter->root, v.first);
-                    v.first = o;
-                    inter->addGCEdge(inter->root, o);
-                }
-                else
-                    throw exception();
-            }
-            else
-                throw exception();
+        }
     }
-}
 
-object_t * zyd2001::NewBie::NormalClass::makeObject(ArgumentList &args)
-{
-    object_t *obj = new object_t();
-    obj->cl = make_shared<class_t>(this);
-    obj->type = type;
-    obj->type_name = type_name;
-    for (auto &cl : base_list)
+    for (auto &item : variables)
     {
-        
+        if (get<Expression>(item.second).get() != nullptr)
+            obj->addVariable(item.first, get<ObjectType>(item.second), runner.evaluate(get<Expression>(item.second))->get(), get<AccessControl>(item.second));
+        else
+            obj->addVariable(item.first, get<ObjectType>(item.second), get<AccessControl>(item.second));
     }
-    //for (auto cl : base_list)
-    //    obj->bases.emplace_back(cl->makeObject(ArgumentList()));
-    //for (auto v : variables)
-    //{
-    //    if (get<Expression>(v.second).get() != nullptr)
-    //        obj->addVariable(v.first, Object(inter->class_map.second[get<ObjectType>(v.second)]->makeObject(ArgumentList())), get<AccessControl>(v.second));
-    //    else
-    //        obj->addVariable(v.first, get<Expression>(v.second)->evaluate(), get<AccessControl>(v.second));
-    //}
-    //ctor->call(args, obj);
+    runner.call(constructor.stat, args);
     inter->addGCVertex(obj);
     return obj;
 }
 
-object_t *zyd2001::NewBie::NormalClass::makeObjectAsBase(ArgumentList &args)
+object_t * zyd2001::NewBie::NormalClass::makeObjectAsBase(InterpreterImp::Runner &runner, ArgumentList &alist, object_t * o)
 {
-    
-}
+    object_t * obj;
 
-object_t *zyd2001::NewBie::NativeClass::makeObject(ArgumentList &args)
-{
-    object_t *obj = new object_t();
-    for (auto cl : base_list)
-        obj->bases.emplace_back(cl->makeObjectAsBase(ArgumentList()));
-    obj = real(args, obj);
-    inter->addGCVertex(obj);
-    return obj;
-}
-
-object_t *zyd2001::NewBie::NativeClass::makeObjectAsBase(ArgumentList &args)
-{
-
-}
-
-void zyd2001::NewBie::object_t::addVariable(Identifier id, Object o, AccessControl a)
-{
-    if (local_variables.find(id) != local_variables.end())
-        throw exception();
-    inter->addGCEdge(this, o);
-    local_variables[id] = make_pair(o, a);
-}
-
-Object &zyd2001::NewBie::object_t::getVariable(Identifier id)
-{
-    auto v = local_variables.find(id);
-    if (v == local_variables.end())
-        for (auto base : bases)
-        {
-            v = base->local_variables.find(id);
-            if (v != base->local_variables.end())
-                break;
-        }
-    if (v == bases.back()->local_variables.end())
-        throw exception();
-    switch (v->second.second)
-    {
-        case PUBLIC:
-        case READONLY:
-            return v->second.first;
-            break;
-        case PRIVATE:
-            if (inter->in_object && inter->current_object == this)
-                return v->second.first;
-            else
-                throw exception();
-            break;
-    }
-}
-
-void zyd2001::NewBie::object_t::changeVariable(Identifier id, Object o)
-{
-    auto v = local_variables.find(id);
-    if (v == local_variables.end())
-        for (auto base : bases)
-        {
-            v = base->local_variables.find(id);
-            if (v != base->local_variables.end())
-                break;
-        }
-    if (v == bases.back()->local_variables.end())
-        throw exception();
-    switch (v->second.second)
-    {
-        case PUBLIC:
-            if (inter->typeCheck(v->second.first, o))
-            {
-                inter->delGCEdge(this, v->second.first);
-                v->second.first = o;
-                inter->addGCEdge(this, o);
-            }
-            else
-                throw exception();
-            break;
-        case READONLY:
-        case PRIVATE:
-            if (inter->in_object && inter->current_object == this)
-            {
-                if (inter->typeCheck(v->second.first, o))
-                {
-                    inter->delGCEdge(this, v->second.first);
-                    v->second.first = o;
-                    inter->addGCEdge(this, o);
-                }
-                else
-                    throw exception();
-            }
-            else
-                throw exception();
-            break;
-    }
-}
-
-zyd2001::NewBie::object_t::~object_t()
-{
-    if (native_ptr != nullptr)
-        cl->native_deleter(native_ptr);
-    for (auto i : bases)
-        delete i;
-}
-
-zyd2001::NewBie::Object::Object(object_t *o) : obj(o), restrict_type(o->type)
-{
-    //inter->addGCVertex(node);
-    //if (inter->in_object)
-    //    inter->gc_graph.addEdge(inter->current_object, node);
-    //else
-    //    inter->gc_graph.addEdge(inter->root, node);
-    //node->ref_count++;
-}
-
-Object::Object(const Object &o) : obj(o.obj), restrict_type(o.restrict_type) 
-{}
-
-zyd2001::NewBie::Object::Object(const int &i)
-{
-}
-
-zyd2001::NewBie::Object::Object(const double &d)
-{}
-
-zyd2001::NewBie::Object::Object(const bool &b)
-{}
-
-zyd2001::NewBie::Object::Object(const String &str)
-{}
-
-zyd2001::NewBie::Object::Object(const Function &)
-{}
-
-Object & zyd2001::NewBie::Object::operator=(const Object &o)
-{
-    if (ref)
-    {
-        (*static_cast<Object*>(content)) = o;
-        return *this;
-    }
+    //check if object of this type is already constructed
+    auto iter = o->all_bases.find(type); 
+    if (iter != o->all_bases.end())
+        obj = iter->second;
     else
     {
-        auto inter = obj()->inter;
-        auto ptr = o.obj();
-        if (inter->typeCheck(restrict_type, o))
+        obj = new object_t(inter, make_shared<class_t>(this));
+        o->all_bases[type] = obj;
+    }
+
+    auto args = runner.resolveArgumentList(alist);
+    auto plist = runner.ArgsToParams(args);
+    auto constructor = ctor->overload_map.at(plist);
+    for (int i = 0; i < base_list.size(); i++)
+    {
+        object_t * b = base_list[i]->makeObjectAsBase(runner, constructor.base_args[i], o); //use 'o' to pass the object already constructed
+        obj->bases.emplace_back(b);
+        obj->bases_mapped.emplace(b->type, b);
+        for (auto &item : b->local_variables)
         {
-            inter->delGCEdge(belongs_to, obj());
-            content = ptr;
-            inter->addGCEdge(belongs_to, ptr);
+            switch (item.second.visibility)
+            {
+                case PUBLIC:
+                case PROTECTED:
+                    obj->local_variables[item.first] = item.second;
+            }
+        }
+    }
+    for (auto &item : variables)
+    {
+        if (get<Expression>(item.second).get() != nullptr)
+            obj->addVariable(item.first, get<ObjectType>(item.second), runner.evaluate(get<Expression>(item.second))->get(), get<AccessControl>(item.second));
+        else
+            obj->addVariable(item.first, get<ObjectType>(item.second), get<AccessControl>(item.second));
+    }
+    runner.call(constructor.stat, args);
+    return obj;
+}
+
+object_t * zyd2001::NewBie::NativeClass::makeObject(InterpreterImp::Runner &runner, ArgumentList &alist)
+{
+    object_t * obj = new object_t(inter, make_shared<class_t>(this));
+    auto args = runner.resolveArgumentList(alist);
+    auto plist = runner.ArgsToParams(args);
+    auto constructor = ctor->overload_map.at(plist);
+    for (int i = 0; i < base_list.size(); i++)
+    {
+        object_t * b = base_list[i]->makeObjectAsBase(runner, constructor.base_args[i], obj);
+        obj->bases.emplace_back(b);
+        obj->bases_mapped.emplace(b->type, b);
+        for (auto &item : b->local_variables)
+        {
+            switch (item.second.visibility)
+            {
+                case PUBLIC:
+                case PROTECTED:
+                    obj->local_variables[item.first] = item.second;
+            }
+        }
+    }
+    real(args, obj);
+    inter->addGCVertex(obj);
+    return obj;
+}
+
+object_t * zyd2001::NewBie::NativeClass::makeObjectAsBase(InterpreterImp::Runner &runner, ArgumentList &alist, object_t * o)
+{
+    object_t * obj;
+
+    //check if object of this type is already constructed
+    auto iter = o->all_bases.find(type);
+    if (iter != o->all_bases.end())
+        obj = iter->second;
+    else
+    {
+        obj = new object_t(inter, make_shared<class_t>(this));
+        o->all_bases[type] = obj;
+    }
+
+    auto args = runner.resolveArgumentList(alist);
+    auto plist = runner.ArgsToParams(args);
+    auto constructor = ctor->overload_map.at(plist);
+    for (int i = 0; i < base_list.size(); i++)
+    {
+        object_t * b = base_list[i]->makeObjectAsBase(runner, constructor.base_args[i], o); //use 'o' to pass the object already constructed
+        obj->bases.emplace_back(b);
+        obj->bases_mapped.emplace(b->type, b);
+        for (auto &item : b->local_variables)
+        {
+            switch (item.second.visibility)
+            {
+                case PUBLIC:
+                case PROTECTED:
+                    obj->local_variables[item.first] = item.second;
+            }
+        }
+    }
+    real(args, obj);
+    return obj;
+}
+
+bool zyd2001::NewBie::object_container_t::typeCheck(object_t * o)
+{
+    if (restrict_type == 1) //variant type
+        return true;
+    if (obj->type == o->type)
+        return true;
+    if (restrict_type == o->type)
+        return true;
+    else
+    {
+        for (auto &b : o->all_bases)
+            if (restrict_type == b.second->type)
+                return true;
+        return false;
+    }
+}
+
+void zyd2001::NewBie::object_container_t::set(object_t * o)
+{
+    if (isConst)
+        throw exception();
+    else
+    {
+        if (typeCheck(o))
+        {
+            if (belongs_to == nullptr) //is a temp container
+                obj = o;
+            else
+            {
+                inter->delGCEdge(belongs_to, obj);
+                obj = o;
+                inter->addGCEdge(belongs_to, o);
+            }
         }
         else
             throw exception();
     }
 }
 
-object_t * zyd2001::NewBie::Object::obj() const
+object_t * zyd2001::NewBie::object_container_t::get()
 {
-    if (ref)
-        return static_cast<object_t*>(static_cast<Object*>(content)->content);
+    if (obj != nullptr)
+        return obj;
     else
-        return static_cast<object_t*>(content);
+        return inter->null;
 }
 
-Object zyd2001::NewBie::Object::operator+(const Object &o) const
+void object_t::addVariable(Identifier id, ObjectType t, AccessControl visibility)
+{
+    local_variables[id] = MapItem{ make_shared<object_container_t>(inter, t, this), visibility };
+}
+
+void zyd2001::NewBie::object_t::addVariable(Identifier id, object_t * o, AccessControl visibility)
+{
+    local_variables[id] = MapItem{ make_shared<object_container_t>(inter, o, this), visibility };
+}
+
+void zyd2001::NewBie::object_t::addVariable(Identifier id, ObjectType t, object_t *o, AccessControl visibility)
+{    
+    local_variables[id] = MapItem{ make_shared<object_container_t>(inter, t, o, this), visibility };
+}
+
+ObjectContainer zyd2001::NewBie::object_t::getVariable(InterpreterImp::Runner &runner, Identifier id)
+{
+    auto item = local_variables.at(id);
+    switch (item.visibility)
+    {
+        case PUBLIC:
+            return item.o;
+            break;
+        case PROTECTED:
+        case PRIVATE:
+            if (runner.current_object == this)
+                return item.o;
+            else
+                throw exception();
+            break;
+    }
+}
+
+ObjectContainer zyd2001::NewBie::object_t::getSuperVariable(InterpreterImp::Runner &runner, ObjectType type, Identifier id)
+{
+    bases_mapped.at(type)->getVariableFromDerived(runner, id);
+}
+
+zyd2001::NewBie::object_t::~object_t()
+{
+    if (native_ptr != nullptr)
+        cl->native_deleter(native_ptr);
+    for (auto i : all_bases) //base object has no object_t * in all_bases
+        delete i.second;
+}
+
+ObjectContainer zyd2001::NewBie::object_t::getVariableFromDerived(InterpreterImp::Runner &runner, Identifier id)
+{
+    auto item = local_variables.at(id);
+    switch (item.visibility)
+    {
+        case PUBLIC:
+        case PROTECTED:
+            return item.o;
+            break;
+        case PRIVATE:
+            if (runner.current_object == this)
+                return item.o;
+            else
+                throw exception();
+            break;
+    }
+}
+
+object_t zyd2001::NewBie::object_t::operator+(const object_t &o) const
 {
     auto alist = ArgumentList({ make_shared<LiteralExpression>(o) });
     return obj->op[0]->call(alist, obj);
 }
-Object zyd2001::NewBie::Object::operator-(const Object &o) const
+object_t zyd2001::NewBie::object_t::operator-(const object_t &o) const
 {
     auto alist = ArgumentList({ make_shared<LiteralExpression>(o) });
     return obj->op[1]->call(alist, obj);
 }
-Object zyd2001::NewBie::Object::operator*(const Object &o) const
+object_t zyd2001::NewBie::object_t::operator*(const object_t &o) const
 {
     auto alist = ArgumentList({ make_shared<LiteralExpression>(o) });
     return obj->op[2]->call(alist, obj);
 }
-Object zyd2001::NewBie::Object::operator/(const Object &o) const
+object_t zyd2001::NewBie::object_t::operator/(const object_t &o) const
 {
     auto alist = ArgumentList({ make_shared<LiteralExpression>(o) });
     return obj->op[3]->call(alist, obj);
 }
-Object zyd2001::NewBie::Object::operator%(const Object &o) const
+object_t zyd2001::NewBie::object_t::operator%(const object_t &o) const
 {
     auto alist = ArgumentList({ make_shared<LiteralExpression>(o) });
     return obj->op[4]->call(alist, obj);
 }
-Object Object::operator-() const
+object_t object_t::operator-() const
 {
     return obj->op[5]->call(ArgumentList(), obj);
 }
 
 #define compare(tag)\
-bool zyd2001::NewBie::Object::operator##tag (const Object &o) const\
+bool zyd2001::NewBie::object_t::operator##tag (const object_t &o) const\
 {\
     auto alist = ArgumentList({ make_shared<LiteralExpression>(o) });\
     return obj->op[6]->call(alist, obj) tag 0;\
@@ -303,21 +309,6 @@ compare(>)
 compare(>=)
 compare(<)
 compare(<=)
-
-Object &zyd2001::NewBie::Object::getVariable(Identifier id)
-{
-    return obj->getVariable(id);
-}
-
-void zyd2001::NewBie::Object::changeVariable(Identifier id, Object o)
-{
-    obj->changeVariable(id, o);
-}
-
-void zyd2001::NewBie::Object::refCountIncrement()
-{
-    
-}
 
 //Value::Value() : type(NULL_TYPE), content(nullptr) {}
 //Value::Value(Value &&v) : type(v.type), various(v.various), content(v.content)
@@ -458,7 +449,7 @@ void zyd2001::NewBie::Object::refCountIncrement()
 //            delete_cast(Function*);
 //            break;
 //        default: // an object type
-//            delete_cast(Object*);
+//            delete_cast(object_t*);
 //            break;
 //    }
 //}

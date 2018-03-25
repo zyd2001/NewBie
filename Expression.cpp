@@ -205,6 +205,73 @@ using namespace std;
 //    return temp_variable;
 //}
 
+template<typename T>
+T &getExpression(Expression &e)
+{
+    return static_cast<T>(e.get());
+}
+
+ObjectContainer zyd2001::NewBie::InterpreterImp::Runner::evaluate(Expression &e)
+{
+    switch (e->type())
+    {
+        case IDENTIFIER_EXPRESSION:
+            return variable_stack.top().back().at(getExpression<IdentifierExpression*>(e)->id);
+        case LITERAL_EXPRESSION:
+            return getExpression<LiteralExpression*>(e)->obj;
+        case BINARY_EXPRESSION:
+        {
+            auto exp = getExpression<BinaryExpression*>(e);
+            switch (exp->ty)
+            {
+                case ADD:
+                    return OContainer(evaluate(exp->lexp)->get()->add(evaluate(exp->rexp)->get()));
+                case SUB:
+                    return OContainer(evaluate(exp->lexp)->get()->sub(evaluate(exp->rexp)->get()));
+                case MUL:
+                    return OContainer(evaluate(exp->lexp)->get()->mul(evaluate(exp->rexp)->get()));
+                case DIV:
+                    return OContainer(evaluate(exp->lexp)->get()->div(evaluate(exp->rexp)->get()));
+                case MOD:
+                    return OContainer(evaluate(exp->lexp)->get()->mod(evaluate(exp->rexp)->get()));
+                case EQ:
+                    return OContainer(evaluate(exp->lexp)->get()->eq(evaluate(exp->rexp)->get()));
+                case NE:
+                    return OContainer(evaluate(exp->lexp)->get()->ne(evaluate(exp->rexp)->get()));
+                case GT:
+                    return OContainer(evaluate(exp->lexp)->get()->gt(evaluate(exp->rexp)->get()));
+                case GE:
+                    return OContainer(evaluate(exp->lexp)->get()->ge(evaluate(exp->rexp)->get()));
+                case LT:
+                    return OContainer(evaluate(exp->lexp)->get()->lt(evaluate(exp->rexp)->get()));
+                case LE:
+                    return OContainer(evaluate(exp->lexp)->get()->le(evaluate(exp->rexp)->get()));
+                case AND:
+                    return OContainer(evaluate(exp->lexp)->get()->and(evaluate(exp->rexp)->get()));
+                case OR:
+                    return OContainer(evaluate(exp->lexp)->get()->or(evaluate(exp->rexp)->get()));
+            }
+        }
+        case UNARY_EXPRESSION:
+        {
+            auto exp = getExpression<UnaryExpression*>(e);
+            switch (exp->ty)
+            {
+                case NEGATE:
+                    return OContainer(evaluate(exp->exp)->get()->negate());
+                case NOT:
+                    return OContainer(!evaluate(exp->exp)->get()->toBool());
+            }
+        }
+        case FUNCTION_CALL_EXPRESSION:
+        {
+            auto exp = getExpression<FunctionCallExpression*>(e);
+            auto func = evaluate(exp->func);
+            return OContainer(func->get()->call(exp->alist));
+        }
+    }
+}
+
 Object zyd2001::NewBie::IdentifierExpression::evaluate()
 {
     return inter->getVariable(id);

@@ -372,14 +372,14 @@ StatementType zyd2001::NewBie::InterpreterImp::Runner::execute(Statement &s)
         case ASSIGNMENT_STATEMENT:
         {
             auto assign = getStatement<AssignmentStatement*>(s);
-            evaluate(assign->lvalue) = evaluate(assign->rvalue);
+            evaluate(assign->lvalue)->set(evaluate(assign->rvalue)->get());
             return ASSIGNMENT_STATEMENT;
             break;
         }
         case IF_STATEMENT:
         {
             auto ifs = getStatement<IfStatement*>(s);
-            if (evaluate(ifs->condition))
+            if (B(evaluate(ifs->condition)))
             {
                 newVariablesScope();
                 return execute(ifs->stat);
@@ -389,7 +389,7 @@ StatementType zyd2001::NewBie::InterpreterImp::Runner::execute(Statement &s)
                 if (ifs->elseif.size() > 0)
                 {
                     for (auto &i : ifs->elseif)
-                        if (evaluate(i.condition))
+                        if (B(evaluate(i.condition)))
                         {
                             newVariablesScope();
                             return execute(i.stat);
@@ -408,7 +408,7 @@ StatementType zyd2001::NewBie::InterpreterImp::Runner::execute(Statement &s)
         {
             auto fors = getStatement<ForStatement*>(s);
             newVariablesScope();
-            for (execute(fors->pre); evaluate(fors->condition); execute(fors->after))
+            for (execute(fors->pre); B(evaluate(fors->condition)); execute(fors->after))
             {
                 auto result = execute(fors->stat);
                 if (result == CONTINUE_STATEMENT)
@@ -438,9 +438,9 @@ StatementType zyd2001::NewBie::InterpreterImp::Runner::execute(Statement &s)
                         return result;
                     else
                         return WHILE_STATEMENT;
-                } while (evaluate(whiles->condition));
+                } while (B(evaluate(whiles->condition)));
             else
-                while (evaluate(whiles->condition))
+                while (B(evaluate(whiles->condition)))
                 {
                     auto result = execute(whiles->stat);
                     if (result == CONTINUE_STATEMENT)
@@ -456,7 +456,7 @@ StatementType zyd2001::NewBie::InterpreterImp::Runner::execute(Statement &s)
         }
         case RETURN_STATEMENT:
         {
-            temp_obj = evaluate(getStatement<ReturnStatement*>(s)->exp);
+            temp_obj->set(evaluate(getStatement<ReturnStatement*>(s)->exp)->get());
             return RETURN_STATEMENT;
             break;
         }
