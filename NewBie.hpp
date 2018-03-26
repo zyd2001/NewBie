@@ -714,7 +714,7 @@ namespace zyd2001
             object_t * null;
             int current_lineno;
             long class_count = 0;
-            DirectedGraph<object_t *> gc_graph;
+            DirectedGraphM<object_t *> gc_graph;
             ObjectMap *current_variables;
             std::array<Class, 5> primitive_class;
 
