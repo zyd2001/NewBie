@@ -85,10 +85,17 @@ object_t * zyd2001::NewBie::NormalClass::makeObjectAsBase(InterpreterImp::Runner
     }
     for (auto &item : variables)
     {
-        if (get<Expression>(item.second).get() != nullptr)
-            obj->addVariable(item.first, get<ObjectType>(item.second), runner.evaluate(get<Expression>(item.second))->get(), get<AccessControl>(item.second));
+        if (get<ObjectType>(item.second) == 6)
+        {
+
+        }
         else
-            obj->addVariable(item.first, get<ObjectType>(item.second), get<AccessControl>(item.second));
+        {
+            if (get<Expression>(item.second).get() != nullptr)
+                obj->addVariable(item.first, get<ObjectType>(item.second), runner.evaluate(get<Expression>(item.second))->get(), get<AccessControl>(item.second));
+            else
+                obj->addVariable(item.first, get<ObjectType>(item.second), get<AccessControl>(item.second));
+        }
     }
     runner.call(constructor.stat, args);
     return obj;
@@ -173,21 +180,26 @@ bool zyd2001::NewBie::object_container_t::typeCheck(object_t * o)
     }
 }
 
-void zyd2001::NewBie::object_container_t::set(object_t * o)
+void zyd2001::NewBie::object_container_t::set(InterpreterImp::Runner &runner, ObjectContainer oc) // temporary ObjectContainer can only use once
 {
     if (isConst)
         throw exception();
     else
     {
+        auto o = oc->get();
         if (typeCheck(o))
         {
-            if (belongs_to == nullptr) //is a temp container
+            if (belongs_to == nullptr)
                 obj = o;
             else
             {
-                inter->delGCEdge(belongs_to, obj);
+                belongs_to->inter->delGCEdge(belongs_to, obj);
+                if (obj != nullptr && obj->cl->RAII)
+                    delete obj;
+                if (o->cl->RAII && oc->belongs_to != nullptr)
+                    o = o->cl->copy_ctor->call(runner, ArgumentList{ makeArgument(o) })->get();
                 obj = o;
-                inter->addGCEdge(belongs_to, o);
+                belongs_to->inter->addGCEdge(belongs_to, obj);
             }
         }
         else
@@ -200,7 +212,7 @@ object_t * zyd2001::NewBie::object_container_t::get()
     if (obj != nullptr)
         return obj;
     else
-        return inter->null;
+        throw exception();
 }
 
 void object_t::addVariable(Identifier id, ObjectType t, AccessControl visibility)

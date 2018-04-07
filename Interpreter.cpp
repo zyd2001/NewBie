@@ -310,43 +310,41 @@ bool zyd2001::NewBie::InterpreterImp::typeCheck(ObjectType t, Object o)
     return false;
 }
 
-void zyd2001::NewBie::InterpreterImp::addGCVertex(Object o)
+void zyd2001::NewBie::InterpreterImp::addGCVertex(object_t * o)
 {
-    if (!o.obj()->cl->RAII)
-        gc_graph.addVertex(o.obj());
+    if (o != nullptr && !o->cl->RAII)
+        gc_graph.addVertex(o);
 }
 
-void zyd2001::NewBie::InterpreterImp::delGCVertex(Object o)
+void zyd2001::NewBie::InterpreterImp::delGCVertex(object_t * o)
 {
-    if (!o.obj()->cl->RAII)
+    if (o != nullptr && !o->cl->RAII)
     {
-        gc_graph.delVertex(o.obj());
-        delete o.obj();
+        gc_graph.delVertex(o);
+        delete o;
     }
 }
 
-void zyd2001::NewBie::InterpreterImp::addGCEdge(object_t *v, Object w)
+void zyd2001::NewBie::InterpreterImp::addGCEdge(object_t *v, object_t *w)
 {
-    if (!w.obj()->cl->RAII)
-        gc_graph.addEdge(v, w.obj());
+    if (v != nullptr && w != nullptr)
+    {
+        if (v->cl->RAII)
+            gc_graph.addEdge(&InterpreterImp::root, w);
+        else
+            gc_graph.addEdge(v, w);
+    }
 }
 
-void zyd2001::NewBie::InterpreterImp::addGCEdge(Object v, Object w)
+void zyd2001::NewBie::InterpreterImp::delGCEdge(object_t *v, object_t *w)
 {
-    if (!w.obj()->cl->RAII)
-        gc_graph.addEdge(v.obj(), w.obj());
-}
-
-void zyd2001::NewBie::InterpreterImp::delGCEdge(object_t *v, Object w)
-{
-    if (!w.obj()->cl->RAII)
-        gc_graph.delEdge(v, w.obj());
-}
-
-void zyd2001::NewBie::InterpreterImp::delGCEdge(Object v, Object w)
-{
-    if (!w.obj()->cl->RAII)
-        gc_graph.delEdge(v.obj(), w.obj());
+    if (v != nullptr && w != nullptr)
+    {
+        if (v->cl->RAII)
+            gc_graph.delEdge(&InterpreterImp::root, w);
+        else
+            gc_graph.delEdge(v, w);
+    }
 }
 
 Class zyd2001::NewBie::InterpreterImp::findClass(Identifier id)

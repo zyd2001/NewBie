@@ -372,7 +372,7 @@ StatementType zyd2001::NewBie::InterpreterImp::Runner::execute(Statement &s)
         case ASSIGNMENT_STATEMENT:
         {
             auto assign = getStatement<AssignmentStatement*>(s);
-            evaluate(assign->lvalue)->set(evaluate(assign->rvalue)->get());
+            evaluate(assign->lvalue)->set(evaluate(assign->rvalue));
             return ASSIGNMENT_STATEMENT;
             break;
         }

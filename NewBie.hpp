@@ -61,6 +61,7 @@ namespace zyd2001
         //4 => boolean
         //5 => string
         //6 => function
+        //7 => class
 
         enum AccessControl
         {
@@ -173,7 +174,7 @@ namespace zyd2001
             ObjectMapA local_variables;
             Identifier type_name;
             ObjectType type;
-            Class cl;
+            std::shared_ptr<class_t> cl;
             int ref_count = 0; //for reference by RAII object
             std::vector<object_t *> bases;
             std::map<ObjectType, object_t *> bases_mapped;
@@ -183,11 +184,11 @@ namespace zyd2001
         struct object_container_t
         {
         private:
-            InterpreterImp * inter = nullptr;
             object_t * belongs_to = nullptr;
             object_t * obj = nullptr;
             ObjectType restrict_type = 0;
             bool isConst;
+            //void set(InterpreterImp::Runner &runner, object_t * o);
         public:
             friend class class_t;
             friend class object_t;
@@ -195,32 +196,37 @@ namespace zyd2001
             friend class InterpreterImp;
 
             object_container_t() {}
-            object_container_t(object_t * o) : obj(o), isConst(true) {} //temp container
-            object_container_t(const object_container_t &o, object_t * belongs) : inter(o.inter), belongs_to(belongs), obj(o.obj), restrict_type(o.restrict_type), isConst(o.isConst)
+            object_container_t(object_t * o) : obj(o), isConst(true), belongs_to(&InterpreterImp::root)
+            {
+                o->inter->addGCEdge(&InterpreterImp::root, obj);
+            } //temp container
+            object_container_t(const object_container_t &o, object_t * belongs) : belongs_to(belongs), obj(o.obj), restrict_type(o.restrict_type), isConst(o.isConst)
             {
                 if (belongs_to != nullptr)
-                    inter->addGCEdge(belongs_to, obj);
+                    belongs_to->inter->addGCEdge(belongs_to, obj);
             }
-            object_container_t(InterpreterImp *i, ObjectType t, object_t * belongs, bool cons = false) : inter(i), restrict_type(t), belongs_to(belongs), isConst(cons) {}
-            object_container_t(InterpreterImp *i, ObjectType t, object_t * o, object_t *belongs, bool cons = false) : object_container_t(i, t, belongs, cons)
-            {
-                set(o);
-            }
-            object_container_t(InterpreterImp *i, object_t * o, object_t * belongs, bool cons = false) : inter(i), obj(o), restrict_type(o->cl->type), belongs_to(belongs), isConst(cons)
+            object_container_t(ObjectType t, object_t * belongs, bool cons = false) : restrict_type(t), belongs_to(belongs), isConst(cons) {}
+            object_container_t(object_t * o, object_t * belongs, bool cons = false) : obj(o), restrict_type(o->cl->type), belongs_to(belongs), isConst(cons)
             {
                 if (belongs_to != nullptr)
-                    inter->addGCEdge(belongs_to, obj);
+                    belongs_to->inter->addGCEdge(belongs_to, obj);
             }
             bool typeCheck(object_t *);
-            void set(object_t * o);
+            void set(InterpreterImp::Runner &runner, ObjectContainer);
             object_t * get();
             ObjectContainer copy(object_t * belongs) { return make_shared<object_container_t>(*this, belongs); }
             ~object_container_t()
             {
-                if (obj->cl->RAII)
-                    delete obj;
-                else if (belongs_to != nullptr)
-                    inter->delGCEdge(belongs_to, obj);
+                if (obj != nullptr)
+                {
+                    if (obj->cl->RAII)
+                        delete obj;
+                    if (belongs_to != nullptr)
+                        if (belongs_to == &InterpreterImp::temp)
+                            obj->inter->delGCEdge(&InterpreterImp::root, obj);
+                        else
+                            belongs_to->inter->delGCEdge(belongs_to, obj);
+                }
             }
         };
         using ObjectContainer = std::shared_ptr<object_container_t>;
@@ -259,8 +265,8 @@ namespace zyd2001
             std::vector<Class> base_list;
             bool RAII = false;
             Constructor ctor;
-            Function dtor;
-            Function copy_ctor;
+            std::shared_ptr<function_t> dtor;
+            std::shared_ptr<function_t> copy_ctor;
             std::array<Function, 10> o; //operator+, -, *, /, %, unary-, toBool, comp, [], ()
             //std::function<object_t *(const object_t * &)> native_copyer = [](const object_t * &) -> object_t * {};
             //std::function<void(void*)> native_deleter = [](void*) {};
@@ -292,7 +298,7 @@ namespace zyd2001
         {
             friend class InterpreterImp::Runner;
             bool can_overload = true;
-            virtual object_t * call(InterpreterImp::Runner&, ArgumentList&) = 0;
+            virtual ObjectContainer call(InterpreterImp::Runner&, ArgumentList&) = 0;
             virtual ~function_t() = default;
         private:
             InterpreterImp *inter;
@@ -305,18 +311,18 @@ namespace zyd2001
         struct NormalFunction : public function_t
         {
             std::unordered_map<ParameterList, Statement, ParamsHash, ParamsEqualTo> overload_map;
-            object_t * call(InterpreterImp::Runner&, ArgumentList&) override;
-            object_t * real_call(InterpreterImp::Runner&, ArgumentList&);
+            ObjectContainer call(InterpreterImp::Runner&, ArgumentList&) override;
+            ObjectContainer real_call(InterpreterImp::Runner&, ArgumentList&);
         };
         struct NativeFunction : public function_t
         {
             std::unordered_map<ParameterList, std::function<object_t *(InterpreterImp::Runner &, std::vector<ObjectContainer>&, object_t *)>, ParamsHash, ParamsEqualTo> native_func;
-            object_t * call(InterpreterImp::Runner&, ArgumentList&) override;
+            ObjectContainer call(InterpreterImp::Runner&, ArgumentList&) override;
         };
         struct NativeStaticFunction : public function_t
         {
             std::unordered_map<ParameterList, std::function<object_t *(InterpreterImp::Runner &, std::vector<ObjectContainer>&, class_t*)>, ParamsHash, ParamsEqualTo> native_func;
-            object_t * call(InterpreterImp::Runner&, ArgumentList&) override;
+            ObjectContainer call(InterpreterImp::Runner&, ArgumentList&) override;
         };
         using Function = std::shared_ptr<function_t>;
 
@@ -618,6 +624,16 @@ namespace zyd2001
             BreakStatement(int line) : statement_t(line) {}
             StatementType type() override { return BREAK_STATEMENT; }
         };
+#define makeStatement(type, ...) std::make_shared<type>(yyget_lineno(scanner), __VA_ARGS__)
+#define makeExpression(type, ...) std::make_shared<type>(__VA_ARGS__)
+        inline Expression makeArgument(object_t * o)
+        {
+            return std::make_shared<LiteralExpression>(OContainer(o));
+        }
+        inline Expression makeArgument(ObjectContainer o)
+        {
+            return std::make_shared<LiteralExpression>(o);
+        }
 
         struct Parameter
         {
@@ -689,7 +705,7 @@ namespace zyd2001
                 friend class object_t;
 
                 Runner(InterpreterImp *i) : inter(i) {}
-                std::vector<ObjectContainer> resolveArgumentList(ArgumentList&);
+                std::vector<ObjectContainer> resolveArgumentList(ArgumentList&, ParameterList &);
                 static ParameterList ArgsToParams(std::vector<ObjectContainer>&);
                 InterpreterImp * getInter() { return inter; }
                 StatementType interpret(StatementList &);
@@ -710,8 +726,9 @@ namespace zyd2001
             AccessControl current_visibility;
 
             /*runtime variables*/
-            object_t * root;
-            object_t * null;
+            static object_t root;
+            static object_t null;
+            static object_t temp;
             int current_lineno;
             long class_count = 0;
             DirectedGraphM<object_t *> gc_graph;
