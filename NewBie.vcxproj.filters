@@ -67,5 +67,13 @@
     <None Include="README.md">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="LICENSE">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="TODO.md">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>

@@ -1,7 +1,0 @@
-1. improve temporary ObjectContainer
-2. deleter recieve parameter and change the stack
-3. fix member function
-4. primitive type
-5. add class as object
-6. return type overload
-7. editable object

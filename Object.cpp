@@ -189,18 +189,18 @@ void zyd2001::NewBie::object_container_t::set(InterpreterImp::Runner &runner, Ob
         auto o = oc->get();
         if (typeCheck(o))
         {
-            if (belongs_to == nullptr)
-                obj = o;
-            else
+            belongs_to->inter->delGCEdge(belongs_to, obj);
+            if (o->cl->RAII)
             {
-                belongs_to->inter->delGCEdge(belongs_to, obj);
-                if (obj != nullptr && obj->cl->RAII)
-                    delete obj;
-                if (o->cl->RAII && oc->belongs_to != nullptr)
+                if (oc->belongs_to == belongs_to->inter->temp) // if oc is a temp ObjectContainer, don't copy and change the state
+                    oc->belongs_to = belongs_to->inter->null; // if an RAII object belongs to null(not nullptr), it won't be deleted
+                else
                     o = o->cl->copy_ctor->call(runner, ArgumentList{ makeArgument(o) })->get();
-                obj = o;
-                belongs_to->inter->addGCEdge(belongs_to, obj);
             }
+            if (obj != nullptr && obj->cl->RAII)
+                delete obj;
+            obj = o;
+            belongs_to->inter->addGCEdge(belongs_to, obj);
         }
         else
             throw exception();

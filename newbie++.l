@@ -93,6 +93,7 @@ static zyd2001::NewBie::location loc;
 <INITIAL>"~"            return Parser::make_REVERSE(loc);
 <INITIAL>"ref"          return Parser::make_REF(loc);
 <INITIAL>"const"        return Parser::make_CONST(loc);
+<INITIAL>"editable"     return Parser::make_EDITABLE(loc);
 <INITIAL>"public"       return Parser::make_PUBLIC(loc);
 <INITIAL>"readonly"     return Parser::make_READONLY(loc);
 <INITIAL>"private"      return Parser::make_PRIVATE(loc);

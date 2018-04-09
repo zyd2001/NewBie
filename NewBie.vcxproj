@@ -181,10 +181,14 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="LICENSE" />
     <None Include="newbie++.l" />
     <None Include="newbie++.y" />
     <None Include="README.md" />
     <None Include="test" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="TODO.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

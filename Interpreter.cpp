@@ -25,8 +25,15 @@ void zyd2001::NewBie::Interpreter::parse()
     imp->parse();
 }
 
-InterpreterImp::InterpreterImp() {}
-InterpreterImp::InterpreterImp(const std::string &name) : filename(name) {}
+void zyd2001::NewBie::InterpreterImp::init()
+{
+    null = new object_t(this);
+    root = new object_t(this);
+    temp = new object_t(this);
+}
+
+InterpreterImp::InterpreterImp() { init(); }
+InterpreterImp::InterpreterImp(const std::string &name) : filename(name) { init(); }
 
 bool InterpreterImp::setFile(const std::string &name)
 {
@@ -329,8 +336,10 @@ void zyd2001::NewBie::InterpreterImp::addGCEdge(object_t *v, object_t *w)
 {
     if (v != nullptr && w != nullptr)
     {
-        if (v->cl->RAII)
-            gc_graph.addEdge(&InterpreterImp::root, w);
+        if (w->cl->RAII)
+            return;
+        if (v->cl->RAII || v == temp) // temporary non-RAII object belongs to root
+            gc_graph.addEdge(root, w);
         else
             gc_graph.addEdge(v, w);
     }
@@ -340,8 +349,10 @@ void zyd2001::NewBie::InterpreterImp::delGCEdge(object_t *v, object_t *w)
 {
     if (v != nullptr && w != nullptr)
     {
-        if (v->cl->RAII)
-            gc_graph.delEdge(&InterpreterImp::root, w);
+        if (w->cl->RAII)
+            return; 
+        if (v->cl->RAII || v == temp) // an object belongs to an RAII object actually belongs to root
+            gc_graph.delEdge(root, w);
         else
             gc_graph.delEdge(v, w);
     }

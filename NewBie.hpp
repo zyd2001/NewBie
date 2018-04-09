@@ -167,7 +167,7 @@ namespace zyd2001
 
             ~object_t();
         private:
-            object_t() {}
+            object_t(InterpreterImp *i) : inter(i) {}
             ObjectContainer getVariableFromDerived(InterpreterImp::Runner &, Identifier);
 
             InterpreterImp * inter;
@@ -184,7 +184,7 @@ namespace zyd2001
         struct object_container_t
         {
         private:
-            object_t * belongs_to = nullptr;
+            object_t * belongs_to; // InterpreterImp::temp, InterpreterImp::root
             object_t * obj = nullptr;
             ObjectType restrict_type = 0;
             bool isConst;
@@ -196,20 +196,18 @@ namespace zyd2001
             friend class InterpreterImp;
 
             object_container_t() {}
-            object_container_t(object_t * o) : obj(o), isConst(true), belongs_to(&InterpreterImp::root)
+            object_container_t(object_t * o, object_t * temp_ptr) : obj(o), isConst(true), belongs_to(temp_ptr)
             {
-                o->inter->addGCEdge(&InterpreterImp::root, obj);
+                o->inter->addGCEdge(belongs_to, obj);
             } //temp container
             object_container_t(const object_container_t &o, object_t * belongs) : belongs_to(belongs), obj(o.obj), restrict_type(o.restrict_type), isConst(o.isConst)
             {
-                if (belongs_to != nullptr)
-                    belongs_to->inter->addGCEdge(belongs_to, obj);
+                belongs_to->inter->addGCEdge(belongs_to, obj);
             }
             object_container_t(ObjectType t, object_t * belongs, bool cons = false) : restrict_type(t), belongs_to(belongs), isConst(cons) {}
             object_container_t(object_t * o, object_t * belongs, bool cons = false) : obj(o), restrict_type(o->cl->type), belongs_to(belongs), isConst(cons)
             {
-                if (belongs_to != nullptr)
-                    belongs_to->inter->addGCEdge(belongs_to, obj);
+                belongs_to->inter->addGCEdge(belongs_to, obj);
             }
             bool typeCheck(object_t *);
             void set(InterpreterImp::Runner &runner, ObjectContainer);
@@ -219,13 +217,9 @@ namespace zyd2001
             {
                 if (obj != nullptr)
                 {
-                    if (obj->cl->RAII)
+                    if (obj->cl->RAII && belongs_to != belongs_to->inter->null)
                         delete obj;
-                    if (belongs_to != nullptr)
-                        if (belongs_to == &InterpreterImp::temp)
-                            obj->inter->delGCEdge(&InterpreterImp::root, obj);
-                        else
-                            belongs_to->inter->delGCEdge(belongs_to, obj);
+                    belongs_to->inter->delGCEdge(belongs_to, obj);
                 }
             }
         };
@@ -271,7 +265,7 @@ namespace zyd2001
             //std::function<object_t *(const object_t * &)> native_copyer = [](const object_t * &) -> object_t * {};
             //std::function<void(void*)> native_deleter = [](void*) {};
             virtual object_t * makeObject(InterpreterImp::Runner &, ArgumentList&) = 0;
-            virtual object_t * makeObjectAsBase(InterpreterImp::Runner &, ArgumentList&, object_t *) = 0;
+            virtual object_t * makeObjectAsBase(InterpreterImp::Runner &, ArgumentList&, object_t *) = 0; // base object will not have a vertex in the gc graph
             void addStaticVariable(Identifier, object_t *, AccessControl);
             ObjectContainer getStaticVariable(Identifier);
             virtual ~class_t() = default;
@@ -662,6 +656,7 @@ namespace zyd2001
             InterpreterImp();
             InterpreterImp(const std::string &name);
             ~InterpreterImp() = default;
+            void init();
             void parse();
             bool run();
             bool setFile(const std::string &name);
@@ -726,9 +721,9 @@ namespace zyd2001
             AccessControl current_visibility;
 
             /*runtime variables*/
-            static object_t root;
-            static object_t null;
-            static object_t temp;
+            object_t * root;
+            object_t * null;
+            object_t * temp;
             int current_lineno;
             long class_count = 0;
             DirectedGraphM<object_t *> gc_graph;
