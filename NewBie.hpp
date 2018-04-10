@@ -141,18 +141,18 @@ namespace zyd2001
         struct object_t
         {
             friend class object_container_t;
+            friend class ObjectContainer;
             friend class NormalClass;
             friend class NativeClass;
             friend class InterpreterImp;
 
             object_t(InterpreterImp *inter, Class c) : type_name(c->type_name), type(c->type), cl(c) {}
+            object_t(InterpreterImp *inter, Class c, void * ptr) : type_name(c->type_name), type(c->type), cl(c), native_ptr(ptr) {}
             object_t(InterpreterImp *inter, const int &);
             object_t(InterpreterImp *inter, const double &);
             object_t(InterpreterImp *inter, const bool &);
             object_t(InterpreterImp *inter, std::string &);
             object_t(InterpreterImp *inter, const String &);
-
-            static object_t * makeInt(InterpreterImp *inter, const int &);
 
             void addVariable(Identifier, object_t *, AccessControl);
             void addVariable(Identifier, ObjectType, object_t *, AccessControl);
@@ -163,7 +163,6 @@ namespace zyd2001
 
             template<typename T>
             T &useNativePointer() { return *static_cast<T*>(native_ptr); }
-            void *native_ptr = nullptr;
 
             ~object_t();
         private:
@@ -175,7 +174,8 @@ namespace zyd2001
             Identifier type_name;
             ObjectType type;
             std::shared_ptr<class_t> cl;
-            int ref_count = 0; //for reference by RAII object
+            void *native_ptr = nullptr;
+            //int ref_count = 0; //for reference by RAII object
             std::vector<object_t *> bases;
             std::map<ObjectType, object_t *> bases_mapped;
             std::map<ObjectType, object_t *> all_bases;
@@ -212,7 +212,7 @@ namespace zyd2001
             bool typeCheck(object_t *);
             void set(InterpreterImp::Runner &runner, ObjectContainer);
             object_t * get();
-            ObjectContainer copy(object_t * belongs) { return make_shared<object_container_t>(*this, belongs); }
+            ObjectContainer copy(object_t * belongs) { return std::make_shared<object_container_t>(*this, belongs); }
             ~object_container_t()
             {
                 if (obj != nullptr)
@@ -223,7 +223,24 @@ namespace zyd2001
                 }
             }
         };
-        using ObjectContainer = std::shared_ptr<object_container_t>;
+        struct ObjectContainer
+        {
+            std::shared_ptr<object_container_t> ptr;
+            ObjectContainer() {}
+            ObjectContainer(const std::shared_ptr<object_container_t> &p) : ptr(p) {}
+            ObjectContainer(InterpreterImp *inter, const int &i) : ptr(std::make_shared<object_container_t>(new object_t(inter, i))) {}
+            ObjectContainer(InterpreterImp *inter, const double &i) : ptr(std::make_shared<object_container_t>(new object_t(inter, i))) {}
+            ObjectContainer(InterpreterImp *inter, const bool &i) : ptr(std::make_shared<object_container_t>(new object_t(inter, i))) {}
+            ObjectContainer(InterpreterImp *inter, const std::string &i) : ptr(std::make_shared<object_container_t>(new object_t(inter, i))) {}
+            ObjectContainer(InterpreterImp *inter, const String &i) : ptr(std::make_shared<object_container_t>(new object_t(inter, i))) {}
+            ObjectContainer(object_t * o) : ptr(std::make_shared<object_container_t>(o, o->inter->temp)) {}
+            ObjectContainer(const ObjectContainer &oc) = default;
+            ~ObjectContainer() = default;
+            operator bool();
+            object_container_t & operator*() { return *ptr; }
+            object_container_t * operator->() { return ptr.operator->(); }
+        };
+        //using ObjectContainer = std::shared_ptr<object_container_t>;
 #define B(o) bool(*o)
 /*make temp Object Container*/
 #define OContainer(o) std::make_shared<object_container_t>(o)
@@ -263,7 +280,7 @@ namespace zyd2001
             std::shared_ptr<function_t> copy_ctor;
             std::array<Function, 10> o; //operator+, -, *, /, %, unary-, toBool, comp, [], ()
             //std::function<object_t *(const object_t * &)> native_copyer = [](const object_t * &) -> object_t * {};
-            //std::function<void(void*)> native_deleter = [](void*) {};
+            std::function<void(void*)> native_deleter = [](void*) {}; // for native object
             virtual object_t * makeObject(InterpreterImp::Runner &, ArgumentList&) = 0;
             virtual object_t * makeObjectAsBase(InterpreterImp::Runner &, ArgumentList&, object_t *) = 0; // base object will not have a vertex in the gc graph
             void addStaticVariable(Identifier, object_t *, AccessControl);
