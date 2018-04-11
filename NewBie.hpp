@@ -78,6 +78,30 @@ namespace zyd2001
         using char_t = char32_t;
 #endif
 
+        /* forward declaration */
+        class InterpreterImp;
+        struct Parameter;
+        struct Statement;
+        struct Expression;
+        struct function_t;
+        struct class_t;
+        struct ObjectContainer;
+        struct object_container_t;
+        struct object_t;
+        struct String;
+        /* using statement */
+        using Identifier = String;
+        using IdentifierList = std::vector<Identifier>;
+        using Class = std::shared_ptr<class_t>;
+        using ClassMap = std::pair<std::unordered_map<Identifier, ObjectType, Identifier::hash>, std::unordered_map<ObjectType, Class>>;
+        using Function = std::shared_ptr<function_t>;
+        using Expression = std::shared_ptr<expression_t>;
+        using ExpressionList = ArrayExpression;
+        using Statement = std::shared_ptr<statement_t>;
+        using StatementList = std::list<Statement>;
+        using ParameterList = std::vector<Parameter>;
+        using ArgumentList = std::vector<Expression>;
+
         struct String
         {
             std::shared_ptr<std::basic_string<char_t>> ptr;
@@ -102,33 +126,6 @@ namespace zyd2001
                 std::hash<std::basic_string<char_t>> h;
                 std::size_t operator()(const String&) const;
             };
-        };
-
-        using Identifier = String;
-
-        struct Integer
-        {
-            std::shared_ptr<int> ptr;
-            Integer(int i) : ptr(std::make_shared<int>(i)) {}
-            Integer copy() { return Integer(*ptr); }
-            int &operator*() { return *ptr; }
-            int *operator->() { return ptr.get(); }
-        };
-        struct Double
-        {
-            std::shared_ptr<double> ptr;
-            Double(double i) : ptr(std::make_shared<double>(i)) {}
-            Double copy() { return Double(*ptr); }
-            double &operator*() { return *ptr; }
-            double *operator->() { return ptr.get(); }
-        };
-        struct Boolean
-        {
-            std::shared_ptr<bool> ptr;
-            Boolean(bool i) : ptr(std::make_shared<bool>(i)) {}
-            Boolean copy() { return Boolean(*ptr); }
-            bool &operator*() { return *ptr; }
-            bool *operator->() { return ptr.get(); }
         };
 
         using ObjectMap = std::unordered_map<Identifier, ObjectContainer, Identifier::hash>;
@@ -157,7 +154,7 @@ namespace zyd2001
             void addVariable(Identifier, object_t *, AccessControl);
             void addVariable(Identifier, ObjectType, object_t *, AccessControl);
             void addVariable(Identifier, ObjectType, AccessControl); //may cause nullptr error
-            ObjectContainer getVariable(InterpreterImp::Runner &, Identifier);
+            ObjectContainer getVariable(Identifier);
             ObjectContainer getSuperVariable(InterpreterImp::Runner &, Identifier);
             ObjectContainer getSuperVariable(InterpreterImp::Runner &, ObjectType type, Identifier);
 
@@ -167,7 +164,8 @@ namespace zyd2001
             ~object_t();
         private:
             object_t(InterpreterImp *i) : inter(i) {}
-            ObjectContainer getVariableFromDerived(InterpreterImp::Runner &, Identifier);
+            ObjectContainer getVariableFromDerived(Identifier); // for base expression
+            ObjectContainer getVariableWithP(Identifier);
 
             InterpreterImp * inter;
             ObjectMapA local_variables;
@@ -235,8 +233,23 @@ namespace zyd2001
             ObjectContainer(InterpreterImp *inter, const String &i) : ptr(std::make_shared<object_container_t>(new object_t(inter, i))) {}
             ObjectContainer(object_t * o) : ptr(std::make_shared<object_container_t>(o, o->inter->temp)) {}
             ObjectContainer(const ObjectContainer &oc) = default;
-            ~ObjectContainer() = default;
+            ObjectContainer operator+(const ObjectContainer &);
+            ObjectContainer operator-(const ObjectContainer &);
+            ObjectContainer operator*(const ObjectContainer &);
+            ObjectContainer operator/(const ObjectContainer &);
+            ObjectContainer operator%(const ObjectContainer &);
+            ObjectContainer operator<(const ObjectContainer &);
+            ObjectContainer operator<=(const ObjectContainer &);
+            ObjectContainer operator>(const ObjectContainer &);
+            ObjectContainer operator>=(const ObjectContainer &);
+            ObjectContainer operator==(const ObjectContainer &);
+            ObjectContainer operator!=(const ObjectContainer &);
+            ObjectContainer operator!();
+            ObjectContainer operator-();
+            ObjectContainer operator[](const ObjectContainer &);
+            ObjectContainer operator()(ArgumentList &alist = ArgumentList());
             operator bool();
+            ~ObjectContainer() = default;
             object_container_t & operator*() { return *ptr; }
             object_container_t * operator->() { return ptr.operator->(); }
         };
@@ -244,8 +257,6 @@ namespace zyd2001
 #define B(o) bool(*o)
 /*make temp Object Container*/
 #define OContainer(o) std::make_shared<object_container_t>(o)
-
-        using IdentifierList = std::vector<Identifier>;
 
         struct ctorArgs
         {
@@ -281,8 +292,8 @@ namespace zyd2001
             std::array<Function, 10> o; //operator+, -, *, /, %, unary-, toBool, comp, [], ()
             //std::function<object_t *(const object_t * &)> native_copyer = [](const object_t * &) -> object_t * {};
             std::function<void(void*)> native_deleter = [](void*) {}; // for native object
-            virtual object_t * makeObject(InterpreterImp::Runner &, ArgumentList&) = 0;
-            virtual object_t * makeObjectAsBase(InterpreterImp::Runner &, ArgumentList&, object_t *) = 0; // base object will not have a vertex in the gc graph
+            virtual object_t * makeObject(InterpreterImp::Runner &, ArgumentList &alist = ArgumentList()) = 0;
+            virtual object_t * makeObjectAsBase(InterpreterImp::Runner &, object_t *, ArgumentList &alist = ArgumentList()) = 0; // base object will not have a vertex in the gc graph
             void addStaticVariable(Identifier, object_t *, AccessControl);
             ObjectContainer getStaticVariable(Identifier);
             virtual ~class_t() = default;
@@ -292,24 +303,22 @@ namespace zyd2001
         struct NormalClass : public class_t
         {
             std::unordered_map<Identifier, std::tuple<ObjectType, AccessControl, Expression>, Identifier::hash> variables;
-            object_t * makeObject(InterpreterImp::Runner &, ArgumentList&) override;
-            object_t * makeObjectAsBase(InterpreterImp::Runner &, ArgumentList&, object_t *) override;
+            object_t * makeObject(InterpreterImp::Runner &, ArgumentList &alist = ArgumentList()) override;
+            object_t * makeObjectAsBase(InterpreterImp::Runner &, object_t *, ArgumentList &alist = ArgumentList()) override;
         };
         struct NativeClass : public class_t
         {
             std::function<void(std::vector<ObjectContainer>&, object_t *)> real;
-            object_t * makeObject(InterpreterImp::Runner &, ArgumentList&) override;
-            object_t * makeObjectAsBase(InterpreterImp::Runner &, ArgumentList&, object_t *) override;
-            NativeClass(Identifier name, bool R, Function dtor, Function copy, )
+            object_t * makeObject(InterpreterImp::Runner &, ArgumentList &alist = ArgumentList()) override;
+            object_t * makeObjectAsBase(InterpreterImp::Runner &, object_t *, ArgumentList &alist = ArgumentList()) override;
+            //NativeClass(Identifier name, bool R, Function dtor, Function copy, std::function<void(std::vector<ObjectContainer>&, object_t *)> r) : real(r) {}
         };
-        using Class = std::shared_ptr<class_t>;
-        using ClassMap = std::pair<std::unordered_map<Identifier, ObjectType, Identifier::hash>, std::unordered_map<ObjectType, Class>>;
 
         struct function_t
         {
             friend class InterpreterImp::Runner;
             bool can_overload = true;
-            virtual ObjectContainer call(InterpreterImp::Runner&, ArgumentList&) = 0;
+            virtual ObjectContainer call(InterpreterImp::Runner&, ArgumentList &alist = ArgumentList()) = 0;
             virtual ~function_t() = default;
         private:
             InterpreterImp *inter;
@@ -322,20 +331,19 @@ namespace zyd2001
         struct NormalFunction : public function_t
         {
             std::unordered_map<ParameterList, Statement, ParamsHash, ParamsEqualTo> overload_map;
-            ObjectContainer call(InterpreterImp::Runner&, ArgumentList&) override;
-            ObjectContainer real_call(InterpreterImp::Runner&, ArgumentList&);
+            ObjectContainer call(InterpreterImp::Runner&, ArgumentList &alist = ArgumentList()) override;
+            ObjectContainer real_call(InterpreterImp::Runner&, ArgumentList &alist = ArgumentList());
         };
         struct NativeFunction : public function_t
         {
             std::unordered_map<ParameterList, std::function<object_t *(InterpreterImp::Runner &, std::vector<ObjectContainer>&, object_t *)>, ParamsHash, ParamsEqualTo> native_func;
-            ObjectContainer call(InterpreterImp::Runner&, ArgumentList&) override;
+            ObjectContainer call(InterpreterImp::Runner&, ArgumentList &alist = ArgumentList()) override;
         };
         struct NativeStaticFunction : public function_t
         {
             std::unordered_map<ParameterList, std::function<object_t *(InterpreterImp::Runner &, std::vector<ObjectContainer>&, class_t*)>, ParamsHash, ParamsEqualTo> native_func;
-            ObjectContainer call(InterpreterImp::Runner&, ArgumentList&) override;
+            ObjectContainer call(InterpreterImp::Runner&, ArgumentList &alist = ArgumentList()) override;
         };
-        using Function = std::shared_ptr<function_t>;
 
         using VariableStack = std::stack<std::vector<ObjectMap>>;
         struct RAIIStack
@@ -410,8 +418,6 @@ namespace zyd2001
             virtual ExpressionType type() = 0;
             virtual ~expression_t() = default;
         };
-        using Expression = std::shared_ptr<expression_t>;
-        using ExpressionList = ArrayExpression;
 
         struct IdentifierExpression : public expression_t
         {
@@ -521,8 +527,6 @@ namespace zyd2001
             virtual StatementType type() = 0;
             virtual ~statement_t() = default;
         };
-        using Statement = std::shared_ptr<statement_t>;
-        using StatementList = std::list<Statement>;
 
         struct AccessControlStatement : public statement_t
         {
@@ -635,6 +639,7 @@ namespace zyd2001
             BreakStatement(int line) : statement_t(line) {}
             StatementType type() override { return BREAK_STATEMENT; }
         };
+
 #define makeStatement(type, ...) std::make_shared<type>(yyget_lineno(scanner), __VA_ARGS__)
 #define makeExpression(type, ...) std::make_shared<type>(__VA_ARGS__)
         inline Expression makeArgument(object_t * o)
@@ -653,9 +658,6 @@ namespace zyd2001
             Identifier identifier;
             Expression default_value_exp; //only object_t *
         };
-
-        using ParameterList = std::vector<Parameter>;
-        using ArgumentList = std::vector<Expression>;
 
         struct ParamsHash
         {
@@ -717,7 +719,7 @@ namespace zyd2001
                 friend class object_t;
 
                 Runner(InterpreterImp *i) : inter(i) {}
-                std::vector<ObjectContainer> resolveArgumentList(ArgumentList&, ParameterList &);
+                std::vector<ObjectContainer> resolveArgumentList(ArgumentList &, ParameterList &);
                 static ParameterList ArgsToParams(std::vector<ObjectContainer>&);
                 InterpreterImp * getInter() { return inter; }
                 StatementType interpret(StatementList &);

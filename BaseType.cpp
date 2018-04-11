@@ -4,6 +4,7 @@
 #include <codecvt>
 #include <locale>
 #include <cstdio>
+#include <sstream>
 
 using namespace zyd2001::NewBie;
 using namespace std;
@@ -258,13 +259,17 @@ void * booleanDtor(void * i)
 object_t * stringAdd(InterpreterImp::Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
 {
     String &s1 = args[0]->get()->useNativePointer<String>();
-    //call args[2]->toString
+    String &s2 = args[1]->get()->getVariable(U("toString"))()->get()->useNativePointer<String>();
     return new object_t(runner.getInter(), s1 + s2);
 }
 object_t * stringMul(InterpreterImp::Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
 {
     String &s = args[0]->get()->useNativePointer<String>();
-    // use stringstream
+    int &i = args[1]->get()->useNativePointer<int>();
+    std::basic_ostringstream<char_t> os;
+    for (int j = 0; j < i; j++)
+        os << s.get();
+    return new object_t(runner.getInter(), os.str());
 }
 
 Class intClass = make_shared<NativeClass>();

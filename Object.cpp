@@ -25,7 +25,7 @@ object_t * zyd2001::NewBie::NormalClass::makeObject(InterpreterImp::Runner &runn
     auto constructor = ctor->overload_map.at(plist);
     for (int i = 0; i < base_list.size(); i++)
     {
-        auto b = base_list[i]->makeObjectAsBase(runner, constructor.base_args[i], obj);
+        auto b = base_list[i]->makeObjectAsBase(runner, obj, constructor.base_args[i]);
         obj->bases.emplace_back(b);
         obj->bases_mapped.emplace(b->type, b);
         for (auto &item : b->local_variables)
@@ -51,7 +51,7 @@ object_t * zyd2001::NewBie::NormalClass::makeObject(InterpreterImp::Runner &runn
     return obj;
 }
 
-object_t * zyd2001::NewBie::NormalClass::makeObjectAsBase(InterpreterImp::Runner &runner, ArgumentList &alist, object_t * o)
+object_t * zyd2001::NewBie::NormalClass::makeObjectAsBase(InterpreterImp::Runner &runner, object_t * o, ArgumentList &alist)
 {
     object_t * obj;
 
@@ -70,7 +70,7 @@ object_t * zyd2001::NewBie::NormalClass::makeObjectAsBase(InterpreterImp::Runner
     auto constructor = ctor->overload_map.at(plist);
     for (int i = 0; i < base_list.size(); i++)
     {
-        object_t * b = base_list[i]->makeObjectAsBase(runner, constructor.base_args[i], o); //use 'o' to pass the object already constructed
+        object_t * b = base_list[i]->makeObjectAsBase(runner, o, constructor.base_args[i]); //use 'o' to pass the object already constructed
         obj->bases.emplace_back(b);
         obj->bases_mapped.emplace(b->type, b);
         for (auto &item : b->local_variables)
@@ -109,7 +109,7 @@ object_t * zyd2001::NewBie::NativeClass::makeObject(InterpreterImp::Runner &runn
     auto constructor = ctor->overload_map.at(plist);
     for (int i = 0; i < base_list.size(); i++)
     {
-        object_t * b = base_list[i]->makeObjectAsBase(runner, constructor.base_args[i], obj);
+        object_t * b = base_list[i]->makeObjectAsBase(runner, obj, constructor.base_args[i]);
         obj->bases.emplace_back(b);
         obj->bases_mapped.emplace(b->type, b);
         for (auto &item : b->local_variables)
@@ -127,7 +127,7 @@ object_t * zyd2001::NewBie::NativeClass::makeObject(InterpreterImp::Runner &runn
     return obj;
 }
 
-object_t * zyd2001::NewBie::NativeClass::makeObjectAsBase(InterpreterImp::Runner &runner, ArgumentList &alist, object_t * o)
+object_t * zyd2001::NewBie::NativeClass::makeObjectAsBase(InterpreterImp::Runner &runner, object_t * o, ArgumentList &alist)
 {
     object_t * obj;
 
@@ -146,7 +146,7 @@ object_t * zyd2001::NewBie::NativeClass::makeObjectAsBase(InterpreterImp::Runner
     auto constructor = ctor->overload_map.at(plist);
     for (int i = 0; i < base_list.size(); i++)
     {
-        object_t * b = base_list[i]->makeObjectAsBase(runner, constructor.base_args[i], o); //use 'o' to pass the object already constructed
+        object_t * b = base_list[i]->makeObjectAsBase(runner, o, constructor.base_args[i]); //use 'o' to pass the object already constructed
         obj->bases.emplace_back(b);
         obj->bases_mapped.emplace(b->type, b);
         for (auto &item : b->local_variables)
@@ -230,7 +230,7 @@ void zyd2001::NewBie::object_t::addVariable(Identifier id, ObjectType t, object_
     local_variables[id] = MapItem{ make_shared<object_container_t>(inter, t, o, this), visibility };
 }
 
-ObjectContainer zyd2001::NewBie::object_t::getVariable(InterpreterImp::Runner &runner, Identifier id)
+ObjectContainer zyd2001::NewBie::object_t::getVariable(Identifier id)
 {
     auto item = local_variables.at(id);
     switch (item.visibility)
@@ -240,10 +240,7 @@ ObjectContainer zyd2001::NewBie::object_t::getVariable(InterpreterImp::Runner &r
             break;
         case PROTECTED:
         case PRIVATE:
-            if (runner.current_object == this)
-                return item.o;
-            else
-                throw exception();
+            throw exception();
             break;
     }
 }
@@ -261,7 +258,7 @@ zyd2001::NewBie::object_t::~object_t()
         delete i.second;
 }
 
-ObjectContainer zyd2001::NewBie::object_t::getVariableFromDerived(InterpreterImp::Runner &runner, Identifier id)
+ObjectContainer zyd2001::NewBie::object_t::getVariableFromDerived(Identifier id)
 {
     auto item = local_variables.at(id);
     switch (item.visibility)
@@ -271,12 +268,19 @@ ObjectContainer zyd2001::NewBie::object_t::getVariableFromDerived(InterpreterImp
             return item.o;
             break;
         case PRIVATE:
-            if (runner.current_object == this)
-                return item.o;
-            else
-                throw exception();
+            throw exception();
             break;
     }
+}
+
+ObjectContainer zyd2001::NewBie::object_t::getVariableWithP(Identifier id)
+{
+    auto item = local_variables.at(id);
+    return item.o;
+}
+
+ObjectContainer zyd2001::NewBie::ObjectContainer::operator+(const ObjectContainer &)
+{
 }
 
 object_t zyd2001::NewBie::object_t::operator+(const object_t &o) const
