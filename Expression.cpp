@@ -211,7 +211,7 @@ T &getExpression(Expression &e)
     return static_cast<T>(e.get());
 }
 
-ObjectContainer zyd2001::NewBie::InterpreterImp::Runner::evaluate(Expression &e)
+ObjectContainer zyd2001::NewBie::Runner::evaluate(Expression &e)
 {
     switch (e->type())
     {

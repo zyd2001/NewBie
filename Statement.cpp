@@ -332,7 +332,7 @@ T &getStatement(Statement &s)
     return static_cast<T>(s.get());
 }
 
-StatementType zyd2001::NewBie::InterpreterImp::Runner::execute(Statement &s)
+StatementType zyd2001::NewBie::Runner::execute(Statement &s)
 {
     switch (s->type())
     {

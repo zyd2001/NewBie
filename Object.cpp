@@ -17,7 +17,7 @@ ObjectContainer zyd2001::NewBie::class_t::getStaticVariable(Identifier id)
     return static_variables.at(id);
 }
 
-object_t * zyd2001::NewBie::NormalClass::makeObject(InterpreterImp::Runner &runner, ArgumentList &alist)
+object_t * zyd2001::NewBie::NormalClass::makeObject(Runner &runner, ArgumentList &alist)
 {
     object_t * obj = new object_t(inter, make_shared<class_t>(this));
     auto args = runner.resolveArgumentList(alist);
@@ -51,7 +51,7 @@ object_t * zyd2001::NewBie::NormalClass::makeObject(InterpreterImp::Runner &runn
     return obj;
 }
 
-object_t * zyd2001::NewBie::NormalClass::makeObjectAsBase(InterpreterImp::Runner &runner, object_t * o, ArgumentList &alist)
+object_t * zyd2001::NewBie::NormalClass::makeObjectAsBase(Runner &runner, object_t * o, ArgumentList &alist)
 {
     object_t * obj;
 
@@ -101,7 +101,7 @@ object_t * zyd2001::NewBie::NormalClass::makeObjectAsBase(InterpreterImp::Runner
     return obj;
 }
 
-object_t * zyd2001::NewBie::NativeClass::makeObject(InterpreterImp::Runner &runner, ArgumentList &alist)
+object_t * zyd2001::NewBie::NativeClass::makeObject(Runner &runner, ArgumentList &alist)
 {
     object_t * obj = new object_t(inter, make_shared<class_t>(this));
     auto args = runner.resolveArgumentList(alist);
@@ -127,7 +127,7 @@ object_t * zyd2001::NewBie::NativeClass::makeObject(InterpreterImp::Runner &runn
     return obj;
 }
 
-object_t * zyd2001::NewBie::NativeClass::makeObjectAsBase(InterpreterImp::Runner &runner, object_t * o, ArgumentList &alist)
+object_t * zyd2001::NewBie::NativeClass::makeObjectAsBase(Runner &runner, object_t * o, ArgumentList &alist)
 {
     object_t * obj;
 
@@ -180,7 +180,7 @@ bool zyd2001::NewBie::object_container_t::typeCheck(object_t * o)
     }
 }
 
-void zyd2001::NewBie::object_container_t::set(InterpreterImp::Runner &runner, ObjectContainer oc) // temporary ObjectContainer can only use once
+void zyd2001::NewBie::object_container_t::set(Runner &runner, ObjectContainer oc) // temporary ObjectContainer can only use once
 {
     if (isConst)
         throw exception();
@@ -245,7 +245,7 @@ ObjectContainer zyd2001::NewBie::object_t::getVariable(Identifier id)
     }
 }
 
-ObjectContainer zyd2001::NewBie::object_t::getSuperVariable(InterpreterImp::Runner &runner, ObjectType type, Identifier id)
+ObjectContainer zyd2001::NewBie::object_t::getSuperVariable(Runner &runner, ObjectType type, Identifier id)
 {
     bases_mapped.at(type)->getVariableFromDerived(runner, id);
 }
