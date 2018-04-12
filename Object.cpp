@@ -17,7 +17,7 @@ ObjectContainer zyd2001::NewBie::class_t::getStaticVariable(Identifier id)
     return static_variables.at(id);
 }
 
-object_t * zyd2001::NewBie::NormalClass::makeObject(Runner &runner, ArgumentList &alist)
+object_t * zyd2001::NewBie::NormalClass::makeObject(Runner &runner, Args & args)
 {
     object_t * obj = new object_t(inter, make_shared<class_t>(this));
     auto args = runner.resolveArgumentList(alist);
@@ -51,7 +51,7 @@ object_t * zyd2001::NewBie::NormalClass::makeObject(Runner &runner, ArgumentList
     return obj;
 }
 
-object_t * zyd2001::NewBie::NormalClass::makeObjectAsBase(Runner &runner, object_t * o, ArgumentList &alist)
+object_t * zyd2001::NewBie::NormalClass::makeObjectAsBase(Runner &runner, object_t * o, Args & args)
 {
     object_t * obj;
 
@@ -101,7 +101,7 @@ object_t * zyd2001::NewBie::NormalClass::makeObjectAsBase(Runner &runner, object
     return obj;
 }
 
-object_t * zyd2001::NewBie::NativeClass::makeObject(Runner &runner, ArgumentList &alist)
+object_t * zyd2001::NewBie::NativeClass::makeObject(Runner &runner, Args & args)
 {
     object_t * obj = new object_t(inter, make_shared<class_t>(this));
     auto args = runner.resolveArgumentList(alist);
@@ -127,7 +127,7 @@ object_t * zyd2001::NewBie::NativeClass::makeObject(Runner &runner, ArgumentList
     return obj;
 }
 
-object_t * zyd2001::NewBie::NativeClass::makeObjectAsBase(Runner &runner, object_t * o, ArgumentList &alist)
+object_t * zyd2001::NewBie::NativeClass::makeObjectAsBase(Runner &runner, object_t * o, Args & args)
 {
     object_t * obj;
 
@@ -213,6 +213,12 @@ object_t * zyd2001::NewBie::object_container_t::get()
         return obj;
     else
         throw exception();
+}
+
+ObjectContainer zyd2001::NewBie::ObjectContainer::copy(Runner & runner, object_t * belongs)
+{
+    auto p = make_shared<object_container_t>();
+    ObjectContainer o(p);
 }
 
 void object_t::addVariable(Identifier id, ObjectType t, AccessControl visibility)

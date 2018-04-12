@@ -77,6 +77,30 @@ void zyd2001::NewBie::InterpreterImp::concurrentGC()
     t.detach();
 }
 
+Args zyd2001::NewBie::Runner::_makeArgs(std::vector<helpStruct>&v)
+{
+    Args args;
+    for (auto &i : v)
+    {
+        switch (i.type)
+        {
+            case 2:
+                args.emplace_back(ObjectContainer(inter, *static_cast<int*>(i.ptr)));
+                break;
+            case 3:
+                args.emplace_back(ObjectContainer(inter, *static_cast<double*>(i.ptr)));
+                break;
+            case 4:
+                args.emplace_back(ObjectContainer(inter, *static_cast<bool*>(i.ptr)));
+                break;
+            case 5:
+                args.emplace_back(ObjectContainer(inter, *static_cast<String*>(i.ptr)));
+                break;
+        }
+    }
+    return args;
+}
+
 RAIIStack::RAIIStack(InterpreterImp *inter)
 {
     inter->variables_stack.emplace(vector<ObjectMap>());

@@ -148,8 +148,34 @@ wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 //    }
 //}
 
+helpStruct::helpStruct(const int &i) : type(2), ptr(new int(i)) {}
+helpStruct::helpStruct(const double &i) : type(3), ptr(new double(i)) {}
+helpStruct::helpStruct(const bool &i) : type(4), ptr(new bool(i)) {}
+helpStruct::helpStruct(const std::string &i) : type(5), ptr(new String(i)) {}
+helpStruct::helpStruct(const String &i) : type(5), ptr(new String(i)) {}
+
+int zyd2001::NewBie::ObjectContainer::getInt()
+{
+    return ptr->get()->useNativePointer<int>();
+}
+
+double zyd2001::NewBie::ObjectContainer::getDouble()
+{
+    return ptr->get()->useNativePointer<double>();
+}
+
+bool zyd2001::NewBie::ObjectContainer::getBool()
+{
+    return ptr->get()->useNativePointer<bool>();
+}
+
+std::string zyd2001::NewBie::ObjectContainer::getString()
+{
+    return ptr->get()->useNativePointer<String>().toStr();
+}
+
 #define intBiOp(name, op)\
-object_t * int ## name (Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)\
+ObjectContainer int ## name (Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)\
 {\
     int &i1 = args[0]->get()->useNativePointer<int>();\
     int &i2 = args[1]->get()->useNativePointer<int>();\
@@ -160,40 +186,51 @@ intBiOp(Sub, -)
 intBiOp(Mul, *)
 intBiOp(Div, /)
 intBiOp(Mod, %)
-object_t * intComp(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+#define intBiOpD(name, op)\
+ObjectContainer int ## name ## D (Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)\
+{\
+    int &i = args[0]->get()->useNativePointer<int>();\
+    double &d = args[1]->get()->useNativePointer<double>();\
+    return new object_t(runner.getInter(), i op d);\
+}
+intBiOpD(Add, +)
+intBiOpD(Sub, -)
+intBiOpD(Mul, *)
+intBiOpD(Div, /)
+ObjectContainer intComp(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//int, int
     int &i1 = args[0]->get()->useNativePointer<int>();
     int &i2 = args[1]->get()->useNativePointer<int>();
     return new object_t(runner.getInter(), i1 - i2);
 }
-object_t * intNegate(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+ObjectContainer intNegate(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//int
     int &i = args[0]->get()->useNativePointer<int>();
     return new object_t(runner.getInter(), -i);
 }
-object_t * intCopy(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+ObjectContainer intCopy(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//int
     int &i = args[0]->get()->useNativePointer<int>();
     return new object_t(runner.getInter(), i);
 }
-object_t * intCalli(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+ObjectContainer intCalli(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//int, int
     int &i = args[0]->get()->useNativePointer<int>();
     int &arg = args[1]->get()->useNativePointer<int>();
     return new object_t(runner.getInter(), i * arg);
 }
-object_t * intCalld(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+ObjectContainer intCalld(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//int, double
     int &i = args[0]->get()->useNativePointer<int>();
     double &arg = args[1]->get()->useNativePointer<double>();
     return new object_t(runner.getInter(), i * arg);
 }
-object_t * intToBool(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+ObjectContainer intToBool(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//int
     int &i = args[0]->get()->useNativePointer<int>();
     return new object_t(runner.getInter(), bool(i));
 }
-object_t * intToString(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+ObjectContainer intToString(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//int
     int &i = args[0]->get()->useNativePointer<int>();
     return new object_t(runner.getInter(), std::to_string(i));
@@ -204,7 +241,7 @@ void * intPtrDeleter(void * i)
 }
 
 #define doubleBiOp(name, op) \
-object_t * double ## name (Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)\
+ObjectContainer double ## name (Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)\
 {\
     double &i1 = args[0]->get()->useNativePointer<double>();\
     double &i2 = args[1]->get()->useNativePointer<double>();\
@@ -214,7 +251,18 @@ doubleBiOp(Add, +)
 doubleBiOp(Sub, -)
 doubleBiOp(Mul, *)
 doubleBiOp(Div, /)
-object_t * doubleComp(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+#define doubleBiOpI(name, op)\
+ObjectContainer double ## name (Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)\
+{\
+    double &i1 = args[0]->get()->useNativePointer<double>();\
+    int &i2 = args[1]->get()->useNativePointer<int>();\
+    return new object_t(runner.getInter(), i1 op i2);\
+}
+doubleBiOpI(Add, +)
+doubleBiOpI(Sub, -)
+doubleBiOpI(Mul, *)
+doubleBiOpI(Div, /)
+ObjectContainer doubleComp(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//double, double
     double &i1 = args[0]->get()->useNativePointer<double>();
     double &i2 = args[1]->get()->useNativePointer<double>();
@@ -225,34 +273,34 @@ object_t * doubleComp(Runner &runner, std::vector<ObjectContainer> &args, class_
     else
         return new object_t(runner.getInter(), -1);
 }
-object_t * doubleNegate(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+ObjectContainer doubleNegate(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//double
     double &i = args[0]->get()->useNativePointer<double>();
     return new object_t(runner.getInter(), -i);
 }
-object_t * doubleCopy(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+ObjectContainer doubleCopy(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//double
     double &i = args[0]->get()->useNativePointer<double>();
     return new object_t(runner.getInter(), i);
 }
-object_t * doubleCalli(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+ObjectContainer doubleCalli(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//double, int
     double &d = args[0]->get()->useNativePointer<double>();
     int &i = args[1]->get()->useNativePointer<int>();
     return new object_t(runner.getInter(), i * d);
 }
-object_t * doubleCalli(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+ObjectContainer doubleCalld(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//double, double
     double &d = args[0]->get()->useNativePointer<double>();
     double &i = args[1]->get()->useNativePointer<double>();
     return new object_t(runner.getInter(), i * d);
 }
-object_t * doubleToBool(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+ObjectContainer doubleToBool(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//double
     double &i = args[0]->get()->useNativePointer<double>();
     return new object_t(runner.getInter(), bool(i));
 }
-object_t * doubleToString(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+ObjectContainer doubleToString(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//double
     double &i = args[0]->get()->useNativePointer<double>();
     return new object_t(runner.getInter(), std::to_string(i));
@@ -262,12 +310,12 @@ void * doublePtrDeleter(void * i)
     delete static_cast<double*>(i);
 }
 
-object_t * booleanCopy(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+ObjectContainer booleanCopy(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//bool
     bool &i = args[0]->get()->useNativePointer<bool>();
     return new object_t(runner.getInter(), i);
 }
-object_t * booleanToString(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+ObjectContainer booleanToString(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//bool
     bool &i = args[0]->get()->useNativePointer<bool>();
     if (i)
@@ -280,13 +328,13 @@ void * booleanPtrDeleter(void * i)
     delete static_cast<bool*>(i);
 }
 
-object_t * stringAdd(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+ObjectContainer stringAdd(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//string, string
     String &s1 = args[0]->get()->useNativePointer<String>();
-    String &s2 = args[1]->get()->getVariable(U("toString"))()->get()->useNativePointer<String>();
+    String &s2 = args[1]->get()->getVariable(Identifier("toString"))()->get()->useNativePointer<String>();
     return new object_t(runner.getInter(), s1 + s2);
 }
-object_t * stringMul(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+ObjectContainer stringMul(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//string, string
     String &s = args[0]->get()->useNativePointer<String>();
     int &i = args[1]->get()->useNativePointer<int>();
@@ -295,7 +343,7 @@ object_t * stringMul(Runner &runner, std::vector<ObjectContainer> &args, class_t
         os << s.get();
     return new object_t(runner.getInter(), os.str());
 }
-object_t * stringComp(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+ObjectContainer stringComp(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//string, string
     String &s1 = args[0]->get()->useNativePointer<String>();
     String &s2 = args[1]->get()->useNativePointer<String>();
@@ -306,7 +354,7 @@ object_t * stringComp(Runner &runner, std::vector<ObjectContainer> &args, class_
     else
         return new object_t(runner.getInter(), -1);
 }
-object_t * stringToBool(Runner &runner, std::vector<ObjectContainer> &args, class_t *cl)
+ObjectContainer stringToBool(Runner &runner, std::vector<ObjectContainer> &args, object_t * obj)
 {//string
     String &s = args[0]->get()->useNativePointer<String>();
     return new object_t(runner.getInter(), !s.get().empty());
@@ -316,6 +364,36 @@ void * stringPtrDeleter(void * p)
     delete static_cast<String*>(p);
 }
 
+ObjectContainer zyd2001::NewBie::NormalFunction::call(Runner &runner, Args & args)
+{
+    runner.execute(s);
+    if (ref)
+        return runner.returnRef();
+    else
+        return runner.returnVal();
+}
+
+ObjectContainer zyd2001::NewBie::NativeFunction::call(Runner &runner, Args & args)
+{
+    return native_func(runner, args, obj);
+}
+
+ObjectContainer zyd2001::NewBie::function_t::call(Runner & runner, Args & args)
+{
+    ParameterList &plist = runner.argsToParams(args);
+    if (can_overload)
+    {
+        auto f = overload_map.find(plist);
+        for (int i = 0; i < args.size(); i++)
+        {
+        }
+    }
+}
+
+ObjectContainer zyd2001::NewBie::function_t::call(Runner & runner, ArgumentList & alist)
+{
+    return call(runner, runner.resolveArgumentList(alist));
+}
 
 zyd2001::NewBie::object_t::object_t(InterpreterImp * in, const int &i) : inter(in)
 {
@@ -332,7 +410,7 @@ zyd2001::NewBie::object_t::object_t(InterpreterImp * inter, const double &)
 zyd2001::NewBie::object_t::object_t(InterpreterImp * inter, const bool &)
 {}
 
-zyd2001::NewBie::object_t::object_t(InterpreterImp * inter, std::string &)
+zyd2001::NewBie::object_t::object_t(InterpreterImp * inter, const std::string &)
 {}
 
 zyd2001::NewBie::object_t::object_t(InterpreterImp * inter, const String &)
@@ -351,6 +429,7 @@ String::String(const char_t *str) : ptr(make_shared<basic_string<char_t>>(str)) 
 String::String(const basic_string<char_t> &str) : ptr(make_shared<basic_string<char_t>>(str)) {}
 String::String(const String &str) : ptr(str.ptr) {}
 basic_string<char_t> &String::get() { return *ptr; }
+std::string String::toStr() { return conv.to_bytes(*ptr); }
 
 String String::operator+(const String &str)
 {

@@ -82,8 +82,11 @@ namespace zyd2001
         class InterpreterImp;
         class Runner;
         struct Parameter;
-        struct Statement;
-        struct Expression;
+        struct ParamsHash;
+        struct ParamsEqualTo;
+        struct statement_t;
+        struct expression_t;
+        struct func_t;
         struct function_t;
         struct class_t;
         struct ObjectContainer;
@@ -95,6 +98,7 @@ namespace zyd2001
         using IdentifierList = std::vector<Identifier>;
         using Class = std::shared_ptr<class_t>;
         using ClassMap = std::pair<std::unordered_map<Identifier, ObjectType, Identifier::hash>, std::unordered_map<ObjectType, Class>>;
+        using Func = std::shared_ptr<func_t>;
         using Function = std::shared_ptr<function_t>;
         using Expression = std::shared_ptr<expression_t>;
         using ExpressionList = ArrayExpression;
@@ -102,6 +106,7 @@ namespace zyd2001
         using StatementList = std::list<Statement>;
         using ParameterList = std::vector<Parameter>;
         using ArgumentList = std::vector<Expression>;
+        using Args = std::vector<ObjectContainer>;
 
         struct String
         {
@@ -119,6 +124,7 @@ namespace zyd2001
             bool operator>(const String &) const;
             bool operator<(const String &) const;
             String copy();
+            std::string toStr();
 
             std::basic_string<char_t> &get();
 
@@ -149,7 +155,7 @@ namespace zyd2001
             object_t(InterpreterImp *inter, const int &);
             object_t(InterpreterImp *inter, const double &);
             object_t(InterpreterImp *inter, const bool &);
-            object_t(InterpreterImp *inter, std::string &);
+            object_t(InterpreterImp *inter, const std::string &);
             object_t(InterpreterImp *inter, const String &);
 
             void addVariable(Identifier, object_t *, AccessControl);
@@ -199,10 +205,6 @@ namespace zyd2001
             {
                 o->inter->addGCEdge(belongs_to, obj);
             } //temp container
-            object_container_t(const object_container_t &o, object_t * belongs) : belongs_to(belongs), obj(o.obj), restrict_type(o.restrict_type), isConst(o.isConst)
-            {
-                belongs_to->inter->addGCEdge(belongs_to, obj);
-            }
             object_container_t(ObjectType t, object_t * belongs, bool cons = false) : restrict_type(t), belongs_to(belongs), isConst(cons) {}
             object_container_t(object_t * o, object_t * belongs, bool cons = false) : obj(o), restrict_type(o->cl->type), belongs_to(belongs), isConst(cons)
             {
@@ -211,7 +213,6 @@ namespace zyd2001
             bool typeCheck(object_t *);
             void set(Runner &runner, ObjectContainer);
             object_t * get();
-            ObjectContainer copy(object_t * belongs) { return std::make_shared<object_container_t>(*this, belongs); }
             ~object_container_t()
             {
                 if (obj != nullptr)
@@ -249,15 +250,20 @@ namespace zyd2001
             ObjectContainer operator-();
             ObjectContainer operator[](const ObjectContainer &);
             ObjectContainer operator()(ArgumentList &alist = ArgumentList());
+            ObjectContainer copy(Runner &, object_t *);
+            int getInt();
+            double getDouble();
+            bool getBool();
+            std::string getString();
             operator bool();
             ~ObjectContainer() = default;
             object_container_t & operator*() { return *ptr; }
             object_container_t * operator->() { return ptr.operator->(); }
         };
         //using ObjectContainer = std::shared_ptr<object_container_t>;
-#define B(o) bool(*o)
-/*make temp Object Container*/
-#define OContainer(o) std::make_shared<object_container_t>(o)
+//#define B(o) bool(*o)
+///*make temp Object Container*/
+//#define OContainer(o) std::make_shared<object_container_t>(o)
 
         struct ctorArgs
         {
@@ -293,8 +299,8 @@ namespace zyd2001
             std::array<Function, 10> o; //operator+, -, *, /, %, unary-, toBool, comp, [], ()
             //std::function<object_t *(const object_t * &)> native_copyer = [](const object_t * &) -> object_t * {};
             std::function<void(void*)> native_deleter = [](void*) {}; // for native object
-            virtual object_t * makeObject(Runner &, ArgumentList &alist = ArgumentList()) = 0;
-            virtual object_t * makeObjectAsBase(Runner &, object_t *, ArgumentList &alist = ArgumentList()) = 0; // base object will not have a vertex in the gc graph
+            virtual object_t * makeObject(Runner &, Args &args = Args()) = 0;
+            virtual object_t * makeObjectAsBase(Runner &, object_t *, Args &args = Args()) = 0; // base object will not have a vertex in the gc graph
             void addStaticVariable(Identifier, object_t *, AccessControl);
             ObjectContainer getStaticVariable(Identifier);
             virtual ~class_t() = default;
@@ -304,46 +310,43 @@ namespace zyd2001
         struct NormalClass : public class_t
         {
             std::unordered_map<Identifier, std::tuple<ObjectType, AccessControl, Expression>, Identifier::hash> variables;
-            object_t * makeObject(Runner &, ArgumentList &alist = ArgumentList()) override;
-            object_t * makeObjectAsBase(Runner &, object_t *, ArgumentList &alist = ArgumentList()) override;
+            object_t * makeObject(Runner &, Args &args = Args()) override;
+            object_t * makeObjectAsBase(Runner &, object_t *, Args &args = Args()) override;
         };
         struct NativeClass : public class_t
         {
-            std::function<void(std::vector<ObjectContainer>&, object_t *)> real;
-            object_t * makeObject(Runner &, ArgumentList &alist = ArgumentList()) override;
-            object_t * makeObjectAsBase(Runner &, object_t *, ArgumentList &alist = ArgumentList()) override;
-            //NativeClass(Identifier name, bool R, Function dtor, Function copy, std::function<void(std::vector<ObjectContainer>&, object_t *)> r) : real(r) {}
+            std::function<void(Args&, object_t *)> real;
+            object_t * makeObject(Runner &, Args &args = Args()) override;
+            object_t * makeObjectAsBase(Runner &, object_t *, Args &args = Args()) override;
+            //NativeClass(Identifier name, bool R, Function dtor, Function copy, std::function<void(Args&, object_t *)> r) : real(r) {}
         };
 
-        struct function_t
+        struct func_t
         {
-            friend class Runner;
-            bool can_overload = true;
-            virtual ObjectContainer call(Runner&, ArgumentList &alist = ArgumentList()) = 0;
-            virtual ~function_t() = default;
-        private:
-            InterpreterImp *inter;
+            virtual ObjectContainer call(Runner&, Args &args = Args()) = 0;
+            virtual ~func_t() = default;
+        protected:
             ObjectType return_type;
-
+            bool ref = false;
             //class or obj the function belongs to
             object_t * obj;
-            Class cl;
         };
-        struct NormalFunction : public function_t
+        struct NormalFunction : public func_t
         {
-            std::unordered_map<ParameterList, Statement, ParamsHash, ParamsEqualTo> overload_map;
-            ObjectContainer call(Runner&, ArgumentList &alist = ArgumentList()) override;
-            ObjectContainer real_call(Runner&, ArgumentList &alist = ArgumentList());
+            Statement s;
+            ObjectContainer call(Runner&, Args &args = Args()) override;
         };
-        struct NativeFunction : public function_t
+        struct NativeFunction : public func_t
         {
-            std::unordered_map<ParameterList, std::function<object_t *(Runner &, std::vector<ObjectContainer>&, object_t *)>, ParamsHash, ParamsEqualTo> native_func;
-            ObjectContainer call(Runner&, ArgumentList &alist = ArgumentList()) override;
+            std::function<ObjectContainer (Runner &, Args &, object_t *)> native_func;
+            ObjectContainer call(Runner&, Args &args = Args()) override;
         };
-        struct NativeStaticFunction : public function_t
+        struct function_t
         {
-            std::unordered_map<ParameterList, std::function<object_t *(Runner &, std::vector<ObjectContainer>&, class_t*)>, ParamsHash, ParamsEqualTo> native_func;
-            ObjectContainer call(Runner&, ArgumentList &alist = ArgumentList()) override;
+            bool can_overload;
+            std::unordered_map<ParameterList, Func, ParamsHash, ParamsEqualTo> overload_map;
+            ObjectContainer call(Runner &, Args & args = Args());
+            ObjectContainer call(Runner &, ArgumentList & alist = ArgumentList());
         };
 
         using VariableStack = std::stack<std::vector<ObjectMap>>;
@@ -641,16 +644,14 @@ namespace zyd2001
             StatementType type() override { return BREAK_STATEMENT; }
         };
 
-#define makeStatement(type, ...) std::make_shared<type>(yyget_lineno(scanner), __VA_ARGS__)
-#define makeExpression(type, ...) std::make_shared<type>(__VA_ARGS__)
-        inline Expression makeArgument(object_t * o)
-        {
-            return std::make_shared<LiteralExpression>(OContainer(o));
-        }
-        inline Expression makeArgument(ObjectContainer o)
-        {
-            return std::make_shared<LiteralExpression>(o);
-        }
+        //inline Expression makeArgument(object_t * o)
+        //{
+        //    return std::make_shared<LiteralExpression>(OContainer(o));
+        //}
+        //inline Expression makeArgument(ObjectContainer o)
+        //{
+        //    return std::make_shared<LiteralExpression>(o);
+        //}
 
         struct Parameter
         {
@@ -669,12 +670,27 @@ namespace zyd2001
             bool operator()(const ParameterList& lhs, const ParameterList& rhs) const;
         };
 
+        struct helpStruct
+        {
+            ObjectType type;
+            void * ptr;
+            helpStruct(const int &i);
+            helpStruct(const double &i);
+            helpStruct(const bool &i);
+            helpStruct(const String &i);
+            helpStruct(const std::string &i);
+        };
         class Runner
         {
             InterpreterImp *inter;
             object_t * current_object;
             ObjectContainer temp_obj;
+            ObjectContainer temp_obj_ref;
             VariableStack variable_stack;
+
+            //for function call
+            ObjectType return_type;
+            bool ref;
 
             //support "static"
             bool in_class = false;
@@ -689,14 +705,21 @@ namespace zyd2001
             friend class object_t;
 
             Runner(InterpreterImp *i) : inter(i) {}
-            std::vector<ObjectContainer> resolveArgumentList(ArgumentList &, ParameterList &);
-            static ParameterList ArgsToParams(std::vector<ObjectContainer>&);
+            Args resolveArgumentList(ArgumentList &);
+            ParameterList argsToParams(Args&);
             InterpreterImp * getInter() { return inter; }
             StatementType interpret(StatementList &);
             StatementType execute(Statement &);
             ObjectContainer evaluate(Expression &);
-            object_t * call(Statement, std::vector<ObjectContainer> &);
-            object_t * call(Function);
+            ObjectContainer returnRef();
+            ObjectContainer returnVal();
+            Args _makeArgs(std::vector<helpStruct> &);
+
+            template<typename... Val>
+            Args makeArgs(Val&& ...val)
+            {
+                return _makeArgs(std::vector<helpStruct>{ std::forward<Val>(val)... });
+            }
         };
 
         class InterpreterImp

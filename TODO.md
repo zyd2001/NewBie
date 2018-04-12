@@ -1,4 +1,6 @@
 + deleter recieve parameter and change the stack
++ ObjectContainer copy
++ function call
 + fix member function
 + primitive type
 + fix visibility

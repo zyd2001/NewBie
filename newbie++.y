@@ -8,6 +8,9 @@
 {
 #include "NewBie_Lang.hpp"
 #include "NewBie.hpp"
+
+#define makeStatement(type, ...) std::make_shared<type>(yyget_lineno(scanner), __VA_ARGS__)
+#define makeExpression(type, ...) std::make_shared<type>(__VA_ARGS__)
 }
 
 %code
