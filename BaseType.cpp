@@ -367,10 +367,7 @@ void * stringPtrDeleter(void * p)
 ObjectContainer zyd2001::NewBie::NormalFunction::call(Runner &runner, Args & args)
 {
     runner.execute(s);
-    if (ref)
-        return runner.returnRef();
-    else
-        return runner.returnVal();
+    return runner.returnVal();
 }
 
 ObjectContainer zyd2001::NewBie::NativeFunction::call(Runner &runner, Args & args)
@@ -388,14 +385,11 @@ ObjectContainer zyd2001::NewBie::function_t::call(Runner & runner, Args & args)
         {
             newNewBieStack();
             newNewBieScope();
-            useNewBieFunc(name, f->second);
+            useNewBieFunc(f->second);
             for (int i = 0; i < args.size(); i++)
             {
                 if (!f->first[i].ref)
-                {
-                    args[i] = args[i].copy(runner, runner.getInter()->root);
-                    runner.addVariable(f->first[i].identifier, f->first[i].type, args[i]);
-                }
+                    runner.addVariable(f->first[i].identifier, f->first[i].type, args[i], f->first[i].cons);
                 else
                     runner.addRefVariable(f->first[i].identifier, args[i]);
             }
@@ -409,14 +403,11 @@ ObjectContainer zyd2001::NewBie::function_t::call(Runner & runner, Args & args)
         auto f = overload_map.begin();
         newNewBieStack();
         newNewBieScope();
-        useNewBieFunc(name, f->second);
+        useNewBieFunc(f->second);
         for (int i = 0; i < args.size(); i++)
         {
             if (!f->first[i].ref)
-            {
-                args[i] = args[i].copy(runner, runner.getInter()->root);
-                runner.addVariable(f->first[i].identifier, f->first[i].type, args[i]);
-            }
+                runner.addVariable(f->first[i].identifier, f->first[i].type, args[i], f->first[i].cons);
             else
                 runner.addRefVariable(f->first[i].identifier, args[i]);
         }

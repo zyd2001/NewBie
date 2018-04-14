@@ -230,7 +230,7 @@ namespace zyd2001
         };
         struct ObjectContainer
         {
-            std::shared_ptr<object_container_t> ptr;
+            friend struct function_t;
             ObjectContainer() {}
             ObjectContainer(const std::shared_ptr<object_container_t> &p) : ptr(p) {}
             ObjectContainer(InterpreterImp *inter, const int &i) : ptr(std::make_shared<object_container_t>(new object_t(inter, i))) {}
@@ -254,17 +254,17 @@ namespace zyd2001
             ObjectContainer operator!();
             ObjectContainer operator-();
             ObjectContainer operator[](const ObjectContainer &);
-            ObjectContainer operator()(ArgumentList &alist = ArgumentList());
-            ObjectContainer copy(Runner &, object_t *);
+            ObjectContainer operator()(Args &args = Args());
+            ObjectContainer call(ArgumentList &alist = ArgumentList());
+            ObjectContainer copy(Runner &);
+            ObjectContainer getVariable(Identifier);
             operator bool();
             ~ObjectContainer() = default;
             object_container_t & operator*() { return *ptr; }
             object_container_t * operator->() { return ptr.operator->(); }
+        private:
+            std::shared_ptr<object_container_t> ptr;
         };
-        //using ObjectContainer = std::shared_ptr<object_container_t>;
-//#define B(o) bool(*o)
-///*make temp Object Container*/
-//#define OContainer(o) std::make_shared<object_container_t>(o)
 
         struct ctorArgs
         {
@@ -294,6 +294,8 @@ namespace zyd2001
             ObjectType type;
             std::vector<Class> base_list;
             bool RAII = false;
+            bool editable = false;
+            bool isFinal = false;
             Constructor ctor;
             Function dtor;
             Function copy_ctor;
@@ -324,6 +326,7 @@ namespace zyd2001
 
         struct func_t
         {
+            friend class Runner;
             virtual ObjectContainer call(Runner&, Args &args = Args()) = 0;
             virtual ~func_t() = default;
         protected:
@@ -339,16 +342,15 @@ namespace zyd2001
         };
         struct NativeFunction : public func_t
         {
-            std::function<ObjectContainer (Runner &, Args &, object_t *)> native_func;
+            std::function<ObjectContainer(Runner &, Args &, object_t *)> native_func;
             ObjectContainer call(Runner&, Args &args = Args()) override;
         };
         struct function_t
         {
-            Identifier name;
             bool can_overload;
             std::unordered_map<ParameterList, Func, ParamsHash, ParamsEqualTo> overload_map;
             ObjectContainer call(Runner &, Args & args = Args());
-            ObjectContainer call(Runner &, ArgumentList & alist = ArgumentList());
+            ObjectContainer call(Runner &, ArgumentList & alist);
         };
 
         using VariableStack = std::stack<std::vector<ObjectMap>>;
@@ -362,17 +364,24 @@ namespace zyd2001
         struct RAIIScope
         {
             Runner &runner;
-            RAIIScope(Runner & );
+            RAIIScope(Runner &);
             ~RAIIScope();
         };
 #define newNewBieScope() zyd2001::NewBie::RAIIScope __newbie__scope__(runner)
         struct RAIIFunc
         {
             Runner & runner;
-            RAIIFunc(Identifier, Func, Runner & );
+            RAIIFunc(Func, Runner &);
             ~RAIIFunc();
         };
-#define useNewBieFunc(name, func) zyd2001::NewBie::RAIIFunc __newbie__func__(name, func, runner)
+#define useNewBieFunc(func) zyd2001::NewBie::RAIIFunc __newbie__func__(func, runner)
+        struct RAIIFuncName
+        {
+            Runner & runner;
+            RAIIFuncName(Identifier, Runner &);
+            ~RAIIFuncName();
+        };
+#define useNewBieFuncName(name) zyd2001::NewBie::RAIIFuncName __newbie__func__name__(name, runner)
 
         enum ExpressionType
         {
@@ -651,6 +660,7 @@ namespace zyd2001
         {
             ObjectType type;
             bool ref;
+            bool cons;
             Identifier identifier;
             Expression default_value_exp; //only object_t *
         };
@@ -680,22 +690,25 @@ namespace zyd2001
             InterpreterImp *inter;
             object_t * current_object;
             ObjectContainer temp_obj;
-            ObjectContainer temp_obj_ref;
             VariableStack variable_stack;
             ObjectMap * current_obj_map;
+
+            static ObjectContainer null_obj;
 
             //for function call
             ObjectType return_type;
             bool ref;
 
             //call stack
-            std::stack<std::pair<Identifier, Func>> call_stack;
+            std::stack<Func> call_stack_func;
+            std::stack<Identifier> call_stack_name;
 
             ObjectContainer addRefVariable(Identifier, ObjectContainer);
         public:
             friend class RAIIStack;
             friend class RAIIScope;
             friend class RAIIFunc;
+            friend class RAIIFuncName;
 
             Runner(InterpreterImp *i) : inter(i) {}
             Args resolveArgumentList(ArgumentList &);
@@ -706,7 +719,6 @@ namespace zyd2001
             StatementType interpret(StatementList &);
             StatementType execute(Statement &);
             ObjectContainer evaluate(Expression &);
-            ObjectContainer returnRef();
             ObjectContainer returnVal();
             Args _makeArgs(std::vector<helpStruct> &);
 
@@ -747,6 +759,7 @@ namespace zyd2001
             void delGCVertex(object_t *);
             void addGCEdge(object_t *, object_t *);
             void delGCEdge(object_t *, object_t *);
+            bool typeCheck(ObjectType, object_t *);
             void registerClass(Class, IdentifierList&);
             void registerClass(Identifier, StatementList &);
             void registerClass(Identifier, StatementList &, IdentifierList &);

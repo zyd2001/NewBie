@@ -165,19 +165,9 @@ object_t * zyd2001::NewBie::NativeClass::makeObjectAsBase(Runner &runner, object
 
 bool zyd2001::NewBie::object_container_t::typeCheck(object_t * o)
 {
-    if (restrict_type == 1) //variant type
-        return true;
     if (obj->type == o->type)
         return true;
-    if (restrict_type == o->type)
-        return true;
-    else
-    {
-        for (auto &b : o->all_bases)
-            if (restrict_type == b.second->type)
-                return true;
-        return false;
-    }
+    return o->inter->typeCheck(restrict_type, o);
 }
 
 void zyd2001::NewBie::object_container_t::set(Runner &runner, ObjectContainer oc) // temporary ObjectContainer can only use once
@@ -215,11 +205,12 @@ object_t * zyd2001::NewBie::object_container_t::get()
         throw exception();
 }
 
-ObjectContainer zyd2001::NewBie::ObjectContainer::copy(Runner & runner, object_t * belongs)
+ObjectContainer zyd2001::NewBie::ObjectContainer::copy(Runner & runner)
 {
-    auto p = make_shared<object_container_t>(ptr->restrict_type, belongs, false);
+    auto p = make_shared<object_container_t>();
+    p->belongs_to = runner.getInter()->temp;
     p->set(runner, *this);
-    p->isConst = ptr->isConst;
+    p->isConst = true;
     return ObjectContainer(p);
 }
 

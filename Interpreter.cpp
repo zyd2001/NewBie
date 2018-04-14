@@ -128,14 +128,46 @@ zyd2001::NewBie::RAIIScope::~RAIIScope()
     runner.current_obj_map = &runner.variable_stack.top().back();
 }
 
-RAIIFunc::RAIIFunc(Identifier name, Func f, Runner & r) : runner(r)
+RAIIFunc::RAIIFunc(Func f, Runner & r) : runner(r)
 {
-    runner.call_stack.emplace(make_pair(name, f));
+    runner.call_stack_func.emplace(f);
 }
 
 RAIIFunc::~RAIIFunc()
 {
-    runner.call_stack.pop();
+    runner.call_stack_func.pop();
+}
+
+zyd2001::NewBie::RAIIFuncName::RAIIFuncName(Identifier name, Runner & r) : runner(r)
+{
+    runner.call_stack_name.emplace(name);
+}
+
+RAIIFuncName::~RAIIFuncName()
+{
+    runner.call_stack_name.pop();
+}
+
+ObjectContainer zyd2001::NewBie::Runner::returnVal()
+{
+    auto f = call_stack_func.top();
+    ObjectContainer o;
+    if (f->ref)
+    {
+        if (inter->typeCheck(f->return_type, temp_obj->get()))
+            o = temp_obj;
+        else
+            throw exception();
+    }
+    else
+    {
+        if (inter->typeCheck(f->return_type, temp_obj->get()))
+            o = temp_obj.copy(*this);
+        else
+            throw exception();
+    }
+    temp_obj = Runner::null_obj; //reset temp_obj after return
+    return o;
 }
 
 ObjectContainer zyd2001::NewBie::Runner::addRefVariable(Identifier name, ObjectContainer oc)
@@ -360,6 +392,21 @@ void zyd2001::NewBie::InterpreterImp::delGCEdge(object_t *v, object_t *w)
             gc_graph.delEdge(root, w);
         else
             gc_graph.delEdge(v, w);
+    }
+}
+
+bool zyd2001::NewBie::InterpreterImp::typeCheck(ObjectType t, object_t * o)
+{
+    if (t == 1) //variant type
+        return true;
+    if (t == o->type)
+        return true;
+    else
+    {
+        for (auto &b : o->all_bases)
+            if (t == b.second->type)
+                return true;
+        return false;
     }
 }
 

@@ -337,6 +337,10 @@
         {
             $$ = makeExpression(NewObjectExpression, $2, $4);
         }
+        | LP expression RP expression
+        {
+            $$;
+        }
         | THIS
         {
             $$ = makeExpression(ThisExpression);

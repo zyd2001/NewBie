@@ -456,7 +456,7 @@ StatementType zyd2001::NewBie::Runner::execute(Statement &s)
         }
         case RETURN_STATEMENT:
         {
-            temp_obj->set(evaluate(getStatement<ReturnStatement*>(s)->exp)->get());
+            temp_obj = evaluate(getStatement<ReturnStatement*>(s)->exp);
             return RETURN_STATEMENT;
             break;
         }
