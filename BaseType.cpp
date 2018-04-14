@@ -154,24 +154,24 @@ helpStruct::helpStruct(const bool &i) : type(4), ptr(new bool(i)) {}
 helpStruct::helpStruct(const std::string &i) : type(5), ptr(new String(i)) {}
 helpStruct::helpStruct(const String &i) : type(5), ptr(new String(i)) {}
 
-int zyd2001::NewBie::ObjectContainer::getInt()
+int zyd2001::NewBie::object_container_t::getInt()
 {
-    return ptr->get()->useNativePointer<int>();
+    return obj->useNativePointer<int>();
 }
 
-double zyd2001::NewBie::ObjectContainer::getDouble()
+double zyd2001::NewBie::object_container_t::getDouble()
 {
-    return ptr->get()->useNativePointer<double>();
+    return obj->useNativePointer<double>();
 }
 
-bool zyd2001::NewBie::ObjectContainer::getBool()
+bool zyd2001::NewBie::object_container_t::getBool()
 {
-    return ptr->get()->useNativePointer<bool>();
+    return obj->useNativePointer<bool>();
 }
 
-std::string zyd2001::NewBie::ObjectContainer::getString()
+std::string zyd2001::NewBie::object_container_t::getString()
 {
-    return ptr->get()->useNativePointer<String>().toStr();
+    return obj->useNativePointer<String>().toStr();
 }
 
 #define intBiOp(name, op)\
@@ -384,9 +384,43 @@ ObjectContainer zyd2001::NewBie::function_t::call(Runner & runner, Args & args)
     if (can_overload)
     {
         auto f = overload_map.find(plist);
+        if (f != overload_map.end())
+        {
+            newNewBieStack();
+            newNewBieScope();
+            useNewBieFunc(name, f->second);
+            for (int i = 0; i < args.size(); i++)
+            {
+                if (!f->first[i].ref)
+                {
+                    args[i] = args[i].copy(runner, runner.getInter()->root);
+                    runner.addVariable(f->first[i].identifier, f->first[i].type, args[i]);
+                }
+                else
+                    runner.addRefVariable(f->first[i].identifier, args[i]);
+            }
+            return f->second->call(runner, args);
+        }
+        else
+            throw exception();
+    }
+    else
+    {
+        auto f = overload_map.begin();
+        newNewBieStack();
+        newNewBieScope();
+        useNewBieFunc(name, f->second);
         for (int i = 0; i < args.size(); i++)
         {
+            if (!f->first[i].ref)
+            {
+                args[i] = args[i].copy(runner, runner.getInter()->root);
+                runner.addVariable(f->first[i].identifier, f->first[i].type, args[i]);
+            }
+            else
+                runner.addRefVariable(f->first[i].identifier, args[i]);
         }
+        return f->second->call(runner, args);
     }
 }
 

@@ -195,7 +195,7 @@ void zyd2001::NewBie::object_container_t::set(Runner &runner, ObjectContainer oc
                 if (oc->belongs_to == belongs_to->inter->temp) // if oc is a temp ObjectContainer, don't copy and change the state
                     oc->belongs_to = belongs_to->inter->null; // if an RAII object belongs to null(not nullptr), it won't be deleted
                 else
-                    o = o->cl->copy_ctor->call(runner, ArgumentList{ makeArgument(o) })->get();
+                    o = o->cl->copy_ctor->call(runner, Args{ o })->get();
             }
             if (obj != nullptr && obj->cl->RAII)
                 delete obj;
@@ -217,8 +217,10 @@ object_t * zyd2001::NewBie::object_container_t::get()
 
 ObjectContainer zyd2001::NewBie::ObjectContainer::copy(Runner & runner, object_t * belongs)
 {
-    auto p = make_shared<object_container_t>();
-    ObjectContainer o(p);
+    auto p = make_shared<object_container_t>(ptr->restrict_type, belongs, false);
+    p->set(runner, *this);
+    p->isConst = ptr->isConst;
+    return ObjectContainer(p);
 }
 
 void object_t::addVariable(Identifier id, ObjectType t, AccessControl visibility)

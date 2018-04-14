@@ -198,6 +198,7 @@ namespace zyd2001
             friend class class_t;
             friend class object_t;
             friend class Runner;
+            friend class ObjectContainer;
             friend class InterpreterImp;
 
             object_container_t() {}
@@ -210,6 +211,10 @@ namespace zyd2001
             {
                 belongs_to->inter->addGCEdge(belongs_to, obj);
             }
+            int getInt();
+            double getDouble();
+            bool getBool();
+            std::string getString();
             bool typeCheck(object_t *);
             void set(Runner &runner, ObjectContainer);
             object_t * get();
@@ -251,10 +256,6 @@ namespace zyd2001
             ObjectContainer operator[](const ObjectContainer &);
             ObjectContainer operator()(ArgumentList &alist = ArgumentList());
             ObjectContainer copy(Runner &, object_t *);
-            int getInt();
-            double getDouble();
-            bool getBool();
-            std::string getString();
             operator bool();
             ~ObjectContainer() = default;
             object_container_t & operator*() { return *ptr; }
@@ -294,8 +295,8 @@ namespace zyd2001
             std::vector<Class> base_list;
             bool RAII = false;
             Constructor ctor;
-            std::shared_ptr<function_t> dtor;
-            std::shared_ptr<function_t> copy_ctor;
+            Function dtor;
+            Function copy_ctor;
             std::array<Function, 10> o; //operator+, -, *, /, %, unary-, toBool, comp, [], ()
             //std::function<object_t *(const object_t * &)> native_copyer = [](const object_t * &) -> object_t * {};
             std::function<void(void*)> native_deleter = [](void*) {}; // for native object
@@ -343,6 +344,7 @@ namespace zyd2001
         };
         struct function_t
         {
+            Identifier name;
             bool can_overload;
             std::unordered_map<ParameterList, Func, ParamsHash, ParamsEqualTo> overload_map;
             ObjectContainer call(Runner &, Args & args = Args());
@@ -352,33 +354,25 @@ namespace zyd2001
         using VariableStack = std::stack<std::vector<ObjectMap>>;
         struct RAIIStack
         {
-            InterpreterImp *inter;
-            RAIIStack(InterpreterImp *inter);
+            Runner &runner;
+            RAIIStack(Runner &);
             ~RAIIStack();
         };
-#define newVariablesStack() zyd2001::NewBie::RAIIStack __newbie__stack__(inter)
+#define newNewBieStack() zyd2001::NewBie::RAIIStack __newbie__stack__(runner)
         struct RAIIScope
         {
-            InterpreterImp *inter;
-            RAIIScope(InterpreterImp *inter);
+            Runner &runner;
+            RAIIScope(Runner & );
             ~RAIIScope();
         };
-#define newVariablesScope() zyd2001::NewBie::RAIIScope __newbie__scope__(inter)
-        struct RAIIObject
+#define newNewBieScope() zyd2001::NewBie::RAIIScope __newbie__scope__(runner)
+        struct RAIIFunc
         {
-            InterpreterImp *inter;
-            RAIIObject(object_t *, InterpreterImp *inter);
-            ~RAIIObject();
+            Runner & runner;
+            RAIIFunc(Identifier, Func, Runner & );
+            ~RAIIFunc();
         };
-#define useObject(obj) zyd2001::NewBie::RAIIObject __newbie__obj__(obj, inter)
-        struct RAIIClass
-        {
-            InterpreterImp *inter;
-            RAIIClass(Class, InterpreterImp *inter);
-            RAIIClass(class_t*, InterpreterImp *inter);
-            ~RAIIClass();
-        };
-#define useClass(cl) zyd2001::NewBie::RAIIClass __newbie__class__(cl, inter)
+#define useNewBieFunc(name, func) zyd2001::NewBie::RAIIFunc __newbie__func__(name, func, runner)
 
         enum ExpressionType
         {
@@ -682,31 +676,32 @@ namespace zyd2001
         };
         class Runner
         {
+            friend class function_t;
             InterpreterImp *inter;
             object_t * current_object;
             ObjectContainer temp_obj;
             ObjectContainer temp_obj_ref;
             VariableStack variable_stack;
+            ObjectMap * current_obj_map;
 
             //for function call
             ObjectType return_type;
             bool ref;
 
-            //support "static"
-            bool in_class = false;
-            class_t* current_class;
-            std::stack<class_t*> class_env_stack;
-            //support "this" expression
-            bool in_object = false;
-            object_t * current_object;
-            std::stack<object_t *> object_env_stack;
+            //call stack
+            std::stack<std::pair<Identifier, Func>> call_stack;
 
+            ObjectContainer addRefVariable(Identifier, ObjectContainer);
         public:
-            friend class object_t;
+            friend class RAIIStack;
+            friend class RAIIScope;
+            friend class RAIIFunc;
 
             Runner(InterpreterImp *i) : inter(i) {}
             Args resolveArgumentList(ArgumentList &);
             ParameterList argsToParams(Args&);
+            ObjectContainer addVariable(Identifier, ObjectType, ObjectContainer, bool cons = false);
+            ObjectContainer addVariable(Identifier, ObjectType, bool cons = false);
             InterpreterImp * getInter() { return inter; }
             StatementType interpret(StatementList &);
             StatementType execute(Statement &);
@@ -715,6 +710,11 @@ namespace zyd2001
             ObjectContainer returnVal();
             Args _makeArgs(std::vector<helpStruct> &);
 
+            template<typename... Val>
+            ObjectContainer call(Function f, Val&& ...val)
+            {
+                return f->call(*this, makeArgs(std::forward<Val>(val)...));
+            }
             template<typename... Val>
             Args makeArgs(Val&& ...val)
             {

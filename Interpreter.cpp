@@ -101,89 +101,70 @@ Args zyd2001::NewBie::Runner::_makeArgs(std::vector<helpStruct>&v)
     return args;
 }
 
-RAIIStack::RAIIStack(InterpreterImp *inter)
+RAIIStack::RAIIStack(Runner &r) : runner(r)
 {
-    inter->variables_stack.emplace(vector<ObjectMap>());
-    inter->variables_stack.top().emplace_back(ObjectMap());
-    inter->current_variables = &inter->variables_stack.top().back();
+    runner.variable_stack.emplace(vector<ObjectMap>());
 }
 
 RAIIStack::~RAIIStack()
 {
-    while (!inter->variables_stack.top().empty())
-    {
-        for (auto &o : inter->variables_stack.top().back())
-            inter->delGCEdge(inter->root, o.second);
-        inter->variables_stack.top().pop_back();
-    }
-    inter->variables_stack.pop();
-    inter->current_variables = &inter->variables_stack.top().back();
+    runner.variable_stack.pop();
 }
 
-zyd2001::NewBie::RAIIScope::RAIIScope(InterpreterImp *inter)
+zyd2001::NewBie::RAIIScope::RAIIScope(Runner & r) : runner(r)
 {
-    inter->variables_stack.top().emplace_back(ObjectMap());
-    inter->current_variables = &inter->variables_stack.top().back();
+    runner.variable_stack.top().emplace_back(ObjectMap());
+    runner.current_obj_map = &runner.variable_stack.top().back();
 }
 
 zyd2001::NewBie::RAIIScope::~RAIIScope()
 {
-    for (auto &o : inter->variables_stack.top().back())
-        inter->delGCEdge(inter->root, o.second);
-    inter->variables_stack.top().pop_back();
-    inter->current_variables = &inter->variables_stack.top().back();
-}
-
-RAIIObject::RAIIObject(Object obj, InterpreterImp *inter)
-{
-    inter->current_object = obj.obj();
-    inter->object_env_stack.push(obj.obj());
-    inter->in_object = true;
-}
-
-zyd2001::NewBie::RAIIObject::RAIIObject(object_t *obj, InterpreterImp *inter)
-{
-    inter->current_object = obj;
-    inter->object_env_stack.push(obj);
-    inter->in_object = true;
-}
-
-RAIIObject::~RAIIObject()
-{
-    inter->object_env_stack.pop();
-    if (inter->object_env_stack.empty())
+    for (auto iter = runner.current_obj_map->begin(); iter != runner.current_obj_map->end();)
     {
-        inter->in_object = false;
-        inter->current_object = nullptr;
+        runner.inter->delGCEdge(runner.inter->root, iter->second->get());
+        iter = runner.current_obj_map->erase(iter);
+    }
+    runner.variable_stack.top().pop_back();
+    runner.current_obj_map = &runner.variable_stack.top().back();
+}
+
+RAIIFunc::RAIIFunc(Identifier name, Func f, Runner & r) : runner(r)
+{
+    runner.call_stack.emplace(make_pair(name, f));
+}
+
+RAIIFunc::~RAIIFunc()
+{
+    runner.call_stack.pop();
+}
+
+ObjectContainer zyd2001::NewBie::Runner::addRefVariable(Identifier name, ObjectContainer oc)
+{
+    auto o = current_obj_map->find(name);
+    if (o != current_obj_map->end())
+        current_obj_map->emplace(name, oc);
+    else
+        throw exception();
+}
+
+ObjectContainer zyd2001::NewBie::Runner::addVariable(Identifier name, ObjectType type, ObjectContainer o, bool cons)
+{
+    auto oc = addVariable(name, type, cons);
+    oc->set(*this, o);
+    return oc;
+}
+
+ObjectContainer zyd2001::NewBie::Runner::addVariable(Identifier name, ObjectType type, bool cons)
+{
+    auto o = current_obj_map->find(name);
+    if (o != current_obj_map->end())
+    {
+        ObjectContainer oc(make_shared<object_container_t>(type, inter->root, cons));
+        current_obj_map->emplace(name, oc);
+        return oc;
     }
     else
-        inter->current_object = inter->object_env_stack.top();
-}
-
-RAIIClass::RAIIClass(Class cl, InterpreterImp *inter)
-{
-    inter->current_class = cl.get();;
-    inter->class_env_stack.push(cl.get());
-    inter->in_class = true;
-}
-
-zyd2001::NewBie::RAIIClass::RAIIClass(class_t *cl, InterpreterImp *inter)
-{
-    inter->current_class = cl;
-    inter->class_env_stack.push(cl);
-    inter->in_class = true;
-}
-
-RAIIClass::~RAIIClass()
-{
-    inter->class_env_stack.pop();
-    if (inter->class_env_stack.empty())
-    {
-        inter->in_class = false;
-        inter->current_class = nullptr;
-    }
-    else
-        inter->current_class = inter->class_env_stack.top();
+        throw exception();
 }
 
 void InterpreterImp::parse()
