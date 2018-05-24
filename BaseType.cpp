@@ -148,11 +148,11 @@ wstring_convert<codecvt_utf8<char_t>, char_t> conv;
 //    }
 //}
 
-helpStruct::helpStruct(const int &i) : type(2), ptr(new int(i)) {}
-helpStruct::helpStruct(const double &i) : type(3), ptr(new double(i)) {}
-helpStruct::helpStruct(const bool &i) : type(4), ptr(new bool(i)) {}
-helpStruct::helpStruct(const std::string &i) : type(5), ptr(new String(i)) {}
-helpStruct::helpStruct(const String &i) : type(5), ptr(new String(i)) {}
+helpStruct::helpStruct(const int &i) : type(2), ptr(i) {}
+helpStruct::helpStruct(const double &i) : type(3), ptr(i) {}
+helpStruct::helpStruct(const bool &i) : type(4), ptr(i) {}
+helpStruct::helpStruct(const std::string &i) : type(5), ptr(String(i)) {}
+helpStruct::helpStruct(const String &i) : type(5), ptr(String(i)) {}
 
 int zyd2001::NewBie::object_container_t::getInt()
 {
@@ -448,11 +448,12 @@ Class stringClass = make_shared<NativeClass>();
 
 std::array<Class, 4> primitive_class = { intClass, doubleClass, booleanClass, stringClass };
 
-String::String() : ptr(make_shared<basic_string<char_t>>()) {}
-String::String(const std::string &s) : ptr(make_shared<basic_string<char_t>>(conv.from_bytes(s))) {}
-String::String(const char_t *str) : ptr(make_shared<basic_string<char_t>>(str)) {}
-String::String(const basic_string<char_t> &str) : ptr(make_shared<basic_string<char_t>>(str)) {}
+String::String() : ptr(new basic_string<char_t>()) {}
+String::String(const std::string &s) : ptr(new basic_string<char_t>(conv.from_bytes(s))) {}
+String::String(const char_t *str) : ptr(new basic_string<char_t>(str)) {}
+String::String(const basic_string<char_t> &str) : ptr(new basic_string<char_t>(str)) {}
 String::String(const String &str) : ptr(str.ptr) {}
+String::~String() {delete ptr;}
 basic_string<char_t> &String::get() { return *ptr; }
 std::string String::toStr() { return conv.to_bytes(*ptr); }
 

@@ -163,11 +163,43 @@ object_t * zyd2001::NewBie::NativeClass::makeObjectAsBase(Runner &runner, object
     return obj;
 }
 
+object_t::object_t(const Runner & r, Class c) : type_name(c->type_name), type(c->type), cl(c) {}
+object_t::object_t(const Runner & r, Class c, void * ptr) : type_name(c->type_name), type(c->type), cl(c), native_ptr(ptr) {}
+
+object_container_t::object_container_t() {}
+object_container_t::object_container_t(object_t * o, object_t * temp_ptr) : obj(o), isConst(true), belongs_to(temp_ptr)
+{
+    o->runner.getInter()->addGCEdge(belongs_to, obj);
+} //temp container
+object_container_t::object_container_t(ObjectType t, object_t * belongs, bool cons = false) : restrict_type(t), belongs_to(belongs), isConst(cons) {}
+object_container_t::object_container_t(object_t * o, object_t * belongs, bool cons = false) : obj(o), restrict_type(o->cl->type), belongs_to(belongs), isConst(cons)
+{
+    belongs_to->runner.getInter()->addGCEdge(belongs_to, obj);
+}
+object_container_t::~object_container_t()
+{
+    if (obj != nullptr)
+    {
+        if (obj->cl->RAII && belongs_to != belongs_to->runner.getInter()->null)
+        {
+            Runner & runner = obj->runner;
+            newNewBieStack();
+            newNewBieScope();
+            Func f = make_shared<NormalFunction>();// will add constructor
+            f->obj = obj;
+            useNewBieFunc(f);
+            obj->cl->dtor->call(obj->runner);
+            delete obj;
+        }
+        belongs_to->runner.getInter()->delGCEdge(belongs_to, obj);
+    }
+}
+
 bool zyd2001::NewBie::object_container_t::typeCheck(object_t * o)
 {
     if (obj->type == o->type)
         return true;
-    return o->inter->typeCheck(restrict_type, o);
+    return o->runner.getInter()->typeCheck(restrict_type, o);
 }
 
 void zyd2001::NewBie::object_container_t::set(Runner &runner, ObjectContainer oc) // temporary ObjectContainer can only use once
@@ -179,18 +211,18 @@ void zyd2001::NewBie::object_container_t::set(Runner &runner, ObjectContainer oc
         auto o = oc->get();
         if (typeCheck(o))
         {
-            belongs_to->inter->delGCEdge(belongs_to, obj);
+            belongs_to->runner.getInter()->delGCEdge(belongs_to, obj);
             if (o->cl->RAII)
             {
-                if (oc->belongs_to == belongs_to->inter->temp) // if oc is a temp ObjectContainer, don't copy and change the state
-                    oc->belongs_to = belongs_to->inter->null; // if an RAII object belongs to null(not nullptr), it won't be deleted
+                if (oc->belongs_to == belongs_to->runner.getInter()->temp) // if oc is a temp ObjectContainer, don't copy and change the state
+                    oc->belongs_to = belongs_to->runner.getInter()->null; // if an RAII object belongs to null(not nullptr), it won't be deleted
                 else
                     o = o->cl->copy_ctor->call(runner, Args{ o })->get();
             }
             if (obj != nullptr && obj->cl->RAII)
                 delete obj;
             obj = o;
-            belongs_to->inter->addGCEdge(belongs_to, obj);
+            belongs_to->runner.getInter()->addGCEdge(belongs_to, obj);
         }
         else
             throw exception();

@@ -1,4 +1,4 @@
-+ deleter recieve parameter and change the stack
++ deleter recieve parameter and change the stack(in progress)
 + fix member function
 + primitive type
 + fix visibility
