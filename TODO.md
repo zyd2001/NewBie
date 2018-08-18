@@ -4,4 +4,13 @@
 + fix visibility
 + add class as object
 + editable object
-+ function overload matching with derived class(failed)
++ fix inappropriate call of emplace_back()
++ interpreter initialize
++ change to prototype
++ fix this_ptr
++ get prototype
++ Function call stack with name
++ constructor has return value
++ native Function check arguments
++ eliminate null
++ make_params() default value

@@ -1,10 +1,6 @@
 #include "NewBie_Lang.hpp"
 #include "NewBie.hpp"
 
-#if defined(_MSC_VER)
-#include <Windows.h>
-#endif
-
 using namespace zyd2001::NewBie;
 using namespace std;
 
@@ -327,13 +323,20 @@ using namespace std;
 //}
 
 template<typename T>
-T &getStatement(Statement &s)
+T &getStatement(const Statement &s)
 {
     return static_cast<T>(s.get());
 }
 
-StatementType zyd2001::NewBie::Runner::execute(Statement &s)
+void zyd2001::NewBie::Runner::interpret(const StatementList & slist)
 {
+    for (auto & s : slist)
+        execute(s);
+}
+
+StatementType zyd2001::NewBie::Runner::execute(const Statement &s)
+{
+    Runner & runner = *this;
     switch (s->type())
     {
         case EXPRESSION_STATEMENT:
@@ -342,16 +345,43 @@ StatementType zyd2001::NewBie::Runner::execute(Statement &s)
             return EXPRESSION_STATEMENT;
             break;
         }
+        case BLOCK_STATEMENT:
+        {
+            auto block = getStatement<BlockStatement*>(s);
+            for (auto & i : block->slist)
+            {
+                auto result = execute(i);
+                switch (result)
+                {
+                    case zyd2001::NewBie::RETURN_STATEMENT:
+                    case zyd2001::NewBie::CONTINUE_STATEMENT:
+                    case zyd2001::NewBie::BREAK_STATEMENT:
+                        return result;
+                    default:
+                        break;
+                }
+            }
+        }
         case DECLARATION_STATEMENT:
         {
             auto decl = getStatement<DeclarationStatement*>(s);
             ObjectType type = inter->findClassId(decl->obj_type);
             for (auto &item : decl->items)
             {
-                if (item.initial_value.get() != nullptr)
-                    inter->declareVariable(item.identifier, type, evaluate(item.initial_value), decl->global);
+                if (decl->global)
+                {
+                    if (item.initial_value.get() != nullptr)
+                        addGlobalVariable(item.identifier, type, evaluate(item.initial_value), decl->cons);
+                    else
+                        addGlobalVariable(item.identifier, makeDefaultObject(type), decl->cons);
+                }
                 else
-                    inter->declareVariable(item.identifier, type, decl->global);
+                {
+                    if (item.initial_value.get() != nullptr)
+                        addVariable(item.identifier, type, evaluate(item.initial_value), decl->cons);
+                    else
+                        addVariable(item.identifier, makeDefaultObject(type), decl->cons);
+                }
             }
             return DECLARATION_STATEMENT;
             break;
@@ -361,10 +391,20 @@ StatementType zyd2001::NewBie::Runner::execute(Statement &s)
             auto decl = getStatement<BuiltInDeclarationStatement*>(s);
             for (auto &item : decl->items)
             {
-                if (item.initial_value.get() != nullptr)
-                    inter->declareVariable(item.identifier, decl->type, evaluate(item.initial_value), decl->global);
+                if (decl->global)
+                {
+                    if (item.initial_value.get() != nullptr)
+                        addGlobalVariable(item.identifier, decl->type, evaluate(item.initial_value), decl->cons);
+                    else
+                        addGlobalVariable(item.identifier, makeDefaultObject(decl->type), decl->cons);
+                }
                 else
-                    inter->declareVariable(item.identifier, decl->type, decl->global);
+                {
+                    if (item.initial_value.get() != nullptr)
+                        addVariable(item.identifier, decl->type, evaluate(item.initial_value), decl->cons);
+                    else
+                        addVariable(item.identifier, makeDefaultObject(decl->type), decl->cons);
+                }
             }
             return BUILTIN_DECLARATION_STATEMENT;
             break;
@@ -372,16 +412,16 @@ StatementType zyd2001::NewBie::Runner::execute(Statement &s)
         case ASSIGNMENT_STATEMENT:
         {
             auto assign = getStatement<AssignmentStatement*>(s);
-            evaluate(assign->lvalue)->set(evaluate(assign->rvalue));
+            evaluate(assign->lvalue)->set(*this, evaluate(assign->rvalue));
             return ASSIGNMENT_STATEMENT;
             break;
         }
         case IF_STATEMENT:
         {
             auto ifs = getStatement<IfStatement*>(s);
-            if (B(evaluate(ifs->condition)))
+            if (evaluate(ifs->condition).toBool(*this))
             {
-                newVariablesScope();
+                newNewBieScope();
                 return execute(ifs->stat);
             }
             else
@@ -389,15 +429,15 @@ StatementType zyd2001::NewBie::Runner::execute(Statement &s)
                 if (ifs->elseif.size() > 0)
                 {
                     for (auto &i : ifs->elseif)
-                        if (B(evaluate(i.condition)))
+                        if (evaluate(i.condition).toBool(*this))
                         {
-                            newVariablesScope();
+                            newNewBieScope();
                             return execute(i.stat);
                         }
                 }
                 if (ifs->else_stat.get() != nullptr)
                 {
-                    newVariablesScope();
+                    newNewBieScope();
                     return execute(ifs->else_stat);
                 }
             }
@@ -407,8 +447,8 @@ StatementType zyd2001::NewBie::Runner::execute(Statement &s)
         case FOR_STATEMENT:
         {
             auto fors = getStatement<ForStatement*>(s);
-            newVariablesScope();
-            for (execute(fors->pre); B(evaluate(fors->condition)); execute(fors->after))
+            newNewBieScope();
+            for (execute(fors->pre); evaluate(fors->condition).toBool(*this); execute(fors->after))
             {
                 auto result = execute(fors->stat);
                 if (result == CONTINUE_STATEMENT)
@@ -425,7 +465,7 @@ StatementType zyd2001::NewBie::Runner::execute(Statement &s)
         case WHILE_STATEMENT:
         {
             auto whiles = getStatement<WhileStatement*>(s);
-            newVariablesScope();
+            newNewBieScope();
             if (whiles->do_while)
                 do
                 {
@@ -438,9 +478,9 @@ StatementType zyd2001::NewBie::Runner::execute(Statement &s)
                         return result;
                     else
                         return WHILE_STATEMENT;
-                } while (B(evaluate(whiles->condition)));
+                } while (evaluate(whiles->condition).toBool(*this));
             else
-                while (B(evaluate(whiles->condition)))
+                while (evaluate(whiles->condition).toBool(*this))
                 {
                     auto result = execute(whiles->stat);
                     if (result == CONTINUE_STATEMENT)

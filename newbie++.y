@@ -9,8 +9,8 @@
 #include "NewBie_Lang.hpp"
 #include "NewBie.hpp"
 
-#define makeStatement(type, ...) std::make_shared<type>(yyget_lineno(scanner), __VA_ARGS__)
-#define makeExpression(type, ...) std::make_shared<type>(__VA_ARGS__)
+#define makeS(type, ...) std::make_shared<type>(yyget_lineno(scanner), __VA_ARGS__)
+#define makeE(type, ...) std::make_shared<type>(__VA_ARGS__)
 }
 
 %code
@@ -18,7 +18,7 @@
     using namespace std;
     using namespace zyd2001::NewBie;
     IfStatement *current_if;
-	Parser::symbol_type yylex(InterpreterImp &inter, yyscan_t yyscanner);
+	Parser::symbol_type yylex(InterpreterImp *inter, yyscan_t yyscanner);
 }
 
 %no-lines
@@ -28,27 +28,32 @@
 %define api.token.prefix {TOKEN_}
 %define parse.trace
 %define parse.error verbose
-%param {InterpreterImp &inter}
+%param {InterpreterImp *inter}
 %param {yyscan_t scanner}
 %locations
 %initial-action
 {
-    @$.begin.filename = @$.end.filename = &inter.filename;
+    @$.initialize(inter->filename);
 }
 
 %left LOGICAL_AND LOGICAL_OR
+%left BIT_AND BIT_OR BIT_XOR
 %left EQ NE GT GE LT LE
+%left BIT_LEFT BIT_RIGHT
 %left ADD SUB
 %left MUL DIV MOD
 %nonassoc UMINUS
 %token<Expression> INT_LITERAL STRING_LITERAL DOUBLE_LITERAL BOOL_LITERAL
-%token<Identifier>     IDENTIFIER
+%token<Identifier> IDENTIFIER
 %token END  0  "end of file"
-        INT DOUBLE BOOL STRING ARRAY VAR GLOBAL IF ELSE ELSEIF FOR WHILE IN FINAL CLASS RETURN BREAK CONTINUE REF CONST EDITABLE
-        LP RP LC RC LB RB SEMICOLON COMMA ASSIGN EXCLAMATION DOT NEW THIS PUBLIC READONLY PRIVATE BASE
-        ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN
+        GLOBAL FINAL CLASS REF CONST EDITABLE
+        RETURN BREAK CONTINUE
+        INT DOUBLE BOOL STRING ARRAY VAR 
+        IF ELSE ELSEIF FOR WHILE IN
+        LP RP LC RC LB RB SEMICOLON COMMA ASSIGN EXCLAMATION DOT
+        NEW PUBLIC PROTECTED PRIVATE BASE THIS
+        ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN BIT_LEFT_ASSIGN BIT_RIGHT_ASSIGN BIT_AND_ASSIGN BIT_OR_ASSIGN BIT_XOR_ASSIGN
         INCREMENT DECREMENT REVERSE
-        PRINT
 %type<Expression> expression function_call_expression primary_expression expression_optional binary_expression unary_expression array_expression index_expression dot_expression dot_pre_expression
 %type<Statement> statement block statement_optional class_definition declaration_statement assignment_statement
 %type<StatementList> statement_list
@@ -77,11 +82,11 @@
         ;
     statement: expression SEMICOLON
         {
-            $$ = makeStatement(ExpressionStatement, $1);
+            $$ = makeS(ExpressionStatement, $1);
         }
         | IF LP expression RP statement
         {
-            current_if = makeStatement(IfStatement, $3, $5);
+            current_if = makeS(IfStatement, $3, $5);
             $$ = current_if;
         }
         | ELSE statement
@@ -97,23 +102,23 @@
         }
         | FOR LP statement_optional SEMICOLON expression_optional SEMICOLON statement_optional RP statement
         {
-            $$ = makeStatement(ForStatement, $3, $5, $7, $9);
+            $$ = makeS(ForStatement, $3, $5, $7, $9);
         }
         | WHILE LP statement_optional RP statement
         {
-            $$ = makeStatement(WhileStatement, $3, $5);
+            $$ = makeS(WhileStatement, $3, $5);
         }
         | RETURN expression SEMICOLON
         {
-            $$ = makeStatement(ExpressionStatement, $2);
+            $$ = makeS(ExpressionStatement, $2);
         }
         | CONTINUE SEMICOLON
         {
-            $$ = makeStatement(ContinueStatement);
+            $$ = makeS(ContinueStatement);
         }
         | BREAK SEMICOLON
         {
-            $$ = makeStatement(BreakStatement);
+            $$ = makeS(BreakStatement);
         }
         | IDENTIFIER LP parameter_list RP block
         {
@@ -209,14 +214,15 @@
         }
         | visibility COLON
         {
-            $$ = makeStatement(AccessControlStatement($1));
+            $$ = makeS(AccessControlStatement($1));
         }
         | class_definition
         ;
     assignment_statement: legal_lvalue_expression ASSIGN expression SEMICOLON
         {
-            $$ = makeStatement(AssignmentStatement, $1, $3);
+            $$ = makeS(AssignmentStatement, $1, $3);
         }
+        ;
     legal_lvalue_expression: dot_expression
         {
             $$ = $1;
@@ -227,24 +233,24 @@
         }
         | IDENTIFIER
         {
-            $$ = makeExpression(IdentifierExpression, $1);
+            $$ = makeE(IdentifierExpression, $1);
         }
         ;
     declaration_statement: type_tag declaration_item_list SEMICOLON
         {
-            $$ = makeStatement(BuiltInDeclarationStatement, false, $1, std::move($2));
+            $$ = makeS(BuiltInDeclarationStatement, false, $1, std::move($2));
         }
 		| GLOBAL type_tag declaration_item_list SEMICOLON
         {
-            $$ = makeStatement(BuiltInDeclarationStatement, true, $2, std::move($3));
+            $$ = makeS(BuiltInDeclarationStatement, true, $2, std::move($3));
         }
         | IDENTIFIER declaration_item_list SEMICOLON
         {
-            $$ = makeStatement(DeclarationStatement, false, $1, std::move($2));
+            $$ = makeS(DeclarationStatement, false, $1, std::move($2));
         }
         | GLOBAL IDENTIFIER declaration_item_list SEMICOLON
         {
-            $$ = makeStatement(DeclarationStatement, true, $2, std::move($3));
+            $$ = makeS(DeclarationStatement, true, $2, std::move($3));
         }
         ;
     declaration_item: IDENTIFIER 
@@ -315,7 +321,7 @@
         }
         | IDENTIFIER
         {
-            $$ = makeExpression(IdentifierExpression, $1);
+            $$ = makeE(IdentifierExpression, $1);
         }
         | LP expression RP
         {
@@ -335,7 +341,7 @@
         }
         | NEW IDENTIFIER LP argument_list RP
         {
-            $$ = makeExpression(NewObjectExpression, $2, $4);
+            $$ = makeE(NewObjectExpression, $2, $4);
         }
         | LP expression RP expression
         {
@@ -343,7 +349,7 @@
         }
         | THIS
         {
-            $$ = makeExpression(ThisExpression);
+            $$ = makeE(ThisExpression);
         }
         ;
     index_expression: IDENTIFIER LB expression RB
@@ -370,7 +376,7 @@
         ;
     dot_expression: expression DOT IDENTIFIER
         {
-            $$ = makeExpression(DotExpression, $1, $3);
+            $$ = makeE(DotExpression, $1, $3);
         }
         ;
     expression_optional: /* empty */
@@ -388,15 +394,15 @@
         }
         | expression
         {
-            $$ = makeStatement(ExpressionStatement, $1);
+            $$ = makeS(ExpressionStatement, $1);
         }
         | IDENTIFIER ASSIGN expression
         {
-            $$ = makeStatement(AssignmentStatement, $1, $3);
+            $$ = makeS(AssignmentStatement, $1, $3);
         }
         | dot_expression ASSIGN expression
         {
-            $$ = makeStatement(ObjectAssignmentStatement, $1, $3);
+            $$ = makeS(ObjectAssignmentStatement, $1, $3);
         }
         | declaration_statement
         {
@@ -405,69 +411,97 @@
         ;
     binary_expression: expression ADD expression
         {
-            $$ = makeExpression(BinaryExpression, ADD, $1, $3);
+            $$ = makeE(BinaryExpression, ADD, $1, $3);
         }
         | expression SUB expression
         {
-            $$ = makeExpression(BinaryExpression, SUB, $1, $3);
+            $$ = makeE(BinaryExpression, SUB, $1, $3);
         }
         | expression MUL expression
         {
-            $$ = makeExpression(BinaryExpression, MUL, $1, $3);
+            $$ = makeE(BinaryExpression, MUL, $1, $3);
         }
         | expression DIV expression
         {
-            $$ = makeExpression(BinaryExpression, DIV, $1, $3);
+            $$ = makeE(BinaryExpression, DIV, $1, $3);
         }
         | expression MOD expression
         {
-            $$ = makeExpression(BinaryExpression, MOD, $1, $3);
+            $$ = makeE(BinaryExpression, MOD, $1, $3);
         }
         | expression EQ expression
         {
-            $$ = makeExpression(BinaryExpression, EQ, $1, $3);
+            $$ = makeE(BinaryExpression, EQ, $1, $3);
         }
         | expression NE expression
         {
-            $$ = makeExpression(BinaryExpression, NE, $1, $3);
+            $$ = makeE(BinaryExpression, NE, $1, $3);
         }
         | expression GT expression
         {
-            $$ = makeExpression(BinaryExpression, GT, $1, $3);
+            $$ = makeE(BinaryExpression, GT, $1, $3);
         }
         | expression GE expression
         {
-            $$ = makeExpression(BinaryExpression, GE, $1, $3);
+            $$ = makeE(BinaryExpression, GE, $1, $3);
         }
         | expression LT expression
         {
-            $$ = makeExpression(BinaryExpression, LT, $1, $3);
+            $$ = makeE(BinaryExpression, LT, $1, $3);
         }
         | expression LE expression
         {
-            $$ = makeExpression(BinaryExpression, LE, $1, $3);
+            $$ = makeE(BinaryExpression, LE, $1, $3);
         }
         | expression LOGICAL_AND expression
         {
-            $$ = makeExpression(BinaryExpression, AND, $1, $3);
+            $$ = makeE(BinaryExpression, AND, $1, $3);
         }
         | expression LOGICAL_OR expression
         {
-            $$ = makeExpression(BinaryExpression, OR, $1, $3);
+            $$ = makeE(BinaryExpression, OR, $1, $3);
+        }
+        | expression BIT_AND expression
+        {
+            $$ = makeE(BinaryExpression, BIT_AND, $1, $3);
+        }
+        | expression BIT_OR expression
+        {
+            $$ = makeE(BinaryExpression, BIT_OR, $1, $3);
+        }
+        | expression BIT_XOR expression
+        {
+            $$ = makeE(BinaryExpression, BIT_XOR, $1, $3);
+        }
+        | expression BIT_LEFT expression
+        {
+            $$ = makeE(BinaryExpression, BIT_LEFT, $1, $3);
+        }
+        | expression BIT_RIGHT expression
+        {
+            $$ = makeE(BinaryExpression, BIT_RIGHT, $1, $3);
         }
         ;
     unary_expression: SUB expression %prec UMINUS
         {
-            $$ = makeExpression(UnaryExpression, NEGAT, $2);
+            $$ = makeE(UnaryExpression, MINUS, $2);
+        }
+        | ADD expression %prec UMINUS
+        {
+            $$ = makeE(UnaryExpression, PLUS, $2);
+        }
+        | REVERSE expression %prec UMINUS
+        {
+            $$ = makeE(UnaryExpression, BIT_NOT, $2);
         }
         | EXCLAMATION expression %prec UMINUS
         {
-            $$ = makeExpression(UnaryExpression, NOT, $2);
+            $$ = makeE(UnaryExpression, NEGATION, $2);
         }
         ;
     function_call_expression: expression LP argument_list RP
         {
-            $$ = makeExpression(FunctionCallExpression, $1, std::move($3));
+            $$ = makeE(FunctionCallExpression, $1, std::move($3));
         }
         ;
     primary_expression: INT_LITERAL
@@ -520,11 +554,11 @@
         ;
     block: LC statement_list RC
         {
-            $$ = makeStatement(BlockStatement, std::move($2));
+            $$ = makeS(BlockStatement, std::move($2));
         }
         | LC RC
         {
-            $$ = makeStatement(BlockStatement, StatementList());
+            $$ = makeS(BlockStatement, StatementList());
         }
         ;
     argument_list: /* empty */

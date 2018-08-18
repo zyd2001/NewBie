@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstdio>
 
 using namespace zyd2001::NewBie;
 using namespace std;
@@ -25,15 +26,43 @@ void zyd2001::NewBie::Interpreter::parse()
     imp->parse();
 }
 
-void zyd2001::NewBie::InterpreterImp::init()
+InterpreterImp::InterpreterImp() : InterpreterImp(string()) {}
+InterpreterImp::InterpreterImp(const std::string &filename) : filename(filename)
 {
-    null = new object_t(this);
-    root = new object_t(this);
-    temp = new object_t(this);
+    runner = make_unique<Runner>(this);
+    null = new object_t(*runner);
+    root = new object_t(*runner);
+    temp = new object_t(*runner);
+    addGCVertex(null);
+    addGCVertex(root);
+    null_obj = new ObjectContainer(*runner);
+    global_object_map = &runner->variable_stack.top().back();
+    nullFunc = make_shared<func_t>(NewBie_Variant, true, [&](Runner & runner, object_t * obj, const Args & args) { return *null_obj; });
+    nFunc = make_shared<function_t>(for_functionCall, function_t::init_vec{make_pair(ParameterList{ Parameter(NewBie_Variant, Expression(), false, false, for_functionCall) }, nullFunc)});
+    primitive_class[NewBie_Object] = makeObjectClass();
+    primitive_class[NewBie_Int] = makeIntClass();
+    primitive_class[NewBie_Double] = makeDoubleClass();
+    primitive_class[NewBie_Boolean] = makeBooleanClass();
+    primitive_class[NewBie_String] = makeStringClass();
+    primitive_class[NewBie_Function] = makeFunctionClass();
+    primitive_class[NewBie_Class] = makeClassClass();
+    null->cl = primitive_class[NewBie_Object];
+    runner->addGlobalVariable(object_str, NewBie_Class, ObjectContainer(*runner, primitive_class[NewBie_Object]));
+    runner->addGlobalVariable(int_str, NewBie_Class, ObjectContainer(*runner, primitive_class[NewBie_Int]));
+    runner->addGlobalVariable(double_str, NewBie_Class, ObjectContainer(*runner, primitive_class[NewBie_Double]));
+    runner->addGlobalVariable(boolean_str, NewBie_Class, ObjectContainer(*runner, primitive_class[NewBie_Boolean]));
+    runner->addGlobalVariable(string_str, NewBie_Class, ObjectContainer(*runner, primitive_class[NewBie_String]));
+    runner->addGlobalVariable(function_str, NewBie_Class, ObjectContainer(*runner, primitive_class[NewBie_Function]));
+    runner->addGlobalVariable(class_str, NewBie_Class, ObjectContainer(*runner, primitive_class[NewBie_Class]));
 }
 
-InterpreterImp::InterpreterImp() { init(); }
-InterpreterImp::InterpreterImp(const std::string &name) : filename(name) { init(); }
+zyd2001::NewBie::InterpreterImp::~InterpreterImp()
+{
+    delete null_obj;
+    GC(); // gc will delete null
+    delete root;
+    delete temp;
+}
 
 bool InterpreterImp::setFile(const std::string &name)
 {
@@ -73,130 +102,9 @@ void zyd2001::NewBie::InterpreterImp::GC()
 
 void zyd2001::NewBie::InterpreterImp::concurrentGC()
 {
+    throw exception();
     thread t(&InterpreterImp::performGC, this);
     t.detach();
-}
-
-Args zyd2001::NewBie::Runner::_makeArgs(std::vector<helpStruct>&v)
-{
-    Args args;
-    for (auto &i : v)
-    {
-        switch (i.type)
-        {
-            case 2:
-                args.emplace_back(ObjectContainer(inter, *static_cast<int*>(i.ptr)));
-                break;
-            case 3:
-                args.emplace_back(ObjectContainer(inter, *static_cast<double*>(i.ptr)));
-                break;
-            case 4:
-                args.emplace_back(ObjectContainer(inter, *static_cast<bool*>(i.ptr)));
-                break;
-            case 5:
-                args.emplace_back(ObjectContainer(inter, *static_cast<String*>(i.ptr)));
-                break;
-        }
-    }
-    return args;
-}
-
-RAIIStack::RAIIStack(Runner &r) : runner(r)
-{
-    runner.variable_stack.emplace(vector<ObjectMap>());
-}
-
-RAIIStack::~RAIIStack()
-{
-    runner.variable_stack.pop();
-}
-
-zyd2001::NewBie::RAIIScope::RAIIScope(Runner & r) : runner(r)
-{
-    runner.variable_stack.top().emplace_back(ObjectMap());
-    runner.current_obj_map = &runner.variable_stack.top().back();
-}
-
-zyd2001::NewBie::RAIIScope::~RAIIScope()
-{
-    for (auto iter = runner.current_obj_map->begin(); iter != runner.current_obj_map->end();)
-    {
-        runner.inter->delGCEdge(runner.inter->root, iter->second->get());
-        iter = runner.current_obj_map->erase(iter);
-    }
-    runner.variable_stack.top().pop_back();
-    runner.current_obj_map = &runner.variable_stack.top().back();
-}
-
-RAIIFunc::RAIIFunc(Func f, Runner & r) : runner(r)
-{
-    runner.call_stack_func.emplace(f);
-}
-
-RAIIFunc::~RAIIFunc()
-{
-    runner.call_stack_func.pop();
-}
-
-zyd2001::NewBie::RAIIFuncName::RAIIFuncName(Identifier name, Runner & r) : runner(r)
-{
-    runner.call_stack_name.emplace(name);
-}
-
-RAIIFuncName::~RAIIFuncName()
-{
-    runner.call_stack_name.pop();
-}
-
-ObjectContainer zyd2001::NewBie::Runner::returnVal()
-{
-    auto f = call_stack_func.top();
-    ObjectContainer o;
-    if (f->ref)
-    {
-        if (inter->typeCheck(f->return_type, temp_obj->get()))
-            o = temp_obj;
-        else
-            throw exception();
-    }
-    else
-    {
-        if (inter->typeCheck(f->return_type, temp_obj->get()))
-            o = temp_obj.copy(*this);
-        else
-            throw exception();
-    }
-    temp_obj = Runner::null_obj; //reset temp_obj after return
-    return o;
-}
-
-ObjectContainer zyd2001::NewBie::Runner::addRefVariable(Identifier name, ObjectContainer oc)
-{
-    auto o = current_obj_map->find(name);
-    if (o != current_obj_map->end())
-        current_obj_map->emplace(name, oc);
-    else
-        throw exception();
-}
-
-ObjectContainer zyd2001::NewBie::Runner::addVariable(Identifier name, ObjectType type, ObjectContainer o, bool cons)
-{
-    auto oc = addVariable(name, type, cons);
-    oc->set(*this, o);
-    return oc;
-}
-
-ObjectContainer zyd2001::NewBie::Runner::addVariable(Identifier name, ObjectType type, bool cons)
-{
-    auto o = current_obj_map->find(name);
-    if (o != current_obj_map->end())
-    {
-        ObjectContainer oc(make_shared<object_container_t>(type, inter->root, cons));
-        current_obj_map->emplace(name, oc);
-        return oc;
-    }
-    else
-        throw exception();
 }
 
 void InterpreterImp::parse()
@@ -213,156 +121,21 @@ void InterpreterImp::parse()
 
 bool zyd2001::NewBie::InterpreterImp::run()
 {
-    Runner runner(this);
-    runner.interpret(statement_list);
-    return false;
-}
-
-void zyd2001::NewBie::InterpreterImp::declareVariable(Identifier id, ObjectType type, bool global = false)
-{
-    ObjectMap *obj_map;
-    if (global)
-        obj_map = &global_variables;
-    else
-        obj_map = current_variables;
-    auto v = obj_map->find(id);
-    if (v != obj_map->end())
-        throw exception();
-    auto cl = class_map.second.at(type);
-    Object obj(cl->makeObject(ArgumentList()));
-    (*obj_map)[id] = obj;
-    addGCEdge(root, obj);
-}
-
-void zyd2001::NewBie::InterpreterImp::declareVariable(Identifier id, Identifier type_name, bool global)
-{
-    declareVariable(id, class_map.first.at(type_name), global);
-}
-
-void zyd2001::NewBie::InterpreterImp::declareVariable(Identifier id, ObjectType type, Object obj, bool global)
-{
-    ObjectMap *obj_map;
-    if (global)
-        obj_map = &global_variables;
-    else
-        obj_map = current_variables;
-    auto v = obj_map->find(id);
-    if (v != obj_map->end())
-        throw exception();
-    if (typeCheck(type, obj))
-    {
-        (*obj_map)[id] = obj;
-        addGCEdge(root, obj);
-    }
-    else
-        throw exception();
-}
-
-void zyd2001::NewBie::InterpreterImp::deleteVariable(Identifier id, bool global)
-{
-    ObjectMap *obj_map;
-    if (global)
-        obj_map = &global_variables;
-    else
-        obj_map = current_variables;
-    auto v = obj_map->find(id);
-    if (v == obj_map->end())
-        throw exception();
-    delGCEdge(root, v->second);
-    obj_map->erase(v);
-}
-
-Object &zyd2001::NewBie::InterpreterImp::getVariable(Identifier id, bool global)
-{
-    if (global)
-        return global_variables.at(id);
-    else
-    {
-        auto v = current_variables->find(id);
-        if (v == current_variables->end())
-        {
-            for (auto iter = variables_stack.top().rbegin() + 1; iter != variables_stack.top().rend(); iter++)
-            {
-                v = iter->find(id);
-                if (v != iter->end())
-                    return v->second;
-            }
-            throw exception();
-        }
-        else
-            return v->second;
-    }
-}
-
-//void zyd2001::NewBie::InterpreterImp::changeVariable(Identifier id, Object o, bool global)
-//{
-//    if (global)
-//    {
-//        auto v = global_variables.at(id);
-//        if (typeCheck(v, o))
-//        {
-//            delGCEdge(root, v);
-//            v = o;
-//            addGCEdge(root, o);
-//        }
-//        else
-//            throw exception();
-//    }
-//    else
-//    {
-//        auto v = current_variables->find(id);
-//        if (v == current_variables->end())
-//        {
-//            auto iter = variables_stack.top().rbegin() + 1;
-//            for (; iter != variables_stack.top().rend(); iter++)
-//            {
-//                v = iter->find(id);
-//                if (v != iter->end())
-//                    break;
-//            }
-//            if (v == iter->end())
-//                throw exception();
-//        }
-//        if (typeCheck(v->second, o))
-//        {
-//            delGCEdge(root, v->second);
-//            v->second = o;
-//            addGCEdge(root, o);
-//        }
-//        else
-//            throw exception();
-//    }
-//}
-
-bool zyd2001::NewBie::InterpreterImp::typeCheck(Object l, Object r)
-{
-    if (l.obj()->type == r.obj()->type)
-        return true;
-    else
-        return typeCheck(l.restrict_type, r);
-}
-
-bool zyd2001::NewBie::InterpreterImp::typeCheck(ObjectType t, Object o)
-{
-    if (t == 0) //variant type
-        return true;
-    if (t == o.obj()->type)
-        return true;
-    for (auto &i : o.obj()->bases)
-        if (t == i->type)
-            return true;
+    runner->interpret(statement_list);
     return false;
 }
 
 void zyd2001::NewBie::InterpreterImp::addGCVertex(object_t * o)
 {
-    if (o != nullptr && !o->cl->RAII)
+    assert(o != nullptr);
+    if (!o->cl->RAII)
         gc_graph.addVertex(o);
 }
 
 void zyd2001::NewBie::InterpreterImp::delGCVertex(object_t * o)
 {
-    if (o != nullptr && !o->cl->RAII)
+    assert(o != nullptr);
+    if (!o->cl->RAII)
     {
         gc_graph.delVertex(o);
         delete o;
@@ -371,33 +144,29 @@ void zyd2001::NewBie::InterpreterImp::delGCVertex(object_t * o)
 
 void zyd2001::NewBie::InterpreterImp::addGCEdge(object_t *v, object_t *w)
 {
-    if (v != nullptr && w != nullptr)
-    {
-        if (w->cl->RAII)
-            return;
-        if (v->cl->RAII || v == temp) // temporary non-RAII object belongs to root
-            gc_graph.addEdge(root, w);
-        else
-            gc_graph.addEdge(v, w);
-    }
+    assert(v != nullptr && w != nullptr);
+    if (w->cl->RAII)
+        return;
+    if (v->cl->RAII || v == temp) // temporary non-RAII object belongs to root
+        gc_graph.addEdge(root, w);
+    else
+        gc_graph.addEdge(v, w);
 }
 
 void zyd2001::NewBie::InterpreterImp::delGCEdge(object_t *v, object_t *w)
 {
-    if (v != nullptr && w != nullptr)
-    {
-        if (w->cl->RAII)
-            return; 
-        if (v->cl->RAII || v == temp) // an object belongs to an RAII object actually belongs to root
-            gc_graph.delEdge(root, w);
-        else
-            gc_graph.delEdge(v, w);
-    }
+    assert(v != nullptr && w != nullptr);
+    if (w->cl->RAII)
+        return;
+    if (v->cl->RAII || v == temp) // an object belongs to an RAII object actually belongs to root
+        gc_graph.delEdge(root, w);
+    else
+        gc_graph.delEdge(v, w);
 }
 
 bool zyd2001::NewBie::InterpreterImp::typeCheck(ObjectType t, object_t * o)
 {
-    if (t == 1) //variant type
+    if (t == NewBie_Variant)
         return true;
     if (t == o->type)
         return true;
@@ -415,26 +184,46 @@ Class zyd2001::NewBie::InterpreterImp::findClass(Identifier id)
     return class_map.second.at(class_map.first.at(id));
 }
 
+Class zyd2001::NewBie::InterpreterImp::findClass(ObjectType type)
+{
+    return class_map.second.at(type);
+}
+
 ObjectType zyd2001::NewBie::InterpreterImp::findClassId(Identifier id)
 {
     return class_map.first.at(id);
 }
 
-std::vector<Object> zyd2001::NewBie::InterpreterImp::resolveArgumentList(ArgumentList &alist)
+void zyd2001::NewBie::InterpreterImp::registerClass(Identifier type_name, std::vector<ObjectType>& base, bool RAII, bool editable, bool isFinal,
+    Constructor ctor, Func dtor, Operator & o, class_t::vars & variables, std::function<void(void*)> native_deleter)
 {
-    std::vector<Object> args;
-    for (auto &a : alist)
-        args.emplace_back(a->evaluate());
-    return args;
+    class_count++;
+    vector<Class> base_list;
+    for (auto & i : base)
+    {
+        Class c = findClass(i);
+        if (c->isFinal)
+            throw exception();
+        base_list.emplace_back(c);
+    }
+    Class cl = make_shared<class_t>(this, type_name, class_count, base_list, RAII, editable, isFinal, ctor, dtor, o, variables, native_deleter);
+    class_map.first[type_name] = class_count;
+    class_map.second[class_count] = cl;
 }
 
-ParameterList zyd2001::NewBie::InterpreterImp::ArgsToParams(std::vector<Object> &args)
+void zyd2001::NewBie::InterpreterImp::registerClass(Identifier type_name, std::vector<Identifier>& base, bool RAII, bool editable, bool isFinal,
+    Constructor ctor, Func dtor, Operator & o, class_t::vars & variables, std::function<void(void*)> native_deleter)
 {
-    ParameterList params;
-    for (auto &arg : args)
+    class_count++;
+    vector<Class> base_list;
+    for (auto & i : base)
     {
-        params.emplace_back(Parameter());
-        params.back().type = arg.obj()->type;
+        Class c = findClass(i);
+        if (c->isFinal)
+            throw exception();
+        base_list.emplace_back(c);
     }
-    return params;
+    Class cl = make_shared<class_t>(this, type_name, class_count, base_list, RAII, editable, isFinal, ctor, dtor, o, variables, native_deleter);
+    class_map.first[type_name] = class_count;
+    class_map.second[class_count] = cl;
 }
